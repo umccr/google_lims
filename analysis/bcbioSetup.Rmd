@@ -1,0 +1,182 @@
+---
+title: "UMCCR Sample Summary"
+author: "Oliver Hofmann"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    toc: false
+    toc_float: false
+    code_folding: hide
+---
+
+Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in.
+
+```{r custom, echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(scales)
+library(gridExtra)
+library(gtools)
+library(RColorBrewer)
+library(knitr)
+library(tidyr)
+library(rmarkdown)
+library(dplyr)
+library(DT)
+library(readr)
+library(forcats)
+library(stringr)
+library(janitor)
+library(googlesheets)
+library(here)
+library(skimr)
+```
+
+## Clean up data
+
+Unifying variable names and simplifying subject IDs for bcbio. Replacing empty `results` cells (which indicate samples that still need processing) with a `-` to distinguish from true NAs; also getting rid of whitespace in subject identifiers. Otherwise standard data cleanup with `janitor`. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.
+
+```{r importData, message=FALSE}
+# Register UMCCR spreadsheet. Use cached authentication
+gs_auth(token="./googlesheets_token.rds")
+samples_gs <- gs_key('1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs')
+
+# Create a backup copy each time we access the sample info
+tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
+timestamp <- strftime(tm , "%Y-%m-%dT%H%M")
+filename <- paste(timestamp, 'backup.csv', sep='_')
+
+samples_gs %>%
+  gs_download(ws='Sheet1', to=here('backup', filename)) 
+
+# Tweak for analysis
+samples <- samples_gs %>%
+  gs_read(ws='Sheet1') %>%
+  clean_names() %>%
+  remove_empty(c('rows', 'cols')) %>%
+  mutate(subject_id = gsub(' ', '.', subject_id)) %>%
+  mutate(results = ifelse(is.na(results), '-', results))
+```
+
+## bcbio config
+
+Detail the project information. This currently requires specifying both project name and the type of sequencing data (`WGS`, `WTS`, `10X-WGS`, etc.) and will pull out all files of that type and from that project that do not have results associated with them. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID.
+
+```{r project}
+PROJECT <- '10X-Collaboration'
+TYPE <- '10X_WGS'
+```
+
+### Create rsync list
+
+Find all FASTQs for samples that still need to be processed. The generated output file can be used on Spartan to generate (hard)links ready for `rsync` to NCI or `aws s3 cp` to, well, S3. It also generates 'better' sample names by renaming the FASTQ files from the filename to the sample name.
+
+```{r csv, eval=FALSE}
+# Keep rows matching project and type requested; extract path to FASTQ
+# and generate new file name for these
+bcbio <- samples %>%
+  filter(project == PROJECT & 
+           type == TYPE &
+           results == '-') %>%
+  select(fastq, sample_id, sample_name, subject_id, phenotype) %>%
+  mutate(runname = basename(fastq)) %>%
+  mutate(targetname = paste(runname, sample_name, sep='_')) 
+
+# Former filters currently not in use, just for reference
+#   results != 'Failed' &
+#   !str_detect(results, 'cephfs')) %>%
+
+# Create a file list ready for linking
+read1 <- bcbio %>%
+  mutate(from = paste(fastq, '/', sample_id, '_R1_001.fastq.gz', sep='')) %>%
+  mutate(to = paste(targetname, '_R1_001.fastq.gz', sep='')) %>%
+  select(from, to)
+
+read2 <- bcbio %>%
+  mutate(from = paste(fastq, '/', sample_id, '_R2_001.fastq.gz', sep='')) %>%
+  mutate(to = paste(targetname, '_R2_001.fastq.gz', sep='')) %>%
+  select(from, to)
+
+link <- rbind(read1, read2)
+
+# Write the file list for linking on Spartan
+write.table(paste('ln', link$from, link$to, sep=' '),
+            file=here('..', 'output', paste(timestamp, '_', PROJECT, '_', TYPE, '_files.txt', sep='')),
+            col.names=FALSE,
+            row.names=FALSE,
+            quote=FALSE)
+```
+
+### Create bcbio config (tumor/normal WGS)
+
+Generate a `.csv` sample descriptor, assigning patient/family identifiers for Peddy, assigning batches based on the subject id, and pairing tumor/normals as needed. Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using `bcbio_prepare_samples.py`.
+
+```{r bcbioconfig}
+# Use the same information to generate the bcbio CSV file
+# Keep the required columns and add information for peddy
+template <- bcbio %>% 
+  mutate(family_id=subject_id) %>%
+  mutate(individual_id=subject_id) %>%
+  select(samplename=targetname, 
+         description=sample_name,
+         batch=subject_id,
+         phenotype, family_id, individual_id)
+
+# Handle cases where a normal matches more than tumor sample. 
+# Courtesy of Peter Diakumis
+get_new_batch <- function(batch, phenotype) {
+  stopifnot(length(batch) == length(phenotype))
+  n <- length(batch)
+
+  new_batch <- vector(mode = "character", length = n)
+  x <- table(phenotype)
+
+  if (n > 2) {
+    tum_ns <- seq_len(x["tumor"])
+    new_batch[phenotype == "tumor"] <- paste0(batch[phenotype == "tumor"], '_', tum_ns)
+    # assume only one normal for now
+    new_batch[phenotype == "normal"] <- paste0(batch[phenotype == "tumor"], '_', tum_ns, collapse = ";")
+  } else {
+    new_batch <- batch
+  }
+  return(new_batch)
+}
+
+# Remove top-up samples (samples with the exact same description)
+# before calculating batch assignments. We'll add them back in later
+unique_samples <- template %>%
+  group_by(description) %>%
+  filter(row_number(description) == 1)
+
+# Create batch information
+batches <- unique_samples %>%
+  group_by(batch) %>%
+  mutate(new_batch = get_new_batch(batch, phenotype)) 
+
+# Bring back the batch information to the main template
+template <- template %>%
+  left_join(batches, by=c('description')) %>%
+  select(samplename=samplename.x,
+         description,
+         batch=new_batch,
+         phenotype=phenotype.x,
+         family_id=family_id.x,
+         individual_id=individual_id.x)
+
+# Since we are merging add the R1/R2 readpair information. Could probably 
+# be more elegant...
+template_R1 <- template %>%
+  mutate(samplename = paste(samplename, '_R1_001.fastq.gz', sep=''))
+template_R2 <- template %>%
+  mutate(samplename = paste(samplename, '_R2_001.fastq.gz', sep=''))
+template <- rbind(template_R1, template_R2)
+
+write.table(template,
+            file=here(paste(timestamp, '_', PROJECT, '_', TYPE, '.csv', sep='')),
+            row.names=FALSE,
+            col.names=TRUE,
+            quote=FALSE,
+            sep=',')
+```
+
+
