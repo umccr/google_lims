@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Oliver Hofmann" />
+
+<meta name="date" content="2018-08-07" />
+
+<title>UMCCR Sample Summary</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">google_lims</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">UMCCR Sample Summary</h1>
+<h4 class="author"><em>Oliver Hofmann</em></h4>
+<h4 class="date"><em>2018-08-07</em></h4>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2018-08-07</p>
+<strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
+<ul>
+<li>
+<p><details> <summary> <strong style="color:red;">✖</strong> <strong>R Markdown file:</strong> uncommitted changes </summary> The R Markdown file has unstaged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Environment:</strong> empty </summary></p>
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Seed:</strong> <code>set.seed(20180807)</code> </summary></p>
+<p>The command <code>set.seed(20180807)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Session information:</strong> recorded </summary></p>
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/umccr/google_lims/tree/21ae9a07bde7d2fbc342e209a66d783e79f391f3" target="_blank">21ae9a0</a> </summary></p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+<pre><code>
+Ignored files:
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    analysis/figure/
+    Ignored:    googlesheets_token.rds
+    Ignored:    output/backup/
+
+Untracked files:
+    Untracked:  analysis/snippets.Rmd
+    Untracked:  output/2018-08-07T0623_10X-Collaboration_10X_WGS.csv
+    Untracked:  output/2018-08-07T0623_10X-Collaboration_10X_WGS_files.txt
+
+Unstaged changes:
+    Modified:   analysis/bcbioSetup.Rmd
+
+</code></pre>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
+</li>
+</ul>
+<details> <summary> <small><strong>Expand here to see past versions:</strong></small> </summary>
+<ul>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+File
+</th>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:left;">
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/2d7da7dff41939e7e2e9485b740c9c8c2aaf4a3b/analysis/bcbioSetup.Rmd" target="_blank">2d7da7d</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-08-07
+</td>
+<td style="text-align:left;">
+Added suport for GS backups, positive/negative WGS controls
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/2668914e610fab23cc16b1cf5890f916d1f0a14e/analysis/bcbioSetup.Rmd" target="_blank">2668914</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-08-07
+</td>
+<td style="text-align:left;">
+Added rsync and bcbio sample sheet generator
+</td>
+</tr>
+</tbody>
+</table>
+</ul>
+<p></details></p>
+<hr />
+<p>Code snippets to generate file summaries (for rsync’ing around) and bcbio sample summaries based on a <a href="https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0">Google Spreadsheet</a>, aka the dreadful LIMS stand-in.</p>
+<div id="clean-up-data" class="section level2">
+<h2>Clean up data</h2>
+<p>Unifying variable names and simplifying subject IDs for bcbio. Replacing empty <code>results</code> cells (which indicate samples that still need processing) with a <code>-</code> to distinguish from true NAs; also getting rid of whitespace in subject identifiers. Otherwise standard data cleanup with <code>janitor</code>. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.</p>
+<pre class="r"><code># Register UMCCR spreadsheet. Use cached authentication
+gs_auth(token=&quot;./googlesheets_token.rds&quot;)
+samples_gs &lt;- gs_key(&#39;1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs&#39;)
+
+# Create a backup copy each time we access the sample info
+tm &lt;- as.POSIXlt(Sys.time(), &quot;UTC&quot;, &quot;%Y-%m-%dT%H:%M:%S&quot;)
+timestamp &lt;- strftime(tm , &quot;%Y-%m-%dT%H%M&quot;)
+filename &lt;- paste(timestamp, &#39;backup.csv&#39;, sep=&#39;_&#39;)
+
+samples_gs %&gt;%
+  gs_download(ws=&#39;Sheet1&#39;, to=here::here(&#39;output&#39;, &#39;backup&#39;, filename)) 
+
+# Tweak for analysis
+samples &lt;- samples_gs %&gt;%
+  gs_read(ws=&#39;Sheet1&#39;) %&gt;%
+  clean_names() %&gt;%
+  remove_empty(c(&#39;rows&#39;, &#39;cols&#39;)) %&gt;%
+  mutate(subject_id = gsub(&#39; &#39;, &#39;.&#39;, subject_id)) %&gt;%
+  mutate(results = ifelse(is.na(results), &#39;-&#39;, results))</code></pre>
+</div>
+<div id="bcbio-config" class="section level2">
+<h2>bcbio config</h2>
+<p>Detail the project information. This currently requires specifying both project name and the type of sequencing data (<code>WGS</code>, <code>WTS</code>, <code>10X-WGS</code>, etc.) and will pull out all files of that type and from that project that do not have results associated with them. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID.</p>
+<pre class="r"><code>PROJECT &lt;- &#39;10X-Collaboration&#39;
+TYPE &lt;- &#39;10X_WGS&#39;</code></pre>
+</div>
+<div id="wgs" class="section level2">
+<h2>WGS</h2>
+<div id="create-rsync-list" class="section level3">
+<h3>Create rsync list</h3>
+<p>Find all FASTQs for samples that still need to be processed. The generated output file can be used on Spartan to generate (hard)links ready for <code>rsync</code> to NCI or <code>aws s3 cp</code> to, well, S3. It also generates ‘better’ sample names by renaming the FASTQ files from the filename to the sample name.</p>
+<pre class="r"><code># Keep rows matching project and type requested; extract path to FASTQ
+# and generate new file name for these
+bcbio &lt;- samples %&gt;%
+  filter(project == PROJECT &amp; 
+           type == TYPE &amp;
+           results == &#39;-&#39;) %&gt;%
+  select(fastq, sample_id, sample_name, subject_id, phenotype) %&gt;%
+  mutate(runname = basename(fastq)) %&gt;%
+  mutate(targetname = paste(runname, sample_name, sep=&#39;_&#39;)) 
+
+# Former filters currently not in use, just for reference
+#   results != &#39;Failed&#39; &amp;
+#   !str_detect(results, &#39;cephfs&#39;)) %&gt;%
+
+# Create a file list ready for linking
+read1 &lt;- bcbio %&gt;%
+  mutate(from = paste(fastq, &#39;/&#39;, sample_id, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  mutate(to = paste(targetname, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  select(from, to)
+
+read2 &lt;- bcbio %&gt;%
+  mutate(from = paste(fastq, &#39;/&#39;, sample_id, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  mutate(to = paste(targetname, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  select(from, to)
+
+link &lt;- rbind(read1, read2)
+
+# Write the file list for linking on Spartan
+write.table(paste(&#39;ln&#39;, link$from, link$to, sep=&#39; &#39;),
+            file=here::here(&#39;output&#39;, paste(timestamp, &#39;_&#39;, PROJECT, &#39;_&#39;, TYPE, &#39;_files.txt&#39;, sep=&#39;&#39;)),
+            col.names=FALSE,
+            row.names=FALSE,
+            quote=FALSE)</code></pre>
+</div>
+<div id="create-bcbio-config-tumornormal-wgs" class="section level3">
+<h3>Create bcbio config (tumor/normal WGS)</h3>
+<p>Generate a <code>.csv</code> sample descriptor, assigning patient/family identifiers for Peddy, assigning batches based on the subject id, and pairing tumor/normals as needed. Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using <code>bcbio_prepare_samples.py</code>.</p>
+<pre class="r"><code># Use the same information to generate the bcbio CSV file
+# Keep the required columns and add information for peddy
+template &lt;- bcbio %&gt;% 
+  mutate(family_id=subject_id) %&gt;%
+  mutate(individual_id=subject_id) %&gt;%
+  select(samplename=targetname, 
+         description=sample_name,
+         batch=subject_id,
+         phenotype, family_id, individual_id)
+
+# Handle cases where a normal matches more than tumor sample. 
+# Courtesy of [Peter Diakumis](https://github.com/pdiakumis)
+get_new_batch &lt;- function(batch, phenotype) {
+  stopifnot(length(batch) == length(phenotype))
+  n &lt;- length(batch)
+
+  new_batch &lt;- vector(mode = &quot;character&quot;, length = n)
+  x &lt;- table(phenotype)
+
+  if (n &gt; 2) {
+    tum_ns &lt;- seq_len(x[&quot;tumor&quot;])
+    new_batch[phenotype == &quot;tumor&quot;] &lt;- paste0(batch[phenotype == &quot;tumor&quot;], &#39;_&#39;, tum_ns)
+    # assume only one normal for now
+    new_batch[phenotype == &quot;normal&quot;] &lt;- paste0(batch[phenotype == &quot;tumor&quot;], &#39;_&#39;, tum_ns, collapse = &quot;;&quot;)
+  } else {
+    new_batch &lt;- batch
+  }
+  return(new_batch)
+}
+
+# Remove top-up samples (samples with the exact same description)
+# before calculating batch assignments. We&#39;ll add them back in later
+unique_samples &lt;- template %&gt;%
+  group_by(description) %&gt;%
+  filter(row_number(description) == 1)
+
+# Create batch information
+batches &lt;- unique_samples %&gt;%
+  group_by(batch) %&gt;%
+  mutate(new_batch = get_new_batch(batch, phenotype)) 
+
+# Bring back the batch information to the main template
+template &lt;- template %&gt;%
+  left_join(batches, by=c(&#39;description&#39;)) %&gt;%
+  select(samplename=samplename.x,
+         description,
+         batch=new_batch,
+         phenotype=phenotype.x,
+         family_id=family_id.x,
+         individual_id=individual_id.x)
+
+# Since we are merging add the R1/R2 readpair information. Could probably 
+# be more elegant...
+template_R1 &lt;- template %&gt;%
+  mutate(samplename = paste(samplename, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;))
+template_R2 &lt;- template %&gt;%
+  mutate(samplename = paste(samplename, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;))
+template &lt;- rbind(template_R1, template_R2)
+
+write.table(template,
+            file=here::here(&#39;output&#39;, paste(timestamp, &#39;_&#39;, PROJECT, &#39;_&#39;, TYPE, &#39;.csv&#39;, sep=&#39;&#39;)),
+            row.names=FALSE,
+            col.names=TRUE,
+            quote=FALSE,
+            sep=&#39;,&#39;)</code></pre>
+</div>
+</div>
+<div id="wgs-positive-controls" class="section level2">
+<h2>WGS Positive Controls</h2>
+<p>Positive controls use a slightly different template (and only require germline calls); we also do not merge files prior to processing. We do add a timestamp to the batch based on the Illumina Run Identifier to be abe to sort / filter by time of the run in MultiQC and define the gold standard / benchmarkfiles to use for <code>rtg eval</code>:</p>
+<pre class="r"><code># Define what validation data to use; all of these are
+# shipped with bcbio so we don&#39;t have to prep standards
+validations &lt;- c(&#39;giab-NA12878&#39;, &#39;giab-NA24385&#39;, &#39;giab-NA24631&#39;)
+names(validations) &lt;- c(&#39;NA12878&#39;, &#39;NA24385&#39;, &#39;NA24631&#39;)
+
+# rsync command as before
+bcbio &lt;- samples %&gt;%
+  filter(project == &#39;Positive-control&#39; &amp; 
+           type == &#39;WGS&#39; &amp;
+           results == &#39;-&#39;) %&gt;%
+  mutate(targetname = paste(illumina_id, sample_name, sep=&#39;_&#39;)) %&gt;%
+  select(fastq, sample_id, sample_name, targetname, subject_id, phenotype)
+
+# Create a file list ready for linking
+read1 &lt;- bcbio %&gt;%
+  mutate(from = paste(fastq, &#39;/&#39;, sample_id, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  mutate(to = paste(targetname, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  select(from, to)
+
+read2 &lt;- bcbio %&gt;%
+  mutate(from = paste(fastq, &#39;/&#39;, sample_id, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  mutate(to = paste(targetname, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  select(from, to)
+
+link &lt;- rbind(read1, read2)
+
+# Write the file list for linking
+write.table(paste(&#39;ln&#39;, link$from, link$to, sep=&#39; &#39;),
+            file=here::here(&#39;output&#39;, paste(timestamp, &#39;_posControl_files.txt&#39;, sep=&#39;&#39;)),
+            col.names=FALSE,
+            row.names=FALSE,
+            quote=FALSE)
+
+# As before, generate bcbio CSV. Simpler process here.
+template &lt;- bcbio %&gt;% 
+  mutate(family_id=subject_id) %&gt;%
+  mutate(individual_id=subject_id) %&gt;%
+  select(samplename=targetname, 
+         batch=subject_id,
+         phenotype, family_id, individual_id)
+
+# Add timestamp to description, batch
+template &lt;- template %&gt;%
+  separate(samplename, c(&#39;timestamp&#39;, &#39;machine&#39;, &#39;run&#39;),
+           sep=&#39;_&#39;, extra=&quot;drop&quot;, 
+           remove=FALSE) %&gt;%
+  mutate(description=paste(timestamp, machine, run, batch, sep=&#39;-&#39;)) %&gt;%
+  mutate(batch=paste(&#39;batch&#39;, timestamp, machine, run, batch, sep=&#39;-&#39;)) %&gt;%
+    select(samplename, description, batch, phenotype,
+         family_id, individual_id)
+
+# Add the validation information
+template &lt;- template %&gt;% 
+  mutate(validate=paste(validations[individual_id], 
+                        &#39;truth_small_variants.vcf.gz&#39;, sep=&#39;/&#39;)) %&gt;%
+  mutate(validate_regions=paste(validations[individual_id], 
+                                &#39;truth_regions.bed&#39;, sep=&#39;/&#39;)) %&gt;%
+  mutate(validate_batch=individual_id)
+  
+write.table(template,
+            file=here::here(&#39;output&#39;, paste(timestamp, &#39;_posControl.csv&#39;, sep=&#39;&#39;)),
+            row.names=FALSE,
+            col.names=TRUE,
+            quote=FALSE,
+            sep=&#39;,&#39;)</code></pre>
+<div id="wgs-negative-controls" class="section level3">
+<h3>WGS Negative Controls</h3>
+<p>For negative controls we only need to collect all relevant files in one place (hardlinks again) and check the results with <code>find . -type f -size +500M -exec ls -sh {} \; 2&gt; /dev/null</code>.</p>
+<pre class="r"><code># rsync command as before
+bcbio &lt;- samples %&gt;%
+  filter(project == &#39;Negative-control&#39;) %&gt;%
+  mutate(targetname = paste(illumina_id, sample_name, sep=&#39;_&#39;)) %&gt;%
+  select(fastq, sample_id, sample_name, targetname, subject_id, phenotype)
+
+# Create a file list ready for linking
+read1 &lt;- bcbio %&gt;%
+  mutate(from = paste(fastq, &#39;/&#39;, sample_id, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  mutate(to = paste(targetname, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  select(from, to)
+
+read2 &lt;- bcbio %&gt;%
+  mutate(from = paste(fastq, &#39;/&#39;, sample_id, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  mutate(to = paste(targetname, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  select(from, to)
+
+link &lt;- rbind(read1, read2)
+
+# Write the file list for linking
+write.table(paste(&#39;ln&#39;, link$from, link$to, sep=&#39; &#39;),
+            file=here::here(&#39;output&#39;, paste(timestamp, &#39;_negControl_files.txt&#39;, sep=&#39;&#39;)),
+            col.names=FALSE,
+            row.names=FALSE,
+            quote=FALSE)</code></pre>
+</div>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.5.0 (2018-04-23)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS High Sierra 10.13.3
+
+Matrix products: default
+BLAS: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] skimr_1.0.2        here_0.1           googlesheets_0.2.2
+ [4] janitor_1.0.0      stringr_1.3.0      forcats_0.3.0     
+ [7] readr_1.1.1        DT_0.4             dplyr_0.7.4       
+[10] rmarkdown_1.9      tidyr_0.8.0        knitr_1.20        
+[13] RColorBrewer_1.1-2 gtools_3.5.0       gridExtra_2.3     
+[16] scales_0.5.0       ggplot2_2.2.1     
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_0.12.16      cellranger_1.1.0  compiler_3.5.0   
+ [4] pillar_1.2.1      git2r_0.23.0      plyr_1.8.4       
+ [7] workflowr_1.1.1   bindr_0.1.1       R.methodsS3_1.7.1
+[10] R.utils_2.6.0     tools_3.5.0       digest_0.6.15    
+[13] evaluate_0.10.1   tibble_1.4.2      gtable_0.2.0     
+[16] pkgconfig_2.0.1   rlang_0.2.0       yaml_2.1.18      
+[19] bindrcpp_0.2.2    hms_0.4.2         htmlwidgets_1.2  
+[22] tidyselect_0.2.4  rprojroot_1.3-2   grid_3.5.0       
+[25] glue_1.2.0        R6_2.2.2          pander_0.6.1     
+[28] purrr_0.2.4       magrittr_1.5      whisker_0.3-2    
+[31] backports_1.1.2   htmltools_0.3.6   assertthat_0.2.0 
+[34] colorspace_1.3-2  stringi_1.1.7     lazyeval_0.2.1   
+[37] munsell_0.4.3     R.oo_1.22.0      </code></pre>
+</div>
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+<hr>
+<p>
+  This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+  analysis was created with
+  <a href="https://github.com/jdblischak/workflowr">workflowr</a> 1.1.1
+</p>
+<hr>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

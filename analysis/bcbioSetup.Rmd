@@ -36,7 +36,7 @@ library(skimr)
 
 Unifying variable names and simplifying subject IDs for bcbio. Replacing empty `results` cells (which indicate samples that still need processing) with a `-` to distinguish from true NAs; also getting rid of whitespace in subject identifiers. Otherwise standard data cleanup with `janitor`. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.
 
-```{r importData, message=FALSE}
+```{r importData, message=FALSE, eval=FALSE}
 # Register UMCCR spreadsheet. Use cached authentication
 gs_auth(token="./googlesheets_token.rds")
 samples_gs <- gs_key('1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs')
@@ -62,7 +62,7 @@ samples <- samples_gs %>%
 
 Detail the project information. This currently requires specifying both project name and the type of sequencing data (`WGS`, `WTS`, `10X-WGS`, etc.) and will pull out all files of that type and from that project that do not have results associated with them. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID.
 
-```{r project}
+```{r project, eval=FALSE}
 PROJECT <- '10X-Collaboration'
 TYPE <- '10X_WGS'
 ```
@@ -113,7 +113,7 @@ write.table(paste('ln', link$from, link$to, sep=' '),
 
 Generate a `.csv` sample descriptor, assigning patient/family identifiers for Peddy, assigning batches based on the subject id, and pairing tumor/normals as needed. Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using `bcbio_prepare_samples.py`.
 
-```{r bcbioconfig}
+```{r bcbioconfig, eval=FALSE}
 # Use the same information to generate the bcbio CSV file
 # Keep the required columns and add information for peddy
 template <- bcbio %>% 
@@ -125,7 +125,7 @@ template <- bcbio %>%
          phenotype, family_id, individual_id)
 
 # Handle cases where a normal matches more than tumor sample. 
-# Courtesy of Peter Diakumis
+# Courtesy of [Peter Diakumis](https://github.com/pdiakumis)
 get_new_batch <- function(batch, phenotype) {
   stopifnot(length(batch) == length(phenotype))
   n <- length(batch)
