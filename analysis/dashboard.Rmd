@@ -1,0 +1,294 @@
+---
+title: "UMCCR Sequencing Status"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    theme: paper
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(scales)
+library(gridExtra)
+library(gtools)
+library(RColorBrewer)
+library(knitr)
+library(tidyr)
+library(rmarkdown)
+library(dplyr)
+library(DT)
+library(readr)
+library(forcats)
+library(stringr)
+library(janitor)
+library(googlesheets)
+library(here)
+library(skimr)
+library(lubridate)
+
+library(flexdashboard)
+library(treemap)
+library(highcharter)
+library(plotly)
+library(scales)
+```
+
+```{r dataPrep}
+# Register UMCCR spreadsheet. Use cached authentication
+gs_auth(token="./googlesheets_token.rds")
+
+# Identifier for the spreadsheet to use. This is safe to store on GH
+samples_gs <- gs_key('1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs')
+
+# Import sample information and clean up spreadsheet. 
+# * remove empty cells
+# * replace whitespace with `.` for subjects
+# * avoid NAs for empty result cells
+# * ignore control runs
+samples <- samples_gs %>%
+  gs_read(ws='Sheet1') %>%
+  clean_names() %>%
+  remove_empty(c('rows', 'cols')) %>%
+  mutate(subject_id = gsub(' ', '.', subject_id)) %>%
+  mutate(results = ifelse(is.na(results), '-', results)) %>%
+  filter(project != 'Positive-control') %>%
+  filter(project != 'Negative-control')
+```
+
+Sample Summary
+=====================================
+
+Column {data-width=650, .tabset}
+-----------------------------------------------------------------------
+
+### Timeline (by sample)
+
+```{r time}
+# Progress over time:
+# * extract year/month from timestamp
+# * distinguish between failed / pending / processed samples
+# * organize by year and month
+series <- samples %>%
+  mutate(month = format(timestamp, '%m'),
+         year = format(timestamp, '%Y')) %>%
+  mutate(status = case_when(
+    results == 'Failed' ~ 'failed',
+    str_detect(results, 'cephfs') ~ 'processed',
+    TRUE ~ 'pending')) %>%
+  mutate(status = fct_relevel(status, 'processed', 'pending', 'failed')) %>%
+  select(month, year, status) %>%
+  group_by(month, year)
+
+cbPalette <- c("#E69F00", "#999999", "#56B4E9")
+
+p <- ggplot(series, aes(month)) + 
+  geom_bar(aes(fill=fct_rev(status))) + 
+  facet_wrap(~year) + 
+  scale_fill_manual(values=cbPalette) +
+  scale_x_discrete(limits = c('01', '02', '03', '04',
+                              '05', '06', '07', '08',
+                              '09', '10', '11', '12')) +
+  theme_minimal() + 
+  theme(legend.position='none',
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank())
+# p
+ggplotly(p)
+```
+
+### Timeline (by NovaSeq run)
+
+```{r runs}
+# Rinse and repeat, but this time for _runs_ instead of samples. 
+# Sample count can be deceiving due to low-read WTS
+runs <- samples %>%
+  mutate(month = format(timestamp, '%m'),
+         year = format(timestamp, '%Y')) %>%
+  select(month, year, run) %>%
+  distinct() %>%
+  group_by(month, year) 
+
+p <- ggplot(runs, aes(month)) + 
+  geom_bar() + 
+  scale_y_continuous(breaks=pretty_breaks(),
+                     limits=c(0,10)) + 
+  scale_x_discrete(limits = c('01', '02', '03', '04',
+                              '05', '06', '07', '08',
+                              '09', '10', '11', '12')) +
+  facet_wrap(~year) +
+  theme_minimal() +
+  theme(legend.position='none',
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank())
+ggplotly(p)
+```
+
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Samples Processed
+
+```{r bcbio}
+state <- samples %>%
+  mutate(status = case_when(
+    results == 'Failed' ~ 'failed',
+    str_detect(results, 'cephfs') ~ 'processed',
+    results == 'n/a' ~ 'n/a',
+    TRUE ~ 'pending')) %>%
+  select(project, sample_name, status) %>%
+  group_by(status) %>%
+  tally()
+
+pending <- state %>%
+  filter(status == 'pending')
+
+finished <- (1 - (pending$n / nrow(samples))) * 100
+  
+gauge(round(finished, 1), min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+### Samples by Library
+
+```{r sampleByLib}
+libDistro <- samples %>%
+  filter(results != 'Failed') %>%
+  group_by(type) %>%
+  mutate(runs = n_distinct(run),
+         subjects = n_distinct(subject_id),
+         samples = n_distinct(sample_name)) %>%
+  filter(type != 'None') %>%
+  distinct(runs, subjects, samples) %>%
+  select(type, runs, subjects, samples)
+
+tm_exc <- treemap(
+  dtf = libDistro,
+  index = c('type'),
+  vSize = 'samples',
+  type = "index",
+  title = "",
+  palette = c("#999999", "#E69F00", "#56B4E9", "#009E73", 
+              "#F0E442", "#0072B2", "#D55E00", "#CC79A7"),
+  algorithm = "squarified",
+  draw = FALSE
+)
+
+hc_tm_exc <- hctreemap(
+  tm_exc,
+  width = 300,
+  allowDrillToNode = TRUE,
+  layoutAlgorithm = "squarified",
+  levels = list(levelIsConstant = "false"),
+  dataLabels = list(style = list(color = "white",
+                                 textOutline = "1px contrast",
+                                 fontSize = "10px"))
+)
+hc_tm_exc
+```
+
+
+Project Details
+=====================================
+
+Column {data-width=800}
+-----------------------------------------------------------------------
+
+### Project progress (by sample)
+
+```{r progress}
+progress <- samples %>%
+  mutate(status = case_when(
+    results == 'Failed' ~ 'failed',
+    str_detect(results, 'cephfs') ~ 'processed',
+    results == 'n/a' ~ 'n/a',
+    TRUE ~ 'pending')) %>%
+  select(project, sample_name, status, subject_id) %>%
+  group_by(project)
+
+cbPalette <- c("#E69F00", "#009E73", "#999999", "#56B4E9")
+
+p <- ggplot(progress, aes(x=project)) +
+  geom_bar(aes(fill=status)) +
+  scale_fill_manual(values=cbPalette) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position='none',
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank())
+p
+
+## Plotly has display issues due to coord_flip. Need to try with
+## dev version
+## ggplotly(p)
+```
+
+Column {data-width=200}
+-----------------------------------------------------------------------
+
+### Total Samples
+
+```{r t1}
+total <- nrow(progress %>% filter(status != 'failed'))
+valueBox(total, icon = "fa-exclamation", color="#f7f7f7")
+```
+
+### Processed Samples
+
+```{r t2}
+completed <- nrow(progress %>% filter(status == 'processed' | 
+                                   status == 'n/a'))
+valueBox(completed, icon = "fa-server", color="#cccccc")
+```
+
+### Sequenced individuals
+
+```{r t3}
+indivs <- nrow(progress %>% filter(status != 'failed') %>%
+                 select(subject_id) %>%
+                 distinct())
+valueBox(indivs, icon = "fa-user", color='#969696')
+```
+
+
+### Finished Projects
+
+```{r t4}
+remainingProjects <- nrow(progress %>%
+                            filter(status == 'pending') %>%
+                            group_by(project) %>%
+                            tally())
+totalProjects <- length(unique(progress$project))
+finished <- totalProjects - remainingProjects
+
+valueBox(finished, icon = "fa-check-square", color="#b2df8a")
+```
+
+
+Sample Details
+=====================================
+
+```{r samples}
+samples %>%
+  mutate(status = case_when(
+  results == 'Failed' ~ 'failed',
+  str_detect(results, 'cephfs') ~ 'processed',
+  results == 'n/a' ~ 'n/a',
+  TRUE ~ 'pending')) %>%
+  distinct(project, subject_id, sample_name, timestamp, status) %>%
+  arrange(project, subject_id) %>%
+  datatable(rownames=FALSE) %>%
+  formatStyle('status',
+              backgroundColor = styleEqual(c('pending',
+                                             'processed',
+                                             'n/a',
+                                             'failed'),
+                                           c('#999999',
+                                             '#56B4E9',
+                                             '#009E73',
+                                             '#E69F00')))
+```
+
+a
