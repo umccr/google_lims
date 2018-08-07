@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>UMCCR Sequencing Status</title>
+
+<script src="site_libs/jquery-1.12.4/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.2/htmlwidgets.js"></script>
+<script src="site_libs/plotly-binding-4.7.1/plotly.js"></script>
+<script src="site_libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="site_libs/crosstalk-1.0.0/css/crosstalk.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.0.0/js/crosstalk.min.js"></script>
+<link href="site_libs/plotlyjs-1.29.2/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="site_libs/plotlyjs-1.29.2/plotly-latest.min.js"></script>
+<script src="site_libs/raphael-2.1.4/raphael-2.1.4.min.js"></script>
+<link href="site_libs/justgage-1.2.2.1/justgage.css" rel="stylesheet" />
+<script src="site_libs/justgage-1.2.2.1/justgage.js"></script>
+<script src="site_libs/gauge-binding-0.5.1/gauge.js"></script>
+<script src="site_libs/proj4js-2.3.15/proj4.js"></script>
+<link href="site_libs/highcharts-5.0.6/css/motion.css" rel="stylesheet" />
+<script src="site_libs/highcharts-5.0.6/highstock.js"></script>
+<script src="site_libs/highcharts-5.0.6/highcharts-3d.js"></script>
+<script src="site_libs/highcharts-5.0.6/highcharts-more.js"></script>
+<script src="site_libs/highcharts-5.0.6/modules/annotations.js"></script>
+<script src="site_libs/highcharts-5.0.6/modules/broken-axis.js"></script>
+<script src="site_libs/highcharts-5.0.6/modules/data.js"></script>
+<script src="site_libs/highcharts-5.0.6/modules/drilldown.js"></script>
+<script src="site_libs/highcharts-5.0.6/modules/exporting.js"></script>
+<script src="site_libs/highcharts-5.0.6/modules/funnel.js"></script>
+<script src="site_libs/highcharts-5.0.6/modules/heatmap.js"></script>
+<script src="site_libs/highcharts-5.0.6/modules/map.js"></script>
+<script src="site_libs/highcharts-5.0.6/modules/no-data-to-display.js"></script>
+<script src="site_libs/highcharts-5.0.6/modules/offline-exporting.js"></script>
+<script src="site_libs/highcharts-5.0.6/modules/solid-gauge.js"></script>
+<script src="site_libs/highcharts-5.0.6/modules/treemap.js"></script>
+<script src="site_libs/highcharts-5.0.6/plugins/annotations.js"></script>
+<script src="site_libs/highcharts-5.0.6/plugins/draggable-legend.js"></script>
+<script src="site_libs/highcharts-5.0.6/plugins/draggable-points.js"></script>
+<script src="site_libs/highcharts-5.0.6/plugins/export-csv.js"></script>
+<script src="site_libs/highcharts-5.0.6/plugins/grouped-categories.js"></script>
+<script src="site_libs/highcharts-5.0.6/plugins/motion.js"></script>
+<script src="site_libs/highcharts-5.0.6/plugins/pattern-fill-v2.js"></script>
+<script src="site_libs/highcharts-5.0.6/plugins/tooltip-delay.js"></script>
+<script src="site_libs/highcharts-5.0.6/custom/reset.js"></script>
+<script src="site_libs/highcharts-5.0.6/custom/symbols-extra.js"></script>
+<script src="site_libs/highcharts-5.0.6/custom/text-symbols.js"></script>
+<link href="site_libs/fontawesome-4.5.0/font-awesome.min.css" rel="stylesheet" />
+<link href="site_libs/htmlwdgtgrid-1/htmlwdgtgrid.css" rel="stylesheet" />
+<script src="site_libs/highchart-binding-0.5.0/highchart.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+<link href="site_libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
+<script src="site_libs/datatables-binding-0.4/datatables.js"></script>
+<link href="site_libs/dt-core-1.10.16/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="site_libs/dt-core-1.10.16/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="site_libs/dt-core-1.10.16/js/jquery.dataTables.min.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">google_lims</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">UMCCR Sequencing Status</h1>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2018-08-07</p>
+<strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
+<ul>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>R Markdown file:</strong> up-to-date </summary></p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Environment:</strong> empty </summary></p>
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Seed:</strong> <code>set.seed(20180807)</code> </summary></p>
+<p>The command <code>set.seed(20180807)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Session information:</strong> recorded </summary></p>
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/umccr/google_lims/tree/f4a0bf8742283b4b046a94d1e5b282d9c87f8cfc" target="_blank">f4a0bf8</a> </summary></p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+<pre><code>
+Ignored files:
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+
+Untracked files:
+    Untracked:  googlesheets_token.rds
+
+</code></pre>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
+</li>
+</ul>
+<details> <summary> <small><strong>Expand here to see past versions:</strong></small> </summary>
+<ul>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+File
+</th>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:left;">
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/f4a0bf8742283b4b046a94d1e5b282d9c87f8cfc/analysis/dashboard.Rmd" target="_blank">f4a0bf8</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-08-07
+</td>
+<td style="text-align:left;">
+Initial attempt at a UMCCR Sequencing Dashboard
+</td>
+</tr>
+</tbody>
+</table>
+</ul>
+<p></details></p>
+<hr />
+<pre class="r"><code># Register UMCCR spreadsheet. Use cached authentication
+gs_auth(token=&quot;./googlesheets_token.rds&quot;)</code></pre>
+<pre><code>Auto-refreshing stale OAuth token.</code></pre>
+<pre class="r"><code># Identifier for the spreadsheet to use. This is safe to store on GH
+samples_gs &lt;- gs_key(&#39;1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs&#39;)</code></pre>
+<pre><code>Sheet successfully identified: &quot;UMCCR Samples&quot;</code></pre>
+<pre class="r"><code># Import sample information and clean up spreadsheet. 
+# * remove empty cells
+# * replace whitespace with `.` for subjects
+# * avoid NAs for empty result cells
+# * ignore control runs
+samples &lt;- samples_gs %&gt;%
+  gs_read(ws=&#39;Sheet1&#39;) %&gt;%
+  clean_names() %&gt;%
+  remove_empty(c(&#39;rows&#39;, &#39;cols&#39;)) %&gt;%
+  mutate(subject_id = gsub(&#39; &#39;, &#39;.&#39;, subject_id)) %&gt;%
+  mutate(results = ifelse(is.na(results), &#39;-&#39;, results)) %&gt;%
+  filter(project != &#39;Positive-control&#39;) %&gt;%
+  filter(project != &#39;Negative-control&#39;)</code></pre>
+<pre><code>Accessing worksheet titled &#39;Sheet1&#39;.</code></pre>
+<pre><code>Parsed with column specification:
+cols(
+  IlluminaID = col_character(),
+  Run = col_integer(),
+  Timestamp = col_date(format = &quot;&quot;),
+  SampleID = col_character(),
+  SampleName = col_character(),
+  Project = col_character(),
+  SubjectID = col_character(),
+  Type = col_character(),
+  Phenotype = col_character(),
+  FASTQ = col_character(),
+  Results = col_character(),
+  Trello = col_character(),
+  Notes = col_character()
+)</code></pre>
+<div id="sample-summary" class="section level1">
+<h1>Sample Summary</h1>
+<div id="column" class="section level2 tabset" data-width="650,">
+<h2>Column</h2>
+<div id="timeline-by-sample" class="section level3">
+<h3>Timeline (by sample)</h3>
+<pre class="r"><code># Progress over time:
+# * extract year/month from timestamp
+# * distinguish between failed / pending / processed samples
+# * organize by year and month
+series &lt;- samples %&gt;%
+  mutate(month = format(timestamp, &#39;%m&#39;),
+         year = format(timestamp, &#39;%Y&#39;)) %&gt;%
+  mutate(status = case_when(
+    results == &#39;Failed&#39; ~ &#39;failed&#39;,
+    str_detect(results, &#39;cephfs&#39;) ~ &#39;processed&#39;,
+    TRUE ~ &#39;pending&#39;)) %&gt;%
+  mutate(status = fct_relevel(status, &#39;processed&#39;, &#39;pending&#39;, &#39;failed&#39;)) %&gt;%
+  select(month, year, status) %&gt;%
+  group_by(month, year)
+
+cbPalette &lt;- c(&quot;#E69F00&quot;, &quot;#999999&quot;, &quot;#56B4E9&quot;)
+
+p &lt;- ggplot(series, aes(month)) + 
+  geom_bar(aes(fill=fct_rev(status))) + 
+  facet_wrap(~year) + 
+  scale_fill_manual(values=cbPalette) +
+  scale_x_discrete(limits = c(&#39;01&#39;, &#39;02&#39;, &#39;03&#39;, &#39;04&#39;,
+                              &#39;05&#39;, &#39;06&#39;, &#39;07&#39;, &#39;08&#39;,
+                              &#39;09&#39;, &#39;10&#39;, &#39;11&#39;, &#39;12&#39;)) +
+  theme_minimal() + 
+  theme(legend.position=&#39;none&#39;,
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank())
+# p
+ggplotly(p)</code></pre>
+<pre><code>We recommend that you use the dev version of ggplot2 with `ggplotly()`
+Install it with: `devtools::install_github(&#39;hadley/ggplot2&#39;)`</code></pre>
+<div id="2ed27e3911fe" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="2ed27e3911fe">{"x":{"data":[{"orientation":"v","width":0.899999999999999,"base":50,"x":[12],"y":[12],"text":"fct_rev(status): failed<br />count:  12<br />month: 12","type":"bar","marker":{"autocolorscale":false,"color":"rgba(230,159,0,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"failed","legendgroup":"failed","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[0.899999999999999,0.899999999999999],"base":[25,48],"x":[8,12],"y":[1,2],"text":["fct_rev(status): pending<br />count:   1<br />month: 08","fct_rev(status): pending<br />count:   2<br />month: 12"],"type":"bar","marker":{"autocolorscale":false,"color":"rgba(153,153,153,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"pending","legendgroup":"pending","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[0.9,0.9,0.9,0.9,0.9],"base":[66,64,131,31,30],"x":[3,4,5,6,7],"y":[12,23,162,74,39],"text":["fct_rev(status): pending<br />count:  12<br />month: 03","fct_rev(status): pending<br />count:  23<br />month: 04","fct_rev(status): pending<br />count: 162<br />month: 05","fct_rev(status): pending<br />count:  74<br />month: 06","fct_rev(status): pending<br />count:  39<br />month: 07"],"type":"bar","marker":{"autocolorscale":false,"color":"rgba(153,153,153,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"pending","legendgroup":"pending","showlegend":false,"xaxis":"x2","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[0.9,0.9,0.9,0.9,0.899999999999999,0.899999999999999,0.899999999999999,0.899999999999999,0.899999999999999],"base":[0,0,0,0,0,0,0,0,0],"x":[4,5,6,7,8,9,10,11,12],"y":[3,8,4,13,25,10,43,12,48],"text":["fct_rev(status): processed<br />count:   3<br />month: 04","fct_rev(status): processed<br />count:   8<br />month: 05","fct_rev(status): processed<br />count:   4<br />month: 06","fct_rev(status): processed<br />count:  13<br />month: 07","fct_rev(status): processed<br />count:  25<br />month: 08","fct_rev(status): processed<br />count:  10<br />month: 09","fct_rev(status): processed<br />count:  43<br />month: 10","fct_rev(status): processed<br />count:  12<br />month: 11","fct_rev(status): processed<br />count:  48<br />month: 12"],"type":"bar","marker":{"autocolorscale":false,"color":"rgba(86,180,233,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"processed","legendgroup":"processed","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[0.9,0.9,0.9,0.9,0.9,0.9],"base":[0,0,0,0,0,0],"x":[2,3,4,5,6,7],"y":[28,66,64,131,31,30],"text":["fct_rev(status): processed<br />count:  28<br />month: 02","fct_rev(status): processed<br />count:  66<br />month: 03","fct_rev(status): processed<br />count:  64<br />month: 04","fct_rev(status): processed<br />count: 131<br />month: 05","fct_rev(status): processed<br />count:  31<br />month: 06","fct_rev(status): processed<br />count:  30<br />month: 07"],"type":"bar","marker":{"autocolorscale":false,"color":"rgba(86,180,233,1)","line":{"width":1.88976377952756,"color":"transparent"}},"name":"processed","legendgroup":"processed","showlegend":false,"xaxis":"x2","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":37.9178082191781,"r":7.30593607305936,"b":25.5707762557078,"l":28.4931506849315},"font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,0.489128071319852],"type":"linear","autorange":false,"tickmode":"array","range":[0.4,12.6],"ticktext":["01","02","03","04","05","06","07","08","09","10","11","12"],"tickvals":[1,2,3,4,5,6,7,8,9,10,11,12],"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":"","titlefont":{"color":null,"family":null,"size":0},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"type":"linear","autorange":false,"tickmode":"array","range":[-14.65,307.65],"ticktext":["0","100","200","300"],"tickvals":[0,100,200,300],"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":"","titlefont":{"color":null,"family":null,"size":0},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":0.489128071319852,"y0":0,"y1":1},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":0.489128071319852,"y0":1,"y1":1.06929133858268},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.510871928680148,"x1":1,"y0":0,"y1":1},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.510871928680148,"x1":1,"y0":1,"y1":1.06929133858268}],"annotations":[{"text":"2017","x":0.244564035659926,"y":1,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.689497716895},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"center","yanchor":"bottom"},{"text":"2018","x":0.755435964340074,"y":1,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.689497716895},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"center","yanchor":"bottom"}],"xaxis2":{"type":"linear","autorange":false,"tickmode":"array","range":[0.4,12.6],"ticktext":["01","02","03","04","05","06","07","08","09","10","11","12"],"tickvals":[1,2,3,4,5,6,7,8,9,10,11,12],"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"domain":[0.510871928680148,1],"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":"","titlefont":{"color":null,"family":null,"size":0},"hoverformat":".2f"},"showlegend":false,"legend":{"bgcolor":null,"bordercolor":null,"borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895}},"barmode":"stack","hovermode":"closest"},"source":"A","attrs":{"2ed252ff68cb":{"fill":{},"x":{},"type":"ggplotly"}},"cur_data":"2ed252ff68cb","visdat":{"2ed252ff68cb":["function (y) ","x"]},"config":{"modeBarButtonsToAdd":[{"name":"Collaborate","icon":{"width":1000,"ascent":500,"descent":-50,"path":"M487 375c7-10 9-23 5-36l-79-259c-3-12-11-23-22-31-11-8-22-12-35-12l-263 0c-15 0-29 5-43 15-13 10-23 23-28 37-5 13-5 25-1 37 0 0 0 3 1 7 1 5 1 8 1 11 0 2 0 4-1 6 0 3-1 5-1 6 1 2 2 4 3 6 1 2 2 4 4 6 2 3 4 5 5 7 5 7 9 16 13 26 4 10 7 19 9 26 0 2 0 5 0 9-1 4-1 6 0 8 0 2 2 5 4 8 3 3 5 5 5 7 4 6 8 15 12 26 4 11 7 19 7 26 1 1 0 4 0 9-1 4-1 7 0 8 1 2 3 5 6 8 4 4 6 6 6 7 4 5 8 13 13 24 4 11 7 20 7 28 1 1 0 4 0 7-1 3-1 6-1 7 0 2 1 4 3 6 1 1 3 4 5 6 2 3 3 5 5 6 1 2 3 5 4 9 2 3 3 7 5 10 1 3 2 6 4 10 2 4 4 7 6 9 2 3 4 5 7 7 3 2 7 3 11 3 3 0 8 0 13-1l0-1c7 2 12 2 14 2l218 0c14 0 25-5 32-16 8-10 10-23 6-37l-79-259c-7-22-13-37-20-43-7-7-19-10-37-10l-248 0c-5 0-9-2-11-5-2-3-2-7 0-12 4-13 18-20 41-20l264 0c5 0 10 2 16 5 5 3 8 6 10 11l85 282c2 5 2 10 2 17 7-3 13-7 17-13z m-304 0c-1-3-1-5 0-7 1-1 3-2 6-2l174 0c2 0 4 1 7 2 2 2 4 4 5 7l6 18c0 3 0 5-1 7-1 1-3 2-6 2l-173 0c-3 0-5-1-8-2-2-2-4-4-4-7z m-24-73c-1-3-1-5 0-7 2-2 3-2 6-2l174 0c2 0 5 0 7 2 3 2 4 4 5 7l6 18c1 2 0 5-1 6-1 2-3 3-5 3l-174 0c-3 0-5-1-7-3-3-1-4-4-5-6z"},"click":"function(gd) { \n        // is this being viewed in RStudio?\n        if (location.search == '?viewer_pane=1') {\n          alert('To learn about plotly for collaboration, visit:\\n https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html');\n        } else {\n          window.open('https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html', '_blank');\n        }\n      }"}],"cloud":false},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1}},"base_url":"https://plot.ly"},"evals":["config.modeBarButtonsToAdd.0.click"],"jsHooks":{"render":[{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null}]}}</script>
+</div>
+<div id="timeline-by-novaseq-run" class="section level3">
+<h3>Timeline (by NovaSeq run)</h3>
+<pre class="r"><code># Rinse and repeat, but this time for _runs_ instead of samples. 
+# Sample count can be deceiving due to low-read WTS
+runs &lt;- samples %&gt;%
+  mutate(month = format(timestamp, &#39;%m&#39;),
+         year = format(timestamp, &#39;%Y&#39;)) %&gt;%
+  select(month, year, run) %&gt;%
+  distinct() %&gt;%
+  group_by(month, year) 
+
+p &lt;- ggplot(runs, aes(month)) + 
+  geom_bar() + 
+  scale_y_continuous(breaks=pretty_breaks(),
+                     limits=c(0,10)) + 
+  scale_x_discrete(limits = c(&#39;01&#39;, &#39;02&#39;, &#39;03&#39;, &#39;04&#39;,
+                              &#39;05&#39;, &#39;06&#39;, &#39;07&#39;, &#39;08&#39;,
+                              &#39;09&#39;, &#39;10&#39;, &#39;11&#39;, &#39;12&#39;)) +
+  facet_wrap(~year) +
+  theme_minimal() +
+  theme(legend.position=&#39;none&#39;,
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank())
+ggplotly(p)</code></pre>
+<pre><code>We recommend that you use the dev version of ggplot2 with `ggplotly()`
+Install it with: `devtools::install_github(&#39;hadley/ggplot2&#39;)`</code></pre>
+<div id="2ed27c083a3e" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="2ed27c083a3e">{"x":{"data":[{"orientation":"v","width":[0.9,0.9,0.9,0.9,0.899999999999999,0.899999999999999,0.899999999999999,0.899999999999999,0.899999999999999],"base":[0,0,0,0,0,0,0,0,0],"x":[4,5,6,7,8,9,10,11,12],"y":[1,2,1,2,5,2,6,1,4],"text":["count:  1<br />month: 04","count:  2<br />month: 05","count:  1<br />month: 06","count:  2<br />month: 07","count:  5<br />month: 08","count:  2<br />month: 09","count:  6<br />month: 10","count:  1<br />month: 11","count:  4<br />month: 12"],"type":"bar","marker":{"autocolorscale":false,"color":"rgba(89,89,89,1)","line":{"width":1.88976377952756,"color":"transparent"}},"showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"orientation":"v","width":[0.9,0.9,0.9,0.9,0.9,0.9],"base":[0,0,0,0,0,0],"x":[2,3,4,5,6,7],"y":[2,9,5,10,2,4],"text":["count:  2<br />month: 02","count:  9<br />month: 03","count:  5<br />month: 04","count: 10<br />month: 05","count:  2<br />month: 06","count:  4<br />month: 07"],"type":"bar","marker":{"autocolorscale":false,"color":"rgba(89,89,89,1)","line":{"width":1.88976377952756,"color":"transparent"}},"showlegend":false,"xaxis":"x2","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":37.9178082191781,"r":7.30593607305936,"b":25.5707762557078,"l":22.648401826484},"font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,0.489128071319852],"type":"linear","autorange":false,"tickmode":"array","range":[0.4,12.6],"ticktext":["01","02","03","04","05","06","07","08","09","10","11","12"],"tickvals":[1,2,3,4,5,6,7,8,9,10,11,12],"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":"","titlefont":{"color":null,"family":null,"size":0},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"type":"linear","autorange":false,"tickmode":"array","range":[-0.5,10.5],"ticktext":["0","2","4","6","8","10"],"tickvals":[0,2,4,6,8,10],"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":"","titlefont":{"color":null,"family":null,"size":0},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":0.489128071319852,"y0":0,"y1":1},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":0.489128071319852,"y0":1,"y1":1.06929133858268},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.510871928680148,"x1":1,"y0":0,"y1":1},{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0.510871928680148,"x1":1,"y0":1,"y1":1.06929133858268}],"annotations":[{"text":"2017","x":0.244564035659926,"y":1,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.689497716895},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"center","yanchor":"bottom"},{"text":"2018","x":0.755435964340074,"y":1,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(26,26,26,1)","family":"","size":11.689497716895},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"center","yanchor":"bottom"}],"xaxis2":{"type":"linear","autorange":false,"tickmode":"array","range":[0.4,12.6],"ticktext":["01","02","03","04","05","06","07","08","09","10","11","12"],"tickvals":[1,2,3,4,5,6,7,8,9,10,11,12],"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"domain":[0.510871928680148,1],"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":"","titlefont":{"color":null,"family":null,"size":0},"hoverformat":".2f"},"showlegend":false,"legend":{"bgcolor":null,"bordercolor":null,"borderwidth":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895}},"barmode":"stack","hovermode":"closest"},"source":"A","attrs":{"2ed257f98cb":{"x":{},"type":"ggplotly"}},"cur_data":"2ed257f98cb","visdat":{"2ed257f98cb":["function (y) ","x"]},"config":{"modeBarButtonsToAdd":[{"name":"Collaborate","icon":{"width":1000,"ascent":500,"descent":-50,"path":"M487 375c7-10 9-23 5-36l-79-259c-3-12-11-23-22-31-11-8-22-12-35-12l-263 0c-15 0-29 5-43 15-13 10-23 23-28 37-5 13-5 25-1 37 0 0 0 3 1 7 1 5 1 8 1 11 0 2 0 4-1 6 0 3-1 5-1 6 1 2 2 4 3 6 1 2 2 4 4 6 2 3 4 5 5 7 5 7 9 16 13 26 4 10 7 19 9 26 0 2 0 5 0 9-1 4-1 6 0 8 0 2 2 5 4 8 3 3 5 5 5 7 4 6 8 15 12 26 4 11 7 19 7 26 1 1 0 4 0 9-1 4-1 7 0 8 1 2 3 5 6 8 4 4 6 6 6 7 4 5 8 13 13 24 4 11 7 20 7 28 1 1 0 4 0 7-1 3-1 6-1 7 0 2 1 4 3 6 1 1 3 4 5 6 2 3 3 5 5 6 1 2 3 5 4 9 2 3 3 7 5 10 1 3 2 6 4 10 2 4 4 7 6 9 2 3 4 5 7 7 3 2 7 3 11 3 3 0 8 0 13-1l0-1c7 2 12 2 14 2l218 0c14 0 25-5 32-16 8-10 10-23 6-37l-79-259c-7-22-13-37-20-43-7-7-19-10-37-10l-248 0c-5 0-9-2-11-5-2-3-2-7 0-12 4-13 18-20 41-20l264 0c5 0 10 2 16 5 5 3 8 6 10 11l85 282c2 5 2 10 2 17 7-3 13-7 17-13z m-304 0c-1-3-1-5 0-7 1-1 3-2 6-2l174 0c2 0 4 1 7 2 2 2 4 4 5 7l6 18c0 3 0 5-1 7-1 1-3 2-6 2l-173 0c-3 0-5-1-8-2-2-2-4-4-4-7z m-24-73c-1-3-1-5 0-7 2-2 3-2 6-2l174 0c2 0 5 0 7 2 3 2 4 4 5 7l6 18c1 2 0 5-1 6-1 2-3 3-5 3l-174 0c-3 0-5-1-7-3-3-1-4-4-5-6z"},"click":"function(gd) { \n        // is this being viewed in RStudio?\n        if (location.search == '?viewer_pane=1') {\n          alert('To learn about plotly for collaboration, visit:\\n https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html');\n        } else {\n          window.open('https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html', '_blank');\n        }\n      }"}],"cloud":false},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1}},"base_url":"https://plot.ly"},"evals":["config.modeBarButtonsToAdd.0.click"],"jsHooks":{"render":[{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null}]}}</script>
+</div>
+</div>
+<div id="column-1" class="section level2" data-width="350">
+<h2>Column</h2>
+<div id="samples-processed" class="section level3">
+<h3>Samples Processed</h3>
+<pre class="r"><code>state &lt;- samples %&gt;%
+  mutate(status = case_when(
+    results == &#39;Failed&#39; ~ &#39;failed&#39;,
+    str_detect(results, &#39;cephfs&#39;) ~ &#39;processed&#39;,
+    results == &#39;n/a&#39; ~ &#39;n/a&#39;,
+    TRUE ~ &#39;pending&#39;)) %&gt;%
+  select(project, sample_name, status) %&gt;%
+  group_by(status) %&gt;%
+  tally()
+
+pending &lt;- state %&gt;%
+  filter(status == &#39;pending&#39;)
+
+finished &lt;- (1 - (pending$n / nrow(samples))) * 100
+  
+gauge(round(finished, 1), min = 0, max = 100, symbol = &#39;%&#39;, gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))</code></pre>
+<div id="htmlwidget-2496d64ad12edac6a3ae" style="width:672px;height:480px;" class="gauge html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2496d64ad12edac6a3ae">{"x":{"value":79.3,"min":0,"max":100,"customSectors":[{"lo":80,"hi":100,"color":"success"},{"lo":40,"hi":79,"color":"warning"},{"lo":0,"hi":39,"color":"danger"}],"symbol":"%","label":null,"humanFriendly":true,"humanFriendlyDecimal":1,"href":null},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="samples-by-library" class="section level3">
+<h3>Samples by Library</h3>
+<pre class="r"><code>libDistro &lt;- samples %&gt;%
+  filter(results != &#39;Failed&#39;) %&gt;%
+  group_by(type) %&gt;%
+  mutate(runs = n_distinct(run),
+         subjects = n_distinct(subject_id),
+         samples = n_distinct(sample_name)) %&gt;%
+  filter(type != &#39;None&#39;) %&gt;%
+  distinct(runs, subjects, samples) %&gt;%
+  select(type, runs, subjects, samples)
+
+tm_exc &lt;- treemap(
+  dtf = libDistro,
+  index = c(&#39;type&#39;),
+  vSize = &#39;samples&#39;,
+  type = &quot;index&quot;,
+  title = &quot;&quot;,
+  palette = c(&quot;#999999&quot;, &quot;#E69F00&quot;, &quot;#56B4E9&quot;, &quot;#009E73&quot;, 
+              &quot;#F0E442&quot;, &quot;#0072B2&quot;, &quot;#D55E00&quot;, &quot;#CC79A7&quot;),
+  algorithm = &quot;squarified&quot;,
+  draw = FALSE
+)</code></pre>
+<p><img src="figure/dashboard.Rmd/sampleByLib-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>hc_tm_exc &lt;- hctreemap(
+  tm_exc,
+  width = 300,
+  allowDrillToNode = TRUE,
+  layoutAlgorithm = &quot;squarified&quot;,
+  levels = list(levelIsConstant = &quot;false&quot;),
+  dataLabels = list(style = list(color = &quot;white&quot;,
+                                 textOutline = &quot;1px contrast&quot;,
+                                 fontSize = &quot;10px&quot;))
+)
+hc_tm_exc</code></pre>
+<div id="htmlwidget-79eabd4112562ce69ed4" style="width:100%;height:500px;" class="highchart html-widget"></div>
+<script type="application/json" data-for="htmlwidget-79eabd4112562ce69ed4">{"x":{"hc_opts":{"title":{"text":null},"yAxis":{"title":{"text":null}},"credits":{"enabled":false},"exporting":{"enabled":false},"plotOptions":{"series":{"turboThreshold":0},"treemap":{"layoutAlgorithm":"squarified"},"bubble":{"minSize":5,"maxSize":25}},"annotationsOptions":{"enabledButtons":false},"tooltip":{"delayForDisplay":10},"series":[{"data":[{"name":"10X","value":17,"valuecolor":1,"level":1,"color":"#999999","id":"10x"},{"name":"10X_scRNA-3'","value":18,"valuecolor":1,"level":1,"color":"#E69F00","id":"10x_scrna-3'"},{"name":"10X_scRNA-5'","value":9,"valuecolor":1,"level":1,"color":"#56B4E9","id":"10x_scrna-5'"},{"name":"10X_VDJ","value":11,"valuecolor":1,"level":1,"color":"#009E73","id":"10x_vdj"},{"name":"10X_WGS","value":16,"valuecolor":1,"level":1,"color":"#F0E442","id":"10x_wgs"},{"name":"WES","value":6,"valuecolor":1,"level":1,"color":"#0072B2","id":"wes"},{"name":"WGS","value":513,"valuecolor":1,"level":1,"color":"#D55E00","id":"wgs"},{"name":"WTS","value":119,"valuecolor":1,"level":1,"color":"#CC79A7","id":"wts"}],"type":"treemap","width":300,"allowDrillToNode":true,"layoutAlgorithm":"squarified","levels":{"levelIsConstant":"false"},"dataLabels":{"style":{"color":"white","textOutline":"1px contrast","fontSize":"10px"}}}]},"theme":{"chart":{"backgroundColor":"transparent"}},"conf_opts":{"global":{"Date":null,"VMLRadialGradientURL":"http =//code.highcharts.com/list(version)/gfx/vml-radial-gradient.png","canvasToolsURL":"http =//code.highcharts.com/list(version)/modules/canvas-tools.js","getTimezoneOffset":null,"timezoneOffset":0,"useUTC":true},"lang":{"contextButtonTitle":"Chart context menu","decimalPoint":".","downloadJPEG":"Download JPEG image","downloadPDF":"Download PDF document","downloadPNG":"Download PNG image","downloadSVG":"Download SVG vector image","drillUpText":"Back to {series.name}","invalidDate":null,"loading":"Loading...","months":["January","February","March","April","May","June","July","August","September","October","November","December"],"noData":"No data to display","numericSymbols":["k","M","G","T","P","E"],"printChart":"Print chart","resetZoom":"Reset zoom","resetZoomTitle":"Reset zoom level 1:1","shortMonths":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"thousandsSep":" ","weekdays":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]}},"type":"chart","fonts":[],"debug":false},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</div>
+<div id="project-details" class="section level1">
+<h1>Project Details</h1>
+<div id="column-2" class="section level2" data-width="800">
+<h2>Column</h2>
+<div id="project-progress-by-sample" class="section level3">
+<h3>Project progress (by sample)</h3>
+<pre class="r"><code>progress &lt;- samples %&gt;%
+  mutate(status = case_when(
+    results == &#39;Failed&#39; ~ &#39;failed&#39;,
+    str_detect(results, &#39;cephfs&#39;) ~ &#39;processed&#39;,
+    results == &#39;n/a&#39; ~ &#39;n/a&#39;,
+    TRUE ~ &#39;pending&#39;)) %&gt;%
+  select(project, sample_name, status, subject_id) %&gt;%
+  group_by(project)
+
+cbPalette &lt;- c(&quot;#E69F00&quot;, &quot;#009E73&quot;, &quot;#999999&quot;, &quot;#56B4E9&quot;)
+
+p &lt;- ggplot(progress, aes(x=project)) +
+  geom_bar(aes(fill=status)) +
+  scale_fill_manual(values=cbPalette) +
+  coord_flip() +
+  theme_minimal() +
+  theme(legend.position=&#39;none&#39;,
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank())
+p</code></pre>
+<p><img src="figure/dashboard.Rmd/progress-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>## Plotly has display issues due to coord_flip. Need to try with
+## dev version
+## ggplotly(p)</code></pre>
+</div>
+</div>
+<div id="column-3" class="section level2" data-width="200">
+<h2>Column</h2>
+<div id="total-samples" class="section level3">
+<h3>Total Samples</h3>
+<pre class="r"><code>total &lt;- nrow(progress %&gt;% filter(status != &#39;failed&#39;))
+valueBox(total, icon = &quot;fa-exclamation&quot;, color=&quot;#f7f7f7&quot;)</code></pre>
+<span class="value-output" data-icon="fa-exclamation" data-color="#f7f7f7">829</span>
+</div>
+<div id="processed-samples" class="section level3">
+<h3>Processed Samples</h3>
+<pre class="r"><code>completed &lt;- nrow(progress %&gt;% filter(status == &#39;processed&#39; | 
+                                   status == &#39;n/a&#39;))
+valueBox(completed, icon = &quot;fa-server&quot;, color=&quot;#cccccc&quot;)</code></pre>
+<span class="value-output" data-icon="fa-server" data-color="#cccccc">655</span>
+</div>
+<div id="sequenced-individuals" class="section level3">
+<h3>Sequenced individuals</h3>
+<pre class="r"><code>indivs &lt;- nrow(progress %&gt;% filter(status != &#39;failed&#39;) %&gt;%
+                 select(subject_id) %&gt;%
+                 distinct())</code></pre>
+<pre><code>Adding missing grouping variables: `project`</code></pre>
+<pre class="r"><code>valueBox(indivs, icon = &quot;fa-user&quot;, color=&#39;#969696&#39;)</code></pre>
+<span class="value-output" data-icon="fa-user" data-color="#969696">288</span>
+</div>
+<div id="finished-projects" class="section level3">
+<h3>Finished Projects</h3>
+<pre class="r"><code>remainingProjects &lt;- nrow(progress %&gt;%
+                            filter(status == &#39;pending&#39;) %&gt;%
+                            group_by(project) %&gt;%
+                            tally())
+totalProjects &lt;- length(unique(progress$project))
+finished &lt;- totalProjects - remainingProjects
+
+valueBox(finished, icon = &quot;fa-check-square&quot;, color=&quot;#b2df8a&quot;)</code></pre>
+<span class="value-output" data-icon="fa-check-square" data-color="#b2df8a">7</span>
+</div>
+</div>
+</div>
+<div id="sample-details" class="section level1">
+<h1>Sample Details</h1>
+<pre class="r"><code>samples %&gt;%
+  mutate(status = case_when(
+  results == &#39;Failed&#39; ~ &#39;failed&#39;,
+  str_detect(results, &#39;cephfs&#39;) ~ &#39;processed&#39;,
+  results == &#39;n/a&#39; ~ &#39;n/a&#39;,
+  TRUE ~ &#39;pending&#39;)) %&gt;%
+  distinct(project, subject_id, sample_name, timestamp, status) %&gt;%
+  arrange(project, subject_id) %&gt;%
+  datatable(rownames=FALSE) %&gt;%
+  formatStyle(&#39;status&#39;,
+              backgroundColor = styleEqual(c(&#39;pending&#39;,
+                                             &#39;processed&#39;,
+                                             &#39;n/a&#39;,
+                                             &#39;failed&#39;),
+                                           c(&#39;#999999&#39;,
+                                             &#39;#56B4E9&#39;,
+                                             &#39;#009E73&#39;,
+                                             &#39;#E69F00&#39;)))</code></pre>
+<div id="htmlwidget-1f973bef7d93ac79ebe5" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1f973bef7d93ac79ebe5">{"x":{"filter":"none","data":[["2018-03-07","2018-03-07","2018-03-07","2018-03-07","2018-03-07","2018-03-07","2018-03-07","2018-03-07","2018-03-19","2018-04-09","2018-04-12","2018-05-21","2018-05-21","2018-05-21","2018-02-26","2018-02-26","2018-02-26","2018-03-07","2018-03-07","2018-03-12","2018-03-12","2018-02-26","2018-02-26","2018-02-26","2018-02-26","2018-02-26","2018-02-26","2018-02-26","2018-02-26","2018-02-26","2018-03-23","2018-03-12","2018-03-12","2018-03-12","2018-03-12","2018-03-12","2018-03-12","2017-06-21","2017-06-21","2017-11-03","2017-12-07","2017-09-18","2017-09-18","2017-09-18","2018-03-07","2018-03-12","2018-04-09","2017-11-03","2017-12-07","2017-04-27","2017-11-03","2017-12-07","2017-04-27","2017-08-02","2017-08-02","2017-08-23","2017-08-29","2017-11-03","2017-12-07","2017-04-27","2017-11-03","2017-12-07","2017-08-29","2017-08-29","2017-08-29","2017-08-29","2017-08-29","2017-08-29","2017-08-29","2017-08-29","2017-09-18","2017-11-03","2017-12-07","2017-06-21","2017-06-21","2017-05-19","2017-05-19","2017-05-19","2017-05-19","2018-03-19","2018-03-19","2018-03-19","2018-03-19","2018-05-02","2018-05-02","2018-05-02","2017-08-29","2017-08-29","2017-08-29","2017-12-20","2017-12-20","2018-04-23","2018-05-02","2018-05-18","2017-05-19","2017-05-19","2017-12-07","2017-12-07","2017-12-20","2017-12-20","2018-05-02","2018-05-18","2017-08-02","2017-08-02","2017-12-20","2017-05-19","2017-05-19","2017-10-12","2017-10-12","2017-12-20","2017-12-20","2018-05-02","2018-05-18","2018-07-20","2018-04-23","2018-04-23","2018-04-23","2018-05-02","2018-05-02","2017-09-12","2017-09-12","2017-12-20","2017-12-07","2017-12-07","2017-12-20","2018-05-02","2018-05-02","2018-05-02","2018-05-02","2018-05-02","2018-05-18","2018-05-02","2018-04-23","2018-04-23","2018-05-02","2018-07-18","2018-07-18","2018-07-18","2018-07-20","2018-06-28","2018-06-28","2018-06-28","2018-07-20","2018-06-28","2018-06-28","2018-06-28","2018-07-20","2018-04-23","2018-04-23","2018-04-23","2018-05-02","2018-05-02","2018-05-02","2018-05-02","2018-05-02","2018-05-18","2018-05-02","2018-05-02","2018-05-18","2018-05-18","2018-05-21","2018-05-21","2018-05-25","2018-03-26","2018-03-26","2018-03-26","2018-03-26","2018-03-26","2018-03-26","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-03-26","2018-03-26","2018-03-26","2018-03-26","2018-03-26","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-03-23","2018-03-23","2018-03-23","2018-05-25","2018-05-25","2018-05-25","2018-03-26","2018-03-26","2018-03-26","2018-05-25","2018-05-25","2018-03-26","2018-03-26","2018-03-26","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-03-26","2018-03-26","2018-03-26","2018-03-26","2018-03-26","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-03-23","2018-03-23","2018-03-23","2018-05-25","2018-05-25","2018-05-25","2018-03-26","2018-03-26","2018-03-26","2018-05-25","2018-05-25","2018-05-25","2018-03-23","2018-03-23","2018-03-23","2018-03-26","2018-03-26","2018-03-26","2018-05-25","2018-05-25","2018-03-23","2018-03-23","2018-03-23","2018-05-25","2018-05-25","2018-05-25","2018-05-30","2018-05-30","2017-12-20","2017-12-20","2017-12-20","2017-12-20","2017-12-20","2017-12-20","2017-12-20","2017-12-20","2018-04-12","2018-04-12","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-07-20","2018-07-20","2018-06-28","2018-07-20","2018-07-20","2018-05-18","2018-05-18","2018-05-18","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-05-18","2018-06-28","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-06-28","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-02","2018-06-28","2018-06-28","2018-07-20","2017-09-12","2017-09-12","2017-12-07","2017-12-07","2017-12-20","2018-05-02","2018-06-28","2018-06-28","2018-07-20","2017-12-20","2017-12-20","2018-05-02","2018-05-02","2018-05-02","2017-12-07","2017-12-07","2017-12-20","2018-05-02","2017-12-07","2017-12-07","2017-12-07","2017-08-02","2017-08-02","2017-08-02","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-06-28","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-05-25","2018-05-25","2018-05-18","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-05-25","2018-05-30","2018-05-30","2018-05-18","2018-05-30","2018-05-30","2018-05-04","2018-05-04","2017-11-03","2017-11-03","2017-12-20","2017-11-03","2017-11-03","2017-12-12","2017-12-12","2018-05-18","2018-05-18","2018-05-18","2017-12-12","2017-12-12","2018-05-18","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2017-08-02","2017-08-02","2017-12-12","2017-12-12","2017-12-07","2017-12-07","2018-05-18","2018-06-28","2018-05-04","2018-05-04","2017-11-03","2017-11-03","2018-05-04","2018-05-04","2018-05-18","2018-06-28","2018-05-04","2018-05-04","2018-05-18","2018-05-04","2018-05-04","2018-05-18","2018-05-04","2018-05-04","2018-05-04","2018-05-04","2018-06-28","2018-05-04","2018-05-04","2018-05-04","2018-05-04","2018-05-04","2018-05-04","2018-05-18","2018-05-18","2018-05-18","2017-09-18","2017-09-18","2018-05-18","2018-05-18","2017-12-12","2017-12-12","2018-05-04","2018-05-04","2018-05-18","2017-12-12","2017-12-12","2018-05-04","2018-05-04","2018-05-04","2018-05-04","2018-05-18","2018-05-18","2018-05-18","2017-08-23","2017-08-23","2018-06-28","2018-05-18","2018-05-18","2018-05-04","2018-05-04","2018-05-18","2018-07-18","2018-07-18","2018-05-18","2018-05-18","2017-12-20","2017-12-20","2018-05-18","2018-05-18","2018-05-18","2017-08-23","2017-08-23","2018-04-23","2018-04-23","2018-05-18","2018-04-23","2018-04-23","2018-06-28","2018-04-23","2018-04-23","2018-04-23","2018-04-23","2018-05-18","2018-04-23","2018-04-23","2018-05-18","2018-04-23","2018-04-23","2018-04-23","2018-04-23","2018-05-18","2018-04-23","2018-04-23","2018-05-18","2018-04-23","2018-04-23","2018-04-23","2018-04-23","2018-05-18","2018-04-23","2018-04-23","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-06-28","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-05-18","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2018-05-30","2017-07-07","2017-07-07","2017-07-04","2017-07-04","2017-07-04","2017-07-04","2017-07-07","2017-07-07","2017-07-07","2017-07-04","2017-07-04","2017-10-19","2017-10-19","2017-07-07","2017-07-07","2018-04-09","2018-04-09","2018-04-12","2018-04-12","2018-04-12","2018-04-12","2018-04-12","2018-02-09","2018-02-09","2017-10-09","2017-10-09","2017-10-16","2017-10-16","2018-02-09","2018-02-09","2018-04-09","2018-04-09","2018-04-12","2017-10-09","2017-10-09","2017-10-16","2017-10-16","2018-04-09","2018-04-09","2018-04-12","2018-04-12","2018-04-12","2018-04-12","2017-10-09","2017-10-09","2017-10-09","2017-10-09","2017-10-16","2017-10-16","2017-10-09","2017-10-09","2017-10-19","2018-04-12","2018-04-12","2017-10-09","2017-10-09","2017-10-19","2018-04-09","2018-04-09","2017-10-09","2017-10-09","2018-02-09","2018-04-12","2018-04-12","2018-04-12","2018-04-12","2018-04-12","2018-04-12","2018-04-09","2018-04-09","2018-05-30","2018-05-30","2018-04-12","2018-04-12","2018-02-09","2018-02-09","2018-04-09","2018-04-09","2018-02-09","2018-02-09","2017-10-16","2017-10-16","2018-04-09","2018-04-09","2017-10-16","2017-10-16","2018-07-20","2017-10-12","2017-10-12","2017-10-12","2018-02-09","2018-02-09","2018-04-12","2018-04-12","2018-04-12","2018-04-12","2017-10-16","2017-10-16","2017-10-19","2017-10-19","2017-10-09","2017-10-09","2017-10-16","2017-10-16","2018-04-12","2018-04-12","2018-07-20","2018-04-12","2018-04-12","2018-04-12","2017-10-19","2017-10-19","2018-02-09","2018-02-09","2018-02-09","2018-02-09","2018-02-09","2018-04-09","2018-04-09","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-25","2018-05-25","2018-05-21","2018-05-21","2018-05-30","2018-05-30","2018-05-21","2018-05-21","2018-05-21","2018-05-21","2018-05-02","2018-05-02","2018-05-21","2018-05-21","2018-07-20","2018-07-20","2018-05-21","2018-05-21","2018-05-30","2018-05-30","2018-07-20","2018-07-20","2018-05-02","2018-05-02","2018-07-18","2018-07-18","2018-07-18","2018-07-18","2018-07-20","2018-07-20","2018-07-18","2018-07-18","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2018-07-20","2017-12-12","2017-12-12","2018-03-07","2018-03-12","2018-04-09","2017-12-12","2018-03-07","2018-03-12","2018-04-09","2017-12-12","2018-03-07","2018-03-12","2018-04-09","2018-03-07","2018-03-12","2018-04-09","2017-12-12","2018-03-07","2018-03-12","2018-04-09","2017-12-12","2018-03-07","2018-03-12","2018-04-09","2017-12-12","2017-12-12","2017-12-12"],["MH17T001P002","MH17B001P002","Colo829","Colo829_80pc","Colo829_60pc","Colo829_40pc","Colo829_20pc","Colo829Bl","Colo829","Colo829_80pc","Colo829_60pc","Colo829_40pc","Colo829_B","Colo829_20pc","04-FACS-nc-3prime-CUP-1184","08-nc-3prime-CUP-1184","12-nc-5prime-CUP-1184","13_nc_5prime_CUP_1184_B-cell","14_nc_5prime_CUP_1184_T-cell","PRJ170061_IPMN2219_T","PRJ170062_IPMN2219_B","01-FACS-nc-3prime-mixR1","05-nc-3prime-mixR1","09-nc-5prime-mixR1","02-FACS-nc-3prime-mixR2","06-nc-3prime-mixR2","10-nc-5prime-mixR2","03-FACS-nc-3prime-mixR3","07-nc-3prime-mixR3","11-nc-5prime-mixR3","PGL1_P018_P122","PRJ170198_SFRC01059_B","PRJ170218A_SFRC01059_T","PRJ180064_V_PH_01_T","PRJ170216_V_PH_01_B","PRJ170038_V_PH_56B","PRJ170037_V_PH_57T","MDx150891","MDx150892","MDX160254","MDX160254","COLO829Bld-CCR170091a","COLO829Bld-CCR170091b","COLO829Tum-CCR170092","Colo829-R","Colo829_R","Colo829-R","MDX160174","MDX160174","NA12877_S1","NA12877","NA12877","NA12878_S2","NA12878-1VD","NA12878-2VD","NA12878-3VD","NA12878-4KC","NA12878","NA12878","NA12879_S3","NA12879","NA12879","NA24385-3LL","NA24385-4VD","NA24385-1LL","NA24385-2LL","NA24631-1KC","NA24631-2KC","NA24631-3KC","NA24631-4LL","NA24631-3KC","MDX160168","MDX160168","WES013BL","WES013FR","WES003KMBL","WES003KMFR","WES012MVBL","WES012MVFR","CCR170057_AH17T001P001","CCR170060_AH17B001P001","CCR170118_AH17PdxPc2P001","CCR180021_VPX-AH001-P2","CCR170057_RNA_AH17T001P001","CCR170070_RNA_VPT_A001","CCR180021_RNA_VPX_AH001_P2","17MHP002Bld-CCR170002","17MHP002FNA-CCR170028","17MHP002Org-CCR170058","CCR170028R_MHP002_T","CCR170058R_MHP002_O","CCR180051_VPY-MH002","CCR170058_RNA_WPT002","CCR180051_VPY_MH002","MH17B001P004","MH17T001P004","CCR170011_MH17B001P006_S6","CCR170123_VPT_M006B_S7","CCR170013R_MHP006_T","CCR170123R_MHP006_O","CCR170123_RNA_VPT_M006B","CCR170030_17MH008S2","MH17B001P010","MH17T001P010","CCR170031R_MHP010_T","MH17B001P013","MH17T001P013","CCR170010_MPH013_N","CCR170093_MHP013_O","CCR170012R_MHP013_T","CCR170093R_MHP013_O","CCR170093_RNA_WPT_013","CCR170012_MH17T001P013","CCR180084_VPT-MH013_RNA","CCR170080-MH17T002P030","CCR170082-MH17B001P030","CCR180059_VPT-M030","CCR170122_RNA_VPT_M030","CCR180059_RNA_VPT_M030","17MHP031Bld-CCR170089_S1","17MHP031Tmr-CCR170090_S2","CCR170090R_MHP031_T","CCR170094_MH17B001P032_S3","CCR170119_VPT_M032_S4","CCR170119R_MHP032_O","CCR170119_RNA_VPT_M032","CCR170129_MM17B002P008","CCR170131B_MM17T002P008","CCR180065_VPT-MM008_O","CCR170131B_RNA-MM17T002P008","CCR180065_VPT_MM008","CCR170063_RNA_WH17T001P002","CCR180015_WH17B001P003","CCR180044_VPT-W003-p13","CCR180044_RNA_VPT_W003_p13","CCR180097_EH18B002P009","CCR180098_EH18T002P009","CCR180109_VPT-EH09","CCR180109_VPT-EH09_RNA","CCR180069_MH18B001P051","CCR180070_MH18F001P051","CCR180086_VPT-MH051","CCR180081_MH18T002P053_RNA","CCR180037_SV18B001P006","CCR180038_SV18T002P006","CCR180085_VPT-SV006","CCR180038_SV18T002P006_RNA","CCR180009_WH18B001P010","CCR180010_WH18T002P010","CCR180054_VPT-WH010","CCR180010_RNA_WH18T002P010","CCR180054_RNA_VPT_WH010","CCR180042_WH18B001P016","CCR180043_WH18F002P016","CCR180072_VPT-WH16_O","CCR180072_VPT_WH16","CCR170065_AH17B001P002","CCR170067_AH17T002P002","CCR170067_AH17T002P002","CCR180062_MH18T002P048","CCR180061_MH18B001P048","CCR180062_MH18T002P048","PRJ180383_KG078_LT","PRJ180067_PCC002_Nrml_Liver","PRJ180068_PCC002_CoT","PRJ180069_PCC002_LT1A","PRJ180070_PCC002_LT1B","PRJ180071_PCC002_Cot_ORG_2_1","PRJ180072_PCC002_LT1A_ORG_Org_3_2","PRJ180398_PCC002_LT1A_ORG_7_2","PRJ180399_PCC002_Cot_ORG_5_1","PRJ180415_PCC002_Cot","PRJ180417_PCC002_LT1B","PRJ180381_PJV388_LT","PRJ180424_PPF166_CoT","PRJ180380_PRG070_LT","PRJ180099_PSH095_Nrml_Liver","PRJ180100_PSH095_CoT","PRJ180101_PSH095_LT","PRJ180102_PSH095_CoT_ORG","PRJ180103_PSH095_LT_ORG","PRJ180430_PSH095_CoT","PRJ180431_PSH095_LT","PRJ180432_PSH095_CoT_ORG","PRJ180433_PSH095_LT_ORG","PRJ180082_PSP686_Nrml_Liver","PRJ180083_PSP686_CoT","PRJ180084_PSP686_LT","PRJ180423_PSP686_LT","PRJ180422_PSP686_CoT","PRJ180384_PVC769_LT","PRJ180088_SHB443_Mxd_CoT_ORG_0","PRJ180085_SHB443_Nrml_TILS","PRJ180089_SHB443_LT2_ORG_5_0","PRJ180445_SHB443_CoT_123_ORG","PRJ180388_SJB486_LT","PRJ180076_SSF977_Nrml_Liver","PRJ180077_SSF977_CoT","PRJ180078_SSF977_LT","PRJ180450_VJR275_LT_Org_6-1","PRJ180453_VJR275_Cot_Org_5-3","PRJ180454_PSH095_LT","PRJ180455_PCC002_Cot_1","PRJ180457_SSF977_CoT","PRJ180104_VJR275_Nrml_Liver","PRJ180105_VJR275_CoT1","PRJ180106_VJR275_CoT2","PRJ180107_VJR275_LT","PRJ180108_VJR275_CoT3","PRJ180395_VJR275_LT_Org_6_1","PRJ180396_VJR275_Cot2_ORG_6_2","PRJ180397_VJR275_Cot1_Org_5_1","PRJ180434_VJR275_CoT1","PRJ180435_VJR275_CoT2","PRJ180437_VJR275_LT","PRJ180390_VPL998_LT2","PRJ180093_yPDB516_Nrml_Liver","PRJ180094_yPDB516_LT1","PRJ180095_yPDB516_LT2","PRJ180426_yPDB516_LT1","PRJ180427_yPDB516_LT2","PRJ180376_yPDE819_LT","PRJ180090_yPFF166_Nrml_Liver","PRJ180091_PPF166_CoT","PRJ180092_yPPF166_LT","PRJ180374_yPIK315_LT","PRJ180393_yPLG775_LT1","PRJ180400_yPPJ102_LT","PRJ180109_yPPM689_LT_2016","PRJ180110_yPPM689_LT_2017","PRJ180111_yPPM689_N","PRJ180079_yPRH925_Nrml_Liver","PRJ180080_yPRH925_LT1","PRJ180081_yPRH925_LT2_ORG_0","PRJ180420_yPRH925_LT1","PRJ180421_yPRH925_LT2_ORG","PRJ180096_yPSQ256_Nrml_Liver","PRJ180097_yPSQ256_LT1","PRJ180098_yPSQ256_LT2","PRJ180428_yPSQ256_LT1","PRJ180429_yPSQ256_LT2","PRJ180439_yPTM689_LT_2017","PRJ180446_11214BMx","PRJ180447_11214awb","PRJ170212_V-PH-05T","PRJ170217_V-PH-05B","PRJ170208_V-PH-15T","PRJ170213_V-PH-15B","PRJ170209_V-PH-17T","PRJ170214_V-PH-17B","PRJ170210_V-PH-19T","PRJ170215_V-PH-19B","PRJ180065_VCB-PH-02T","PRJ180066_VCB-PH-02B","PRJ180347_VCB-PH-05T","PRJ180348_VCB-PH-05N","PRJ180267_Case1_14-006GL","PRJ180268_Case1_13-005-01LES_IM","PRJ180269_Case1_14-003-03LES_HGD","PRJ180270_Case2_14-010GL","PRJ180271_Case2_14-010-01TZ_IM","PRJ180272_Case2_14-010-01TZ_HGD","PRJ180273_Case2_14-014-02TZ_HGD","PRJ180295_1699_8073388","PRJ180296_1830_8073389","PRJ180297_1965_8073390","PRJ180298_2039_8012681","PRJ180203_2039_8012678T","PRJ180204_2039_8012682N","PRJ180299_2056_8057442_RNA","PRJ180205_2056_8035658T","PRJ180206_2056_8073371N","PRJ180300_2060_8012775","PRJ180301_2121_8073391","PRJ180302_2132_8068028","PRJ180209_2132_8073360T","PRJ180210_2132_8073373N","PRJ180211_2143_8073361T","PRJ180212_2143_8073374N","PRJ180307_2766_8049324","PRJ180308_2803_8045068_RNA","PRJ180310_2824_8067850","PRJ180314_2962_8049363","PRJ180315_2977_8057715","PRJ180316_3044_8058345","PRJ180317_3050_8068572_RNA","10x_nc_5prime_Lbry_IPMN","10x_nc_Tcell_Lbry_IPMN","10x_nc_5prime_Lbry_PGL1","10x_nc_Tcell_Lbry_PGL1","10x_nc_Bcell_Lbry_PGL1","PRJ180473_1N","PRJ180474_3N","PRJ180475_4N","PRJ180476_5N","PRJ180477_1NTAB","PRJ180478_3NTAB","PRJ180479_4NTAB","PRJ180480_1NTGD","PRJ180481_3NTGD","PRJ180482_4NTGD","PRJ180483_5NTGD","PRJ180484_1A","PRJ180485_1B","PRJ180486_1C","PRJ180487_2A","PRJ180488_2B","PRJ180489_2C","10x_nc_5prime_Lbry_VHP09T","10x_nc_Tcell_Lbry_VHP09T","10x_nc_Bcell_Lbry_VHP09T","10x_nc_5prime_Lbry_VHP22T","10x_nc_5prime_Lbry_VHP35T","10x_nc_Tcell_Lbry_VHP22T","10x_nc_Tcell_Lbry_VHP35T","10x_nc_Bcell_Lbry_VHP22T","10x_nc_Bcell_Lbry_VHP35T","10x_nc_5prime_Lbry_VHP35T","10x_nc_Tcell_Lbry_VHP35T","10x_nc_Bcell_Lbry_VHP35T","Unknown_A_RNA","PRJ180471_BK221-NET1","PRJ180472_EB-B_14_141104710","PRJ180471_BK221-NET1_RNA","BriGibBld-PRJ170155_S3","BriGibFFPE-PRJ170156_S4","PRJ170196_CUP_SC932_tissue_S1","PRJ170197_CUP_SC932_blood_S2","PRJ170196R_CUP-SC932","PRJ170196_RNA_CUP_SC932_T","PRJ180469_CUP_1105_Organoid","PRJ180470_CUP_1105_Blood","PRJ180469_CUP_1105_Orgnd_RNA","PRJ170218A_SFRC01059_T","PRJ170198_SFRC01059_B","Unknown_B_RNA","PRJ180265_DNA015740T","PRJ180266_DNA015603N","PRJ170194_GBB10_T_S1","PRJ170195_GBB10_B_S2","PRJ170194R_GB-B10","PRJ170194_RNA_GB_B10_141100848","kConFab-Mother-Blood","kConFab-Mother-Ascites","kConFab-Mother-PleuralEff","PRJ170149-17M7664BM_S1","PRJ170150-17M7702BM-CD34_S2","PRJ170151-DNA1023Slva_S3","PRJ180167_2197_8073273T","PRJ180168_2197_8073275N","PRJ180169_2317_8073164T","PRJ180170_2317_8073304N","PRJ180171_2323_8073261T","PRJ180172_2323_8073263N","PRJ180173_2624_8073276T","PRJ180174_2624_8073278N","PRJ180175_2795_8073305T","PRJ180176_2795_8073307N","PRJ180177_2797_8073279T","PRJ180178_2797_8073281N","PRJ180180_2830_8073282N","PRJ180179_2830_8073247T","PRJ180181_2868_8073283T","PRJ180182_2868_8073285N","PRJ180183_2901-8073286T","PRJ180184_2901-8073288N","PRJ180185_2991-8073308T","PRJ180186_2991-8073310N","PRJ180187_3183-8073289T","PRJ180188_3183-8073291N","PRJ180189_3196-8073292T","PRJ180190_3196-8073294N","PRJ180191_3488-8073264T","PRJ180192_3488-8073266N","PRJ180193_3586-8073439T","PRJ180194_3586-8073441N","PRJ180195_3659-8073200N","PRJ180196_3659-8073295T","PRJ180197_3806-8073267T","PRJ180198_3806-8073269N","PRJ180149_1103_8072954T","PRJ180150_1103_8073317N","PRJ180323_1151_8073301","PRJ180151_1151_8073300T","PRJ180152_1151_8073302N","PRJ180153_1471_8073297T","PRJ180154_1471_8073299N","PRJ180155_1567_8047318N","PRJ180156_1567_8073315T","PRJ180157_1633_8073258T","PRJ180158_1633_8073260N","PRJ180159_1710_8073270T","PRJ180160_1710_8073272N","PRJ180328_1830_8073319","PRJ180161_1830_8072955T","PRJ180162_1830_8073318N","PRJ170049_IPMN1907-8072953T","PRJ170050_IPMN1907-8072986N","PRJ170051_IPMN1957_T_S3","PRJ170052_IPMN1957_N_S4","PRJ170051R_IPMN1957","PRJ170053_IPMN1968_T","PRJ170054_IPMN1968_N","PRJ170055_IPMN1996_T","PRJ170056_IPMN1996_N","PRJ170122_1996_8067460","PRJ170057_IPMN2025_8073019T","PRJ170058_IPMN2025_8072989N","PRJ170059_IPMN2107_T","PRJ170060_IPMN2107_N","PRJ170123_2107_8073023","PRJ180163_2116_8073182T","PRJ180164_2116_8073314N","PRJ180165_2144_8073311T","PRJ180166_2144_8073313N","PRJ170061-2219-8072958pncrs_S1","PRJ170062-2219-8073022ddnm_S2","PRJ170063_IPMN2221_T","PRJ170064_IPMN2221_N","RJ170065_IPMN2283_T","PRJ170066_IPMN2283_N","PRJ170125_2283_8069615","PRJ180332_2317_8073303_RNA","PRJ170067_IPMN2345-8073020T","PRJ170068_IPMN2345-8072993N","PRJ170069_IPMN2347_T","PRJ170070_IPMN2347_N","PRJ170071_IPMN2520-8072961T","PRJ170072_IPMN2520-8072994N","PRJ170128_2520_8073024","PRJ180334_2624_8073277_RNA","PRJ170073_IPMN2711-8072962T","PRJ170074_IPMN2711-8072995N","PRJ170129_2711_8073025","PRJ170075_IPMN2715-8072963T","PRJ170076_IPMN2715-8073016N","PRJ170130_2715_8068284","PRJ170077_IPMN2762-8072964T","PRJ170078_IPMN2762-8072996N","PRJ170079_IPMN2794-8067753T","PRJ170080_IPMN2794-8072997N","PRJ180338_2868_8073284_RNA","PRJ170081_IPMN2884-8069626T","PRJ170082_IPMN2884-8072998N","PRJ170083_IPMN2887-8072965T","PRJ170084_IPMN2887-8072999N","PRJ170085_IPMN2917-8071715T","PRJ170086_IPMN2917-8073000N","PRJ170087_IPMN2935_8072967T","PRJ170088_IPMN2935_8073017N","PRJ170134_2935_8071686","2984IPMN-PRJ170089_S4","2984Nor-PRJ170090_S5","PRJ170135_2984_8057491","PRJ180340_2991_8073309","PRJ170091_IPMN2992_T","PRJ170092_IPMN2992_N","PRJ170093_IPMN3012-8067405T","PRJ170094_IPMN3012-8073003N","PRJ170136_3012_8067407","PRJ170095_IPMN3152_T","PRJ170096_IPMN3152_N","PRJ170097_IPMN3290-8072971T","PRJ170098_IPMN3290-8073005N","PRJ170099_IPMN3522-8072972T","PRJ170100_IPMN3522-8073006N","PRJ170139_3522_8073027","PRJ170101_IPMN3523_8071703T","PRJ170102_IPMN3523_8073007N","3541Nor-PRJ170104_S3","3541Tum-PRJ170103_S2","PRJ170147_3541_8071740_RNA","PRJ170105_IPMN3543_8072975T","PRJ170106_IPMN3543_8073009N","PRJ170107_IPMN3544-8072976T","PRJ170108_IPMN3544-8073010N","PRJ170143_3591_8068290","PRJ170109_IPMN3591-8072977T","PRJ170110_IPMN3591-8068294N","PRJ170111_IPMN3656_8072978T","PRJ170112_IPMN3656_8073012N","PRJ170113_IPMN3680_T","PRJ170114_IPMN3680_N","PRJ170115_IPMN3725_8068890T","PRJ170116_IPMN3725_8073014N","PRJ170145_3725_8068891","3749Nor-PRJ170118","3749Tum-PRJ170117","PRJ180112_2165-8073326T","PRJ180113_2165-8073327N","PRJ180274_2165_8044474","PRJ180114_2171-8073349T","PRJ180115_2171-8073350N","PRJ180275_2171_8031718_RNA","PRJ180116_2267-8073341T","PRJ180117_2267-8073342N","PRJ180118_2274-8073347T","PRJ180119_2274-8073348N","PRJ180277_2274_8031595","PRJ180120_2519-8073437T","PRJ180121_2519-8073438N","PRJ180279_2590_8035593","PRJ180122_2659-8047841T","PRJ180123_2659-8073340N","PRJ180125_2779-8073345T","PRJ180126_2779-8073346N","PRJ180280_2779_8044584","PRJ180127_2799-8073328T","PRJ180128_2799-8073329N","PRJ180281_2799_8044923","PRJ180129_2824-8073343T","PRJ180130_2824-8073344N","PRJ180131_2941-8073353T","PRJ180132_2941-8073354N","PRJ180283_2941_8067880","PRJ180133_2949-8052577T","PRJ180134_2949-8073356N","PRJ180284_2949_8052615","PRJ180135_3066-8073330T","PRJ180136_3066-8073331N","PRJ180137_3090-8073332T","PRJ180138_3090-8073333N","PRJ180139_3096-8073334T","PRJ180140_3096-8073335N","PRJ180288_3205_8052877","PRJ180141_3299-8073338T","PRJ180142_3299-8073339N","PRJ180142_3299-8073339N","PRJ180143_3371-8073336T","PRJ180144_3371-8073337N","PRJ180291_3510_8066981","PRJ180145_3510-8073351T","PRJ180146_3510-8073352N","PRJ180293_3837_8073430","PRJ180147_3837-8073442T","PRJ180148_3837-8073443N","PRJ180349_MON1-B","PRJ180357_MON1-T","PRJ180350_MON2-B","PRJ180358_MON2-T","PRJ180351_MON3-B","PRJ180359_MON3-T","PRJ180352_MON4-B","PRJ180360_MON4-T","PRJ180353_MON5-B","PRJ180361_MON5-T","PRJ180354_MON6-B","PRJ180362_MON6-T","PRJ180355_MON7-B","PRJ180363_MON7-T","PRJ180356_MON8-B","PRJ180364_MON8-T","PRJ170039_E019-T01-D","PRJ170040_E019-B01-D","PRJ170028_E120-T01-D","PRJ170029_E120-B01-D","PRJ170030_E121-T01-D","PRJ170031_E121-B01-D","PRJ170036_E122-T01-D","PRJ170037_E122-T02-D","PRJ170038_E122-B01-D","PRJ170032_E123-T01-D","PRJ170033_E123-B01-D","PRJ170192_E124-T01-D","PRJ170193_E124-B01-D","PRJ170034_E125-T01-D","PRJ170035_E125-B01-D","PRJ180017_E126-T01-D","PRJ180018_E126-B01-D","PRJ180062_E127-T01-D","PRJ180063_E127-B01-D","PRJ180037_E128-T01-D","PRJ180038_E128-T02-D","PRJ180039_E128-B01-D","PRJ180004_E129-T01-D","PRJ180005_E129-B01-D","PRJ170163_E130-T01-D","PRJ170164_E130-B01-D","PRJ170163_E130-T01-D","PRJ170164_E130-B01-D","PRJ180011_E131-T01-D","PRJ180012_E131-B01-D","PRJ180019_E132-T01-D","PRJ180020_E132-B01-D","PRJ180053_E132-T02-D","PRJ170159_E133-T01-D","PRJ170160_E133-B01-D","PRJ170179_E134-T01-D","PRJ170180_E134-B01-D","PRJ180029_E135-T01-D","PRJ180030_E135-B01-D","PRJ180040_E136-T01-D","PRJ180041_E136-B01-D","PRJ180049_E138-T01-D","PRJ180050_E138-B01-D","PRJ170165_E140-T01-D","PRJ170166_E140-B01-D","PRJ170161_E141-T01-D","PRJ170162_E141-B01-D","PRJ170181_E142-T01-D","PRJ170182_E142-B01-D","PRJ170157_E143-T01-D","PRJ170158_E143-B01-D","PRJ170157_E143-T01-D","PRJ180044_E143-T02-D","PRJ180045_E143-T03-D","PRJ170171_E144-T01-D","PRJ170172_E144-B01-D","PRJ170171_E144-T01-D","PRJ180035_E145-T01-D","PRJ180036_E145-B01-D","PRJ170169_E146-T01-D","PRJ170170_E146-B01-D","PRJ180008_E146-T02-D","PRJ180054_E147-T01-D","PRJ180055_E147-B01-D","PRJ180051_E148-T01-D","PRJ180052_E148-B01-D","PRJ180056_E149-T01-D","PRJ180057_E149-B01-D","PRJ180023_E150-T01-D","PRJ180024_E150-B01-D","PRJ180448_E151-B01-D","PRJ180031_E151-T01-D","PRJ180042_E152-T01-D","PRJ180043_E152-B01-D","PRJ180009_E153-T01-D","PRJ180010_E153-B01-D","PRJ180021_E154-T01-D","PRJ180022_E154-B01-D","PRJ180013_E155-T01-D","PRJ180014_E155-B01-D","PRJ170173_E156-T01-D","PRJ170174_E156-B01-D","PRJ180027_E157-T01-D","PRJ180028_E157-B01-D","PRJ170175_E158-T01-D","PRJ170176_E158-B01-D","PRJ180498_E158-T01-D","PRJ170189_E159-T01-D","PRJ170190_E159-T02-D","PRJ170191_E159-B01-D","PRJ180015_E159-T03-D","PRJ180016_E159-T04-D","PRJ180060_E160-T01-D","PRJ180061_E160-B01-D","PRJ180058_E161-T01-D","PRJ180059_E161-B01-D","PRJ170177_E162-T01-D","PRJ170178_E162-B01-D","PRJ170185_E163-T01-D","PRJ170186_E163-B01-D","PRJ170167_E164-T01-D","PRJ170168_E164-B01-D","PRJ170183_E165-T01-D","PRJ170184_E165-B01-D","PRJ180033_E166-T01-D","PRJ180034_E166-B01-D","PRJ180505_E166-T02-D","PRJ180046_E167-T01-D","PRJ180047_E167-T02-D","PRJ180048_E167-B01-D","PRJ170187_E168-T01-D","PRJ170188_E168-B01-D","PRJ180001_E169-T01-D","PRJ180002_E169-T02-D","PRJ180003_E169-B01-D","PRJ180006_E170-T01-D","PRJ180007_E170-B01-D","PRJ180025_E171-T01-D","PRJ180026_E171-B01-D","PRJ180249_E179-T01-D","PRJ180250_E179-B01-D","PRJ180261_E180-T01-D","PRJ180262_E180-B01-D","PRJ180263_E183_T01_D","PRJ180264_E183_B01_D","PRJ180245_E184-T01-D","PRJ180246_E184-B01-D","PRJ180449_E185-T01-D","PRJ180256_E185-B01-D","PRJ180257_E188-T01-D","PRJ180258_E188-B01-D","PRJ180253_E190-T01-D","PRJ180254_E190-B01-D","PRJ180241_E191-T01-D","PRJ180242_E191-B01-D","PRJ180251_E193-T01-D","PRJ180252_E193-B01-D","PRJ180506_E194-T01-D","PRJ180507_E194-B01-D","PRJ180247_E195-T01-D","PRJ180248_E195-B01-D","PRJ180247_E195-T01-D","PRJ180248_E195-B01-D","PRJ180510_E196-T01-D","PRJ180511_E196-B01-D","PRJ180237_E197-T01-D","PRJ180238_E197-B01-D","PRJ180490_E198-T01-D","PRJ180491_E198-B01-D","PRJ180494_E199-T01-D","PRJ180495_E199-B01-D","PRJ180496_E200-T01-D","PRJ180497_E200-B01-D","PRJ180492_E201-T01-D","PRJ180493_E201-B01-D","PRJ180499_E202-T01-D","PRJ180500_E202-B01-D","PRJ180501_E203-T01-D","PRJ180502_E203-B01-D","PRJ180503_E204-T01-D","PRJ180504_E204-B01-D","PRJ180464_P007_Cell_culture","PRJ180465_P007_Blood","PRJ180466_P007_FFPE_tumour_FXB6","PRJ180467_P045_FFPE_tumour","PRJ180468_P045_Blood","PRJ180461_P053_Cell_culture","PRJ180462_P053_Blood","PRJ180463_P053_FFPE_tumour","PRJ180458_P080_Cell_culture","PRJ180459_P080_Blood","PRJ180460_P080_Fresh_tumour","PRJ170200_231","PRJ170201_A549","A549-WTS","A549-WTS","A549-WTS","PRJ170202_GTL16","GTL-16-WTS","GTL-16-WTS","GTL-16-WTS","PRJ170203_HT29","HT-29-WTS","HT-29-WTS","HT-29-WTS","MDA-MB-231-WTS","MDA-MB-231-WTS","MDA-MB-231-WTS","PRJ170199_MiaPaCa","MiaPaCa-WTS","MiaPaCa-WTS","MiaPaCa-WTS","PRJ170204_OVCA5","OVCAR-WTS","OVCAR-WTS","OVCAR-WTS","PRJ170205_Pool1","PRJ170206_Pool2","PRJ170207_Pool3"],["10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","10X-Collaboration","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Accreditation","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner","Avner-KRAS-wt","Avner-KRAS-wt","Avner-KRAS-wt","Avner-KRAS-wt","Avner-KRAS-wt","Avner-KRAS-wt","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Cori-Research","Hovens-Research","Hovens-Research","Kolling-Research","Kolling-Research","Kolling-Research","Kolling-Research","Kolling-Research","Kolling-Research","Kolling-Research","Kolling-Research","Kolling-Research","Kolling-Research","Kolling-Research","Kolling-Research","LiKaShing-IM_Gastric","LiKaShing-IM_Gastric","LiKaShing-IM_Gastric","LiKaShing-IM_Gastric","LiKaShing-IM_Gastric","LiKaShing-IM_Gastric","LiKaShing-IM_Gastric","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","LongTermSurvivors","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Luciano-10X","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Patients","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-APGI-Garvan-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Research-Croagh-KRAS-wt","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-A5","Tothill-Collibri-Trial","Tothill-Collibri-Trial","Tothill-Collibri-Trial","Tothill-Collibri-Trial","Tothill-Collibri-Trial","Tothill-Collibri-Trial","Tothill-Collibri-Trial","Tothill-Collibri-Trial","Tothill-Collibri-Trial","Tothill-Collibri-Trial","Tothill-Collibri-Trial","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP","Tothill-CUP"],["2016.249.17.MH.P002","2016.249.17.MH.P002","COLO829","COLO829","COLO829","COLO829","COLO829","COLO829","COLO829","COLO829","COLO829","COLO829","COLO829","COLO829","CUP1184","CUP1184","CUP1184","CUP1184","CUP1184","IPMN2219","IPMN2219","Luciano-Pooled-CellLines-1","Luciano-Pooled-CellLines-1","Luciano-Pooled-CellLines-1","Luciano-Pooled-CellLines-2","Luciano-Pooled-CellLines-2","Luciano-Pooled-CellLines-2","Luciano-Pooled-CellLines-3","Luciano-Pooled-CellLines-3","Luciano-Pooled-CellLines-3","PGL1_P018_P122","SFRC01059","SFRC01059","V-PH-01","V-PH-01","V-PH-56","V-PH-56","ALLOCATE-134131","ALLOCATE-134131","ALS-FTD","ALS-FTD","COLO829","COLO829","COLO829","COLO829","COLO829","COLO829","complete-neuro","complete-neuro","NA12877","NA12877","NA12877","NA12878","NA12878","NA12878","NA12878","NA12878","NA12878","NA12878","NA12879","NA12879","NA12879","NA23485","NA23485","NA23485","NA23485","NA24631","NA24631","NA24631","NA24631","NA24631","vascular-malformation","vascular-malformation","VCCC.case.WES013","VCCC.case.WES013","VCCC.case.WESM003_KM","VCCC.case.WESM003_KM","VCCC.case.WESW012_MV","VCCC.case.WESW012_MV","2016.249.17.AH.P001","2016.249.17.AH.P001","2016.249.17.AH.P001","2016.249.17.AH.P001","2016.249.17.AH.P001","2016.249.17.AH.P001","2016.249.17.AH.P001","2016.249.17.MH.P002","2016.249.17.MH.P002","2016.249.17.MH.P002","2016.249.17.MH.P002","2016.249.17.MH.P002","2016.249.17.MH.P002","2016.249.17.MH.P002","2016.249.17.MH.P002","2016.249.17.MH.P004","2016.249.17.MH.P004","2016.249.17.MH.P006","2016.249.17.MH.P006","2016.249.17.MH.P006","2016.249.17.MH.P006","2016.249.17.MH.P006","2016.249.17.MH.P008","2016.249.17.MH.P010","2016.249.17.MH.P010","2016.249.17.MH.P010","2016.249.17.MH.P013","2016.249.17.MH.P013","2016.249.17.MH.P013","2016.249.17.MH.P013","2016.249.17.MH.P013","2016.249.17.MH.P013","2016.249.17.MH.P013","2016.249.17.MH.P013","2016.249.17.MH.P013","2016.249.17.MH.P030","2016.249.17.MH.P030","2016.249.17.MH.P030","2016.249.17.MH.P030","2016.249.17.MH.P030","2016.249.17.MH.P031","2016.249.17.MH.P031","2016.249.17.MH.P031","2016.249.17.MH.P032","2016.249.17.MH.P032","2016.249.17.MH.P032","2016.249.17.MH.P032","2016.249.17.MM.P008","2016.249.17.MM.P008","2016.249.17.MM.P008","2016.249.17.MM.P008","2016.249.17.MM.P008","2016.249.17.WH.P002","2016.249.17.WH.P003","2016.249.17.WH.P003","2016.249.17.WH.P003","2016.249.18.EH.P009","2016.249.18.EH.P009","2016.249.18.EH.P009","2016.249.18.EH.P009","2016.249.18.MH.P051","2016.249.18.MH.P051","2016.249.18.MH.P051","2016.249.18.MH.P053","2016.249.18.SV.P006","2016.249.18.SV.P006","2016.249.18.SV.P006","2016.249.18.SV.P006","2016.249.18.WH.P010","2016.249.18.WH.P010","2016.249.18.WH.P010","2016.249.18.WH.P010","2016.249.18.WH.P010","2016.249.18.WH.P016","2016.249.18.WH.P016","2016.249.18.WH.P016","2016.249.18.WH.P016","2016.249.17.AH.P002","2016.249.17.AH.P002","2016.249.17.AH.P002","2016.249.18.MH.P048","2016.249.18.MH.P048","2016.249.18.MH.P048","KG078","PCC002","PCC002","PCC002","PCC002","PCC002","PCC002","PCC002","PCC002","PCC002","PCC002","PJV388","PPF166","PRG070","PSH095","PSH095","PSH095","PSH095","PSH095","PSH095","PSH095","PSH095","PSH095","PSP686","PSP686","PSP686","PSP686","PSP686","PVC769","SHB443","SHB443","SHB443","SHB443","SJB486","SSF977","SSF977","SSF977","Unknown","Unknown","Unknown","Unknown","Unknown","VJR275","VJR275","VJR275","VJR275","VJR275","VJR275","VJR275","VJR275","VJR275","VJR275","VJR275","VPL998","yPDB516","yPDB516","yPDB516","yPDB516","yPDB516","yPDE819","yPFF166","yPFF166","yPFF166","yPIK315","yPLG775","yPPJ102","yPPM689","yPPM689","yPPM689","yPRH925","yPRH925","yPRH925","yPRH925","yPRH925","yPSQ256","yPSQ256","yPSQ256","yPSQ256","yPSQ256","yPTM689","11214","11214","V-PH-05","V-PH-05","V-PH-15","V-PH-15","V-PH-17","V-PH-17","V-PH-19","V-PH-19","VCB-PH-02","VCB-PH-02","VCB-PH-05","VCB-PH-05","LiKaShing-Case1","LiKaShing-Case1","LiKaShing-Case1","LiKaShing-Case2","LiKaShing-Case2","LiKaShing-Case2","LiKaShing-Case2","1699","1830","1965","2039","2039","2039","2056","2056","2056","2060","2121","2132","2132","2132","2143","2143","2766","2803","2824","2962","2977","3044","3050","2016.249.18.MH.P053","2016.249.18.MH.P053","PGL1","PGL1","PGL1","Unknown","Unknown","Unknown","Unknown","Unknown","Unknown","Unknown","Unknown","Unknown","Unknown","Unknown","Unknown","Unknown","Unknown","Unknown","Unknown","Unknown","VHP09T","VHP09T","VHP09T","VHP22T","VHP22T","VHP22T","VHP22T","VHP22T","VHP22T","VHP35T","VHP35T","VHP35T","2016.249.17.MM.P008","BK221-NET1","BK221-NET1","BK221-NET1","BriGib","BriGib","CUP-SC932","CUP-SC932","CUP-SC932","CUP-SC932","CUP1105","CUP1105","CUP1105","DiploidNeverResponder","DiploidNeverResponder","DiploidNeverResponder","GATM-RAF1","GATM-RAF1","GBB10","GBB10","GBB10","GBB10","kConFab-Mother","kConFab-Mother","kConFab-Mother","PMCC_AML","PMCC_AML","PMCC_AML","2197","2197","2317","2317","2323","2323","2624","2624","2795","2795","2797","2797","2830","2830","2868","2868","2901","2901","2991","2991","3183","3183","3196","3196","3488","3488","3586","3586","3659","3659","3806","3806","IPMN1103","IPMN1103","IPMN1151","IPMN1151","IPMN1151","IPMN1471","IPMN1471","IPMN1567","IPMN1567","IPMN1633","IPMN1633","IPMN1710","IPMN1710","IPMN1830","IPMN1830","IPMN1830","IPMN1907","IPMN1907","IPMN1957","IPMN1957","IPMN1957","IPMN1968","IPMN1968","IPMN1996","IPMN1996","IPMN1996","IPMN2025","IPMN2025","IPMN2107","IPMN2107","IPMN2107","IPMN2116","IPMN2116","IPMN2144","IPMN2144","IPMN2219","IPMN2219","IPMN2221","IPMN2221","IPMN2283","IPMN2283","IPMN2283","IPMN2317","IPMN2345","IPMN2345","IPMN2347","IPMN2347","IPMN2520","IPMN2520","IPMN2520","IPMN2624","IPMN2711","IPMN2711","IPMN2711","IPMN2715","IPMN2715","IPMN2715","IPMN2762","IPMN2762","IPMN2794","IPMN2794","IPMN2868","IPMN2884","IPMN2884","IPMN2887","IPMN2887","IPMN2917","IPMN2917","IPMN2935","IPMN2935","IPMN2935","IPMN2984","IPMN2984","IPMN2984","IPMN2991","IPMN2992","IPMN2992","IPMN3012","IPMN3012","IPMN3012","IPMN3152","IPMN3152","IPMN3290","IPMN3290","IPMN3522","IPMN3522","IPMN3522","IPMN3523","IPMN3523","IPMN3541","IPMN3541","IPMN3541","IPMN3543","IPMN3543","IPMN3544","IPMN3544","IPMN3591","IPMN3591","IPMN3591","IPMN3656","IPMN3656","IPMN3680","IPMN3680","IPMN3725","IPMN3725","IPMN3725","IPMN3749","IPMN3749","2165","2165","2165","2171","2171","2171","2267","2267","2274","2274","2274","2519","2519","2590","2659","2659","2779","2779","2779","2799","2799","2799","2824","2824","2941","2941","2941","2949","2949","2949","3066","3066","3090","3090","3096","3096","3205","3299","3299","3299","3371","3371","3510","3510","3510","3837","3837","3837","MON1","MON1","MON2","MON2","MON3","MON3","MON4","MON4","MON5","MON5","MON6","MON6","MON7","MON7","MON8","MON8","E019","E019","E120","E120","E121","E121","E122","E122","E122","E123","E123","E124","E124","E125","E125","E126","E126","E127","E127","E128","E128","E128","E129","E129","E130","E130","E130","E130","E131","E131","E132","E132","E132","E133","E133","E134","E134","E135","E135","E136","E136","E138","E138","E140","E140","E141","E141","E142","E142","E143","E143","E143","E143","E143","E144","E144","E144","E145","E145","E146","E146","E146","E147","E147","E148","E148","E149","E149","E150","E150","E151","E151","E152","E152","E153","E153","E154","E154","E155","E155","E156","E156","E157","E157","E158","E158","E158","E159","E159","E159","E159","E159","E160","E160","E161","E161","E162","E162","E163","E163","E164","E164","E165","E165","E166","E166","E166","E167","E167","E167","E168","E168","E169","E169","E169","E170","E170","E171","E171","E179","E179","E180","E180","E183","E183","E184","E184","E185","E185","E188","E188","E190","E190","E191","E191","E193","E193","E194","E194","E195","E195","E195","E195","E196","E196","E197","E197","E198","E198","E199","E199","E200","E200","E201","E201","E202","E202","E203","E203","E204","E204","P007","P007","P007","P045","P045","P053","P053","P053","P080","P080","P080","231(?)","A549","A549","A549","A549","GTL16","GTL16","GTL16","GTL16","HT29","HT29","HT29","HT29","MDA-MB-231","MDA-MB-231","MDA-MB-231","MiaPaCa","MiaPaCa","MiaPaCa","MiaPaCa","OVCA5","OVCAR","OVCAR","OVCAR","Pooled-CellLines-1","Pooled-CellLines-2","Pooled-CellLines-3"],["pending","pending","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","pending","pending","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","pending","pending","pending","pending","pending","pending","processed","processed","processed","processed","processed","processed","processed","pending","pending","pending","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","n/a","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","failed","failed","processed","processed","processed","processed","processed","processed","processed","failed","failed","processed","processed","processed","processed","failed","processed","processed","processed","processed","failed","failed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","failed","processed","processed","failed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","pending","pending","pending","pending","pending","pending","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","n/a","n/a","n/a","n/a","n/a","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","pending","pending","n/a","n/a","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","n/a","n/a","n/a","n/a","n/a","n/a","n/a","pending","pending","pending","pending","pending","pending","processed","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","processed","pending","pending","pending","pending","processed","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","n/a","processed","processed","processed","processed","processed","processed","processed","processed","failed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","failed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","pending","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","pending","processed","processed","processed","processed","processed","processed","failed","processed","processed","processed","processed","pending","processed","processed","processed","processed","pending","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","pending","processed","processed","processed","processed","processed","processed","processed","pending","processed","processed","processed","pending","processed","processed","pending","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","pending","processed","processed","pending","pending","processed","processed","processed","processed","pending","processed","processed","processed","processed","processed","processed","pending","processed","processed","processed","processed","processed","processed","processed","processed","processed","pending","processed","processed","processed","processed","processed","processed","processed","processed","pending","processed","processed","pending","pending","pending","pending","pending","processed","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","pending","pending","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","pending","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","pending","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","processed","processed","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","pending","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed","processed"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>timestamp<\/th>\n      <th>sample_name<\/th>\n      <th>project<\/th>\n      <th>subject_id<\/th>\n      <th>status<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"rowCallback":"function(row, data) {\nvar value=data[4]; $(this.api().cell(row, 4).node()).css({'background-color':value == 'pending' ? '#999999' : value == 'processed' ? '#56B4E9' : value == 'n/a' ? '#009E73' : value == 'failed' ? '#E69F00' : ''});\n}"}},"evals":["options.rowCallback"],"jsHooks":[]}</script>
+<p>a</p>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.5.0 (2018-04-23)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS High Sierra 10.13.3
+
+Matrix products: default
+BLAS: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] bindrcpp_0.2.2      plotly_4.7.1        highcharter_0.5.0  
+ [4] treemap_2.4-2       flexdashboard_0.5.1 lubridate_1.7.4    
+ [7] skimr_1.0.2         here_0.1            googlesheets_0.2.2 
+[10] janitor_1.0.0       stringr_1.3.0       forcats_0.3.0      
+[13] readr_1.1.1         DT_0.4              dplyr_0.7.4        
+[16] rmarkdown_1.9       tidyr_0.8.0         knitr_1.20         
+[19] RColorBrewer_1.1-2  gtools_3.5.0        gridExtra_2.3      
+[22] scales_0.5.0        ggplot2_2.2.1      
+
+loaded via a namespace (and not attached):
+ [1] httr_1.3.1          viridisLite_0.3.0   jsonlite_1.5       
+ [4] R.utils_2.6.0       shiny_1.0.5         assertthat_0.2.0   
+ [7] TTR_0.23-3          pander_0.6.1        cellranger_1.1.0   
+[10] yaml_2.1.18         pillar_1.2.1        backports_1.1.2    
+[13] lattice_0.20-35     rlist_0.4.6.1       glue_1.2.0         
+[16] digest_0.6.15       promises_1.0.1      snakecase_0.9.1    
+[19] colorspace_1.3-2    htmltools_0.3.6     httpuv_1.4.1       
+[22] R.oo_1.22.0         plyr_1.8.4          psych_1.8.4        
+[25] pkgconfig_2.0.1     broom_0.4.4         purrr_0.2.4        
+[28] xtable_1.8-2        whisker_0.3-2       later_0.7.1        
+[31] git2r_0.23.0        tibble_1.4.2        lazyeval_0.2.1     
+[34] quantmod_0.4-13     mnormt_1.5-5        magrittr_1.5       
+[37] mime_0.5            evaluate_0.10.1     R.methodsS3_1.7.1  
+[40] nlme_3.1-137        xml2_1.2.0          xts_0.10-2         
+[43] foreign_0.8-70      tools_3.5.0         data.table_1.10.4-3
+[46] hms_0.4.2           gridBase_0.4-7      munsell_0.4.3      
+[49] compiler_3.5.0      rlang_0.2.0         grid_3.5.0         
+[52] htmlwidgets_1.2     crosstalk_1.0.0     igraph_1.2.1       
+[55] labeling_0.3        gtable_0.2.0        curl_3.2           
+[58] reshape2_1.4.3      R6_2.2.2            zoo_1.8-1          
+[61] bindr_0.1.1         workflowr_1.1.1     rprojroot_1.3-2    
+[64] stringi_1.1.7       parallel_3.5.0      Rcpp_0.12.16       
+[67] tidyselect_0.2.4   </code></pre>
+</div>
+</div>
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+<hr>
+<p>
+  This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+  analysis was created with
+  <a href="https://github.com/jdblischak/workflowr">workflowr</a> 1.1.1
+</p>
+<hr>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
