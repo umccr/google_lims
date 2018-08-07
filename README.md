@@ -1,7 +1,6 @@
 # google_lims
 
-A [workflowr][] project.
+Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in.
 
-[workflowr]: https://github.com/jdblischak/workflowr
+Also has a basic flexdashboard representation of the current sequencing state. 
 
-Testing the Git integration.
