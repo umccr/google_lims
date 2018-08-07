@@ -47,7 +47,7 @@ timestamp <- strftime(tm , "%Y-%m-%dT%H%M")
 filename <- paste(timestamp, 'backup.csv', sep='_')
 
 samples_gs %>%
-  gs_download(ws='Sheet1', to=here('backup', filename)) 
+  gs_download(ws='Sheet1', to=here::here('output', 'backup', filename)) 
 
 # Tweak for analysis
 samples <- samples_gs %>%
@@ -66,6 +66,8 @@ Detail the project information. This currently requires specifying both project 
 PROJECT <- '10X-Collaboration'
 TYPE <- '10X_WGS'
 ```
+
+## WGS 
 
 ### Create rsync list
 
@@ -101,7 +103,7 @@ link <- rbind(read1, read2)
 
 # Write the file list for linking on Spartan
 write.table(paste('ln', link$from, link$to, sep=' '),
-            file=here('..', 'output', paste(timestamp, '_', PROJECT, '_', TYPE, '_files.txt', sep='')),
+            file=here::here('output', paste(timestamp, '_', PROJECT, '_', TYPE, '_files.txt', sep='')),
             col.names=FALSE,
             row.names=FALSE,
             quote=FALSE)
@@ -172,11 +174,115 @@ template_R2 <- template %>%
 template <- rbind(template_R1, template_R2)
 
 write.table(template,
-            file=here(paste(timestamp, '_', PROJECT, '_', TYPE, '.csv', sep='')),
+            file=here::here('output', paste(timestamp, '_', PROJECT, '_', TYPE, '.csv', sep='')),
             row.names=FALSE,
             col.names=TRUE,
             quote=FALSE,
             sep=',')
 ```
 
+
+## WGS Positive Controls
+
+Positive controls use a slightly different template (and only require germline calls); we also do not merge files prior to processing. We do add a timestamp to the batch based on the Illumina Run Identifier to be abe to sort / filter by time of the run in MultiQC and define the gold standard / benchmarkfiles to use for `rtg eval`:
+
+```{r posControlFiles, eval=FALSE}
+# Define what validation data to use; all of these are
+# shipped with bcbio so we don't have to prep standards
+validations <- c('giab-NA12878', 'giab-NA24385', 'giab-NA24631')
+names(validations) <- c('NA12878', 'NA24385', 'NA24631')
+
+# rsync command as before
+bcbio <- samples %>%
+  filter(project == 'Positive-control' & 
+           type == 'WGS' &
+           results == '-') %>%
+  mutate(targetname = paste(illumina_id, sample_name, sep='_')) %>%
+  select(fastq, sample_id, sample_name, targetname, subject_id, phenotype)
+
+# Create a file list ready for linking
+read1 <- bcbio %>%
+  mutate(from = paste(fastq, '/', sample_id, '_R1_001.fastq.gz', sep='')) %>%
+  mutate(to = paste(targetname, '_R1_001.fastq.gz', sep='')) %>%
+  select(from, to)
+
+read2 <- bcbio %>%
+  mutate(from = paste(fastq, '/', sample_id, '_R2_001.fastq.gz', sep='')) %>%
+  mutate(to = paste(targetname, '_R2_001.fastq.gz', sep='')) %>%
+  select(from, to)
+
+link <- rbind(read1, read2)
+
+# Write the file list for linking
+write.table(paste('ln', link$from, link$to, sep=' '),
+            file=here::here('output', paste(timestamp, '_posControl_files.txt', sep='')),
+            col.names=FALSE,
+            row.names=FALSE,
+            quote=FALSE)
+
+# As before, generate bcbio CSV. Simpler process here.
+template <- bcbio %>% 
+  mutate(family_id=subject_id) %>%
+  mutate(individual_id=subject_id) %>%
+  select(samplename=targetname, 
+         batch=subject_id,
+         phenotype, family_id, individual_id)
+
+# Add timestamp to description, batch
+template <- template %>%
+  separate(samplename, c('timestamp', 'machine', 'run'),
+           sep='_', extra="drop", 
+           remove=FALSE) %>%
+  mutate(description=paste(timestamp, machine, run, batch, sep='-')) %>%
+  mutate(batch=paste('batch', timestamp, machine, run, batch, sep='-')) %>%
+    select(samplename, description, batch, phenotype,
+         family_id, individual_id)
+
+# Add the validation information
+template <- template %>% 
+  mutate(validate=paste(validations[individual_id], 
+                        'truth_small_variants.vcf.gz', sep='/')) %>%
+  mutate(validate_regions=paste(validations[individual_id], 
+                                'truth_regions.bed', sep='/')) %>%
+  mutate(validate_batch=individual_id)
+  
+write.table(template,
+            file=here::here('output', paste(timestamp, '_posControl.csv', sep='')),
+            row.names=FALSE,
+            col.names=TRUE,
+            quote=FALSE,
+            sep=',')
+```
+
+### WGS Negative Controls
+
+For negative controls we only need to collect all relevant files in one place (hardlinks again) and check the results with `find . -type f -size +500M -exec ls -sh {} \; 2> /dev/null`.
+
+```{r negControl, eval=FALSE}
+# rsync command as before
+bcbio <- samples %>%
+  filter(project == 'Negative-control') %>%
+  mutate(targetname = paste(illumina_id, sample_name, sep='_')) %>%
+  select(fastq, sample_id, sample_name, targetname, subject_id, phenotype)
+
+# Create a file list ready for linking
+read1 <- bcbio %>%
+  mutate(from = paste(fastq, '/', sample_id, '_R1_001.fastq.gz', sep='')) %>%
+  mutate(to = paste(targetname, '_R1_001.fastq.gz', sep='')) %>%
+  select(from, to)
+
+read2 <- bcbio %>%
+  mutate(from = paste(fastq, '/', sample_id, '_R2_001.fastq.gz', sep='')) %>%
+  mutate(to = paste(targetname, '_R2_001.fastq.gz', sep='')) %>%
+  select(from, to)
+
+link <- rbind(read1, read2)
+
+# Write the file list for linking
+write.table(paste('ln', link$from, link$to, sep=' '),
+            file=here::here('output', paste(timestamp, '_negControl_files.txt', sep='')),
+            col.names=FALSE,
+            row.names=FALSE,
+            quote=FALSE)
+```
 
