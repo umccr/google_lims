@@ -19,6 +19,7 @@ library(forcats)
 library(stringr)
 library(janitor)
 library(googlesheets)
+library(parsedate)
 ```
 
 ```{r dataPrep}
@@ -64,15 +65,36 @@ sample_df %>%
               backgroundSize = '100% 90%',
               backgroundRepeat = 'no-repeat',
               backgroundPosition = 'center')
-````
+```
 
 ## Storage keys
 
-We recently changed how bcbio's output is stored on Spartan (and eventually on S3). The folder hierarchy should follow a `project_name/timestamp` template, and within that folder you should be able to find the `config`, `final` and `umccrised` folders. Not checking for the latter yet, but checking the Google LIMS to see if the the existing `results` column follows this approach or not.
+We recently changed how bcbio's output is stored on Spartan (and eventually on S3). The folder hierarchy should follow a `/data/Results/project_name/timestamp` template, and within that folder you should be able to find the `config`, `final` and `umccrised` folders. Not checking for the latter yet, but checking the Google LIMS to see if the the existing `results` column follows this approach or not.
 
+```{r checkResults}
+results_df <- samples %>%
+  select(project, results) %>%
+  filter(!results %in% c('-', 'n/a', 'Failed'))
+```
 
+First pass. Highlight results stored _outside_ of the `Results` folder.
 
+```{r checkFolder}
+results_df %>%
+  filter(!str_detect(results, '/data/cephfs/punim0010/data/Results')) %>%
+  kable()
+```
 
+Second pass. Of results stored in the correct `Results` folder flag those not ending with a timestamp:
+
+```{r checkTimestamp}
+results_df %>%
+  filter(str_detect(results, '/data/cephfs/punim0010/data/Results')) %>%
+  mutate(timestamp=basename(results)) %>%
+  mutate(parsed=parse_date(timestamp)) %>%
+  filter(is.na(parsed)) %>%
+  kable()
+```
 
 
 
