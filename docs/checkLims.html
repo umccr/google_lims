@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>UMCCR LIMS Sanity Checks</title>
+
+<script src="site_libs/jquery-1.12.4/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.2/htmlwidgets.js"></script>
+<link href="site_libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
+<script src="site_libs/datatables-binding-0.4/datatables.js"></script>
+<link href="site_libs/dt-core-1.10.16/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="site_libs/dt-core-1.10.16/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="site_libs/dt-core-1.10.16/js/jquery.dataTables.min.js"></script>
+<link href="site_libs/crosstalk-1.0.0/css/crosstalk.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.0.0/js/crosstalk.min.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">google_lims</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">UMCCR LIMS Sanity Checks</h1>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2018-08-09</p>
+<strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
+<ul>
+<li>
+<p><details> <summary> <strong style="color:red;">✖</strong> <strong>R Markdown file:</strong> uncommitted changes </summary> The R Markdown is untracked by Git. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Environment:</strong> empty </summary></p>
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Seed:</strong> <code>set.seed(20180807)</code> </summary></p>
+<p>The command <code>set.seed(20180807)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Session information:</strong> recorded </summary></p>
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/umccr/google_lims/tree/a9a71b54e3e1def86c959bf547388f34a54d4799" target="_blank">a9a71b5</a> </summary></p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+<pre><code>
+Ignored files:
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    googlesheets_token.rds
+    Ignored:    output/backup/
+
+Untracked files:
+    Untracked:  analysis/checkLims.Rmd
+    Untracked:  analysis/verifyBackup.Rmd
+
+Unstaged changes:
+    Modified:   analysis/snippets.txt
+
+</code></pre>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
+</li>
+</ul>
+<hr />
+<pre class="r"><code># Register UMCCR spreadsheet. Use cached authentication
+gs_auth(token=&quot;./googlesheets_token.rds&quot;)</code></pre>
+<pre><code>Auto-refreshing stale OAuth token.</code></pre>
+<pre class="r"><code>samples_gs &lt;- gs_key(&#39;1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs&#39;)</code></pre>
+<pre><code>Sheet successfully identified: &quot;UMCCR Samples&quot;</code></pre>
+<pre class="r"><code># Tweak for analysis
+samples &lt;- samples_gs %&gt;%
+  gs_read(ws=&#39;Sheet1&#39;) %&gt;%
+  clean_names() %&gt;%
+  remove_empty(c(&#39;rows&#39;)) %&gt;%
+  mutate(subject_id = gsub(&#39; &#39;, &#39;.&#39;, subject_id)) %&gt;%
+  mutate(results = ifelse(is.na(results), &#39;-&#39;, results)) %&gt;%
+  filter(project != &#39;Positive-control&#39;) %&gt;%
+  filter(project != &#39;Negative-control&#39;)</code></pre>
+<pre><code>Accessing worksheet titled &#39;Sheet1&#39;.</code></pre>
+<pre><code>Parsed with column specification:
+cols(
+  IlluminaID = col_character(),
+  Run = col_integer(),
+  Timestamp = col_date(format = &quot;&quot;),
+  SampleID = col_character(),
+  SampleName = col_character(),
+  Project = col_character(),
+  SubjectID = col_character(),
+  Type = col_character(),
+  Phenotype = col_character(),
+  FASTQ = col_character(),
+  Results = col_character(),
+  Trello = col_character(),
+  Notes = col_character()
+)</code></pre>
+<div id="manual-check" class="section level2">
+<h2>Manual check</h2>
+<p>Generating summaries of project names and sample types to detect outliers or typos:</p>
+<pre class="r"><code>unique(samples$project)</code></pre>
+<pre><code> [1] &quot;Accreditation&quot;                &quot;Avner&quot;                       
+ [3] &quot;Tothill-A5&quot;                   &quot;Patients&quot;                    
+ [5] &quot;Research-APGI-Garvan&quot;         &quot;Tothill-CUP&quot;                 
+ [7] &quot;Kolling-Research&quot;             &quot;10X-Collaboration&quot;           
+ [9] &quot;Cori-Research&quot;                &quot;Research-APGI-Garvan-KRAS-wt&quot;
+[11] &quot;Avner-KRAS-wt&quot;                &quot;LongTermSurvivors&quot;           
+[13] &quot;Luciano-10X&quot;                  &quot;LiKaShing-IM_Gastric&quot;        
+[15] &quot;Research-Croagh-KRAS-wt&quot;      &quot;Hovens-Research&quot;             
+[17] &quot;Tothill-Collibri-Trial&quot;      </code></pre>
+<pre class="r"><code>unique(samples$type)</code></pre>
+<pre><code>[1] &quot;WGS&quot;          &quot;WES&quot;          &quot;10X_scRNA-3&#39;&quot; &quot;WTS&quot;         
+[5] &quot;10X_scRNA-5&#39;&quot; &quot;10X_WGS&quot;      &quot;10X_VDJ&quot;      &quot;10X&quot;         </code></pre>
+<pre class="r"><code>sample_df &lt;- samples %&gt;%
+  select(project, type) %&gt;%
+  group_by(project, type) %&gt;%
+  tally() %&gt;%
+  spread(type, n, fill=0) %&gt;%
+  as.data.frame() %&gt;%
+  column_to_rownames(&#39;project&#39;)
+
+sample_df %&gt;%
+  datatable(rownames=TRUE, 
+            options = list(
+              pageLength=25,
+              dom = &#39;ft&#39;,
+              lengthMenu = c(25, 50, 100))) %&gt;%
+  formatStyle(names(sample_df),
+              background = styleColorBar(range(sample_df), &#39;lightblue&#39;),
+              backgroundSize = &#39;100% 90%&#39;,
+              backgroundRepeat = &#39;no-repeat&#39;,
+              backgroundPosition = &#39;center&#39;)</code></pre>
+<div id="htmlwidget-2496d64ad12edac6a3ae" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2496d64ad12edac6a3ae">{"x":{"filter":"none","data":[["10X-Collaboration","Accreditation","Avner","Avner-KRAS-wt","Cori-Research","Hovens-Research","Kolling-Research","LiKaShing-IM_Gastric","LongTermSurvivors","Luciano-10X","Patients","Research-APGI-Garvan","Research-APGI-Garvan-KRAS-wt","Research-Croagh-KRAS-wt","Tothill-A5","Tothill-Collibri-Trial","Tothill-CUP"],[0,0,0,0,0,0,0,0,0,68,0,0,0,0,0,0,0],[9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9],[4,0,0,0,0,0,0,0,0,20,0,0,0,0,0,0,0],[2,0,0,0,0,0,0,0,0,36,0,0,0,0,0,0,0],[16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[6,27,45,4,45,2,12,7,8,0,20,120,37,16,161,11,0],[0,3,32,2,35,0,0,0,15,0,8,20,11,0,0,0,18]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>10X<\/th>\n      <th>10X_scRNA-3'<\/th>\n      <th>10X_scRNA-5'<\/th>\n      <th>10X_VDJ<\/th>\n      <th>10X_WGS<\/th>\n      <th>WES<\/th>\n      <th>WGS<\/th>\n      <th>WTS<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":25,"dom":"ft","lengthMenu":[25,50,100],"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"rowCallback":"function(row, data) {\nvar value=data[1]; $(this.api().cell(row, 1).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[2]; $(this.api().cell(row, 2).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[3]; $(this.api().cell(row, 3).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[4]; $(this.api().cell(row, 4).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[5]; $(this.api().cell(row, 5).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[6]; $(this.api().cell(row, 6).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[7]; $(this.api().cell(row, 7).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[8]; $(this.api().cell(row, 8).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\n}"}},"evals":["options.rowCallback"],"jsHooks":[]}</script>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.5.0 (2018-04-23)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS High Sierra 10.13.3
+
+Matrix products: default
+BLAS: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] bindrcpp_0.2.2     googlesheets_0.2.2 janitor_1.0.0     
+ [4] DT_0.4             forcats_0.3.0      stringr_1.3.0     
+ [7] purrr_0.2.4        readr_1.1.1        tibble_1.4.2      
+[10] ggplot2_2.2.1      tidyverse_1.2.1    dplyr_0.7.4       
+[13] rmarkdown_1.9      tidyr_0.8.0        knitr_1.20        
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_0.12.16      lubridate_1.7.4   lattice_0.20-35  
+ [4] assertthat_0.2.0  rprojroot_1.3-2   digest_0.6.15    
+ [7] psych_1.8.4       mime_0.5          R6_2.2.2         
+[10] cellranger_1.1.0  plyr_1.8.4        backports_1.1.2  
+[13] evaluate_0.10.1   httr_1.3.1        pillar_1.2.1     
+[16] rlang_0.2.0       lazyeval_0.2.1    curl_3.2         
+[19] readxl_1.1.0      rstudioapi_0.7    whisker_0.3-2    
+[22] R.utils_2.6.0     R.oo_1.22.0       foreign_0.8-70   
+[25] htmlwidgets_1.2   munsell_0.4.3     shiny_1.0.5      
+[28] broom_0.4.4       compiler_3.5.0    httpuv_1.4.1     
+[31] modelr_0.1.2      pkgconfig_2.0.1   mnormt_1.5-5     
+[34] htmltools_0.3.6   tidyselect_0.2.4  workflowr_1.1.1  
+[37] crayon_1.3.4      later_0.7.1       R.methodsS3_1.7.1
+[40] grid_3.5.0        xtable_1.8-2      nlme_3.1-137     
+[43] jsonlite_1.5      gtable_0.2.0      git2r_0.23.0     
+[46] magrittr_1.5      scales_0.5.0      cli_1.0.0        
+[49] stringi_1.1.7     reshape2_1.4.3    promises_1.0.1   
+[52] snakecase_0.9.1   xml2_1.2.0        tools_3.5.0      
+[55] glue_1.2.0        hms_0.4.2         crosstalk_1.0.0  
+[58] parallel_3.5.0    yaml_2.1.18       colorspace_1.3-2 
+[61] rvest_0.3.2       bindr_0.1.1       haven_1.1.2      </code></pre>
+</div>
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+<hr>
+<p>
+  This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+  analysis was created with
+  <a href="https://github.com/jdblischak/workflowr">workflowr</a> 1.1.1
+</p>
+<hr>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

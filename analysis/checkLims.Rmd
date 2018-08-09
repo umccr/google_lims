@@ -1,0 +1,78 @@
+---
+title: "UMCCR LIMS Sanity Checks"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    theme: paper
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(tidyr)
+library(rmarkdown)
+library(dplyr)
+library(tidyverse)
+library(DT)
+library(readr)
+library(forcats)
+library(stringr)
+library(janitor)
+library(googlesheets)
+```
+
+```{r dataPrep}
+# Register UMCCR spreadsheet. Use cached authentication
+gs_auth(token="./googlesheets_token.rds")
+samples_gs <- gs_key('1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs')
+
+# Tweak for analysis
+samples <- samples_gs %>%
+  gs_read(ws='Sheet1') %>%
+  clean_names() %>%
+  remove_empty(c('rows')) %>%
+  mutate(subject_id = gsub(' ', '.', subject_id)) %>%
+  mutate(results = ifelse(is.na(results), '-', results)) %>%
+  filter(project != 'Positive-control') %>%
+  filter(project != 'Negative-control')
+```
+
+## Manual check
+
+Generating summaries of project names and sample types to detect outliers or typos:
+
+```{r namecheck}
+unique(samples$project)
+unique(samples$type)
+
+sample_df <- samples %>%
+  select(project, type) %>%
+  group_by(project, type) %>%
+  tally() %>%
+  spread(type, n, fill=0) %>%
+  as.data.frame() %>%
+  column_to_rownames('project')
+
+sample_df %>%
+  datatable(rownames=TRUE, 
+            options = list(
+              pageLength=25,
+              dom = 'ft',
+              lengthMenu = c(25, 50, 100))) %>%
+  formatStyle(names(sample_df),
+              background = styleColorBar(range(sample_df), 'lightblue'),
+              backgroundSize = '100% 90%',
+              backgroundRepeat = 'no-repeat',
+              backgroundPosition = 'center')
+````
+
+## Storage keys
+
+We recently changed how bcbio's output is stored on Spartan (and eventually on S3). The folder hierarchy should follow a `project_name/timestamp` template, and within that folder you should be able to find the `config`, `final` and `umccrised` folders. Not checking for the latter yet, but checking the Google LIMS to see if the the existing `results` column follows this approach or not.
+
+
+
+
+
+
+
