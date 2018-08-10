@@ -96,5 +96,13 @@ results_df %>%
   kable()
 ```
 
+Third pass. Make sure project name matches storage folder.
 
+```{r checkProject}
+results_df %>%
+  mutate(folder=str_replace(results, '/data/cephfs/punim0010/data/Results/', '')) %>%
+  separate(folder, 'store', '/', remove=FALSE, extra='drop') %>%
+  filter(project != store) %>%
+  kable()
+```
 
