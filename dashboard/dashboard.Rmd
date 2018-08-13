@@ -34,9 +34,9 @@ library(plotly)
 library(scales)
 ```
 
-```{r dataPrep}
+```{r dataPrep, echo=FALSE, warning=FALSE, error=FALSE}
 # Register UMCCR spreadsheet. Use cached authentication
-gs_auth(token="./googlesheets_token.rds")
+gs_auth(token="../googlesheets_token.rds")
 
 # Identifier for the spreadsheet to use. This is safe to store on GH
 samples_gs <- gs_key('1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs')
