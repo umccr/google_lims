@@ -11,7 +11,7 @@
 
 <meta name="author" content="Oliver Hofmann" />
 
-<meta name="date" content="2018-08-07" />
+<meta name="date" content="2018-08-14" />
 
 <title>UMCCR Sample Summary</title>
 
@@ -313,12 +313,12 @@ div.section {
 
 <h1 class="title toc-ignore">UMCCR Sample Summary</h1>
 <h4 class="author"><em>Oliver Hofmann</em></h4>
-<h4 class="date"><em>2018-08-07</em></h4>
+<h4 class="date"><em>2018-08-14</em></h4>
 
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-07</p>
+<p><strong>Last updated:</strong> 2018-08-14</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -341,23 +341,21 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/umccr/google_lims/tree/21ae9a07bde7d2fbc342e209a66d783e79f391f3" target="_blank">21ae9a0</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/umccr/google_lims/tree/7d4738d3d66f6563807bb3fe5ec20139cb094ca0" target="_blank">7d4738d</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
-    Ignored:    analysis/figure/
     Ignored:    googlesheets_token.rds
     Ignored:    output/backup/
 
 Untracked files:
-    Untracked:  analysis/snippets.Rmd
-    Untracked:  output/2018-08-07T0623_10X-Collaboration_10X_WGS.csv
-    Untracked:  output/2018-08-07T0623_10X-Collaboration_10X_WGS_files.txt
+    Untracked:  analysis/verifyBackup.Rmd
 
 Unstaged changes:
     Modified:   analysis/bcbioSetup.Rmd
+    Modified:   analysis/snippets.txt
 
 </code></pre>
 Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
@@ -386,6 +384,74 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/7d4738d3d66f6563807bb3fe5ec20139cb094ca0/analysis/bcbioSetup.Rmd" target="_blank">7d4738d</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-08-14
+</td>
+<td style="text-align:left;">
+Added instructions on how to set up bcbio configs
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/a9a71b54e3e1def86c959bf547388f34a54d4799/analysis/bcbioSetup.Rmd" target="_blank">a9a71b5</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-08-08
+</td>
+<td style="text-align:left;">
+Added support for WTS configs
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/978bddeb2d0f023a9ac0465e2606eabb7b5bf905/analysis/bcbioSetup.Rmd" target="_blank">978bdde</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-08-07
+</td>
+<td style="text-align:left;">
+Default to <code>eval=FALSE</code>
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/umccr/google_lims/978bddeb2d0f023a9ac0465e2606eabb7b5bf905/docs/bcbioSetup.html" target="_blank">978bdde</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-08-07
+</td>
+<td style="text-align:left;">
+Default to <code>eval=FALSE</code>
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -425,10 +491,22 @@ Added rsync and bcbio sample sheet generator
 </ul>
 <p></details></p>
 <hr />
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
 <p>Code snippets to generate file summaries (for rsync’ing around) and bcbio sample summaries based on a <a href="https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0">Google Spreadsheet</a>, aka the dreadful LIMS stand-in.</p>
-<div id="clean-up-data" class="section level2">
-<h2>Clean up data</h2>
-<p>Unifying variable names and simplifying subject IDs for bcbio. Replacing empty <code>results</code> cells (which indicate samples that still need processing) with a <code>-</code> to distinguish from true NAs; also getting rid of whitespace in subject identifiers. Otherwise standard data cleanup with <code>janitor</code>. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.</p>
+</div>
+<div id="workflow" class="section level2">
+<h2>Workflow</h2>
+<p>The process is currently manual, i.e., run code block by code block in RStudio as we are still trying to sort out edge cases. It is also useful being able to inspect the data frames listing files, phenotypes and batches before kicking off a bcbio run. A typical workflow includes the steps below.</p>
+<div id="setting-up-project-information" class="section level3">
+<h3>1. Setting up project information</h3>
+<p>This currently requires specifying both project name and the type of sequencing data (<code>WGS</code>, <code>WTS</code>, <code>10X-WGS</code>, etc.) and will pull out all files of that type and project which do not have results associated with them yet. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID. The exact names can be copied from the <code>Project</code> and <code>Type</code> columns of the <a href="https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit?usp=sharing">Google-LIMS sheet</a>.</p>
+<pre class="r"><code>PROJECT &lt;- &#39;Research-APGI-Garvan-KRAS-wt&#39;
+TYPE &lt;- &#39;WGS&#39;</code></pre>
+</div>
+<div id="import-data-from-google-spreadsheet" class="section level3">
+<h3>2. Import data from Google spreadsheet</h3>
+<p>This step generates a data frame from the Google spreadsheet, unifying variable names and simplifying subject IDs for bcbio along the way. It replacesg empty <code>results</code> cells (which indicate samples that still need processing) with a <code>-</code> to distinguish from true NAs and gets rid of whitespace in subject identifiers. Otherwise standard data cleanup with <code>janitor</code>. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.</p>
 <pre class="r"><code># Register UMCCR spreadsheet. Use cached authentication
 gs_auth(token=&quot;./googlesheets_token.rds&quot;)
 samples_gs &lt;- gs_key(&#39;1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs&#39;)
@@ -449,16 +527,8 @@ samples &lt;- samples_gs %&gt;%
   mutate(subject_id = gsub(&#39; &#39;, &#39;.&#39;, subject_id)) %&gt;%
   mutate(results = ifelse(is.na(results), &#39;-&#39;, results))</code></pre>
 </div>
-<div id="bcbio-config" class="section level2">
-<h2>bcbio config</h2>
-<p>Detail the project information. This currently requires specifying both project name and the type of sequencing data (<code>WGS</code>, <code>WTS</code>, <code>10X-WGS</code>, etc.) and will pull out all files of that type and from that project that do not have results associated with them. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID.</p>
-<pre class="r"><code>PROJECT &lt;- &#39;10X-Collaboration&#39;
-TYPE &lt;- &#39;10X_WGS&#39;</code></pre>
-</div>
-<div id="wgs" class="section level2">
-<h2>WGS</h2>
-<div id="create-rsync-list" class="section level3">
-<h3>Create rsync list</h3>
+<div id="create-rsync-list-wgs-tumornormal-use-case" class="section level3">
+<h3>3. Create rsync list: WGS tumor/normal use case</h3>
 <p>Find all FASTQs for samples that still need to be processed. The generated output file can be used on Spartan to generate (hard)links ready for <code>rsync</code> to NCI or <code>aws s3 cp</code> to, well, S3. It also generates ‘better’ sample names by renaming the FASTQ files from the filename to the sample name.</p>
 <pre class="r"><code># Keep rows matching project and type requested; extract path to FASTQ
 # and generate new file name for these
@@ -494,8 +564,8 @@ write.table(paste(&#39;ln&#39;, link$from, link$to, sep=&#39; &#39;),
             row.names=FALSE,
             quote=FALSE)</code></pre>
 </div>
-<div id="create-bcbio-config-tumornormal-wgs" class="section level3">
-<h3>Create bcbio config (tumor/normal WGS)</h3>
+<div id="create-bcbio-config-wgs-tumornormal-use-case" class="section level3">
+<h3>4. Create bcbio config: WGS tumor/normal use case</h3>
 <p>Generate a <code>.csv</code> sample descriptor, assigning patient/family identifiers for Peddy, assigning batches based on the subject id, and pairing tumor/normals as needed. Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using <code>bcbio_prepare_samples.py</code>.</p>
 <pre class="r"><code># Use the same information to generate the bcbio CSV file
 # Keep the required columns and add information for peddy
@@ -563,9 +633,32 @@ write.table(template,
             quote=FALSE,
             sep=&#39;,&#39;)</code></pre>
 </div>
+<div id="data-set-generation" class="section level3">
+<h3>5. Data set generation</h3>
+<p>Assuming a run on Spartan:</p>
+<ul>
+<li>copy over the two newly generated files to Spartan (<code>scp TIMESTAMP_PROJECT* spartan:~/</code>)</li>
+<li>create a new project directory on Spartan (<code>mkdir /data/cephfs/punim0010/projects/myproject; cd /data/cephfs/punim0010/projects/myproject</code></li>
+<li>create a data directory and link required files (<code>mkdir data; cd data; mv ~/TIMESTAMP_PROJECT* .; sh TIMESTAMP_PROJECT_files.txt</code>)</li>
+</ul>
+<p>This should result in all required FASTQ files being present in the current data directories. Errors usually mean permissions need to be updated, or the sample name is incorrectly captured in the spreadsheet. The next step merges FASTQ files where necessary and generates the final sample manifest for bcbio:</p>
+<ul>
+<li>Copy over the merge script (<code>cp /data/cephfs/punim0010/projects/std_workflow/merge.sh .</code>) and edit the <code>--csv</code> flag to use the generated sample sheet (<code>TIMESTAMP_PROJECT_files.csv</code>)</li>
+<li>Submit the job to the scheduler (<code>sbatch merge</code>)</li>
+</ul>
+<p>This will result in a new <code>merged</code> CSV alongside our standard template:</p>
+<ul>
+<li><code>mv *-merged.csv ..; cd ..</code></li>
+<li><code>bcbio_nextgen.py -w template ../std_workflow/std_workflow_cancer.yaml TIMESTAMP_PROJECT-merged.csv data/merged/*.gz</code></li>
+<li><code>cp ../std_workflows/run.sh TIMESTAMP_PROJECT-merged/work; cd TIMESTAMP_PROJECT-merged/work</code></li>
+</ul>
+<p>Edit the <code>run.sh</code> job submission script to point at the newly generated bcbio YAML template and you should be good to go.</p>
 </div>
-<div id="wgs-positive-controls" class="section level2">
-<h2>WGS Positive Controls</h2>
+</div>
+<div id="alternative-workflows" class="section level2">
+<h2>Alternative workflows</h2>
+<div id="wgs-positive-controls" class="section level3">
+<h3>WGS Positive Controls</h3>
 <p>Positive controls use a slightly different template (and only require germline calls); we also do not merge files prior to processing. We do add a timestamp to the batch based on the Illumina Run Identifier to be abe to sort / filter by time of the run in MultiQC and define the gold standard / benchmarkfiles to use for <code>rtg eval</code>:</p>
 <pre class="r"><code># Define what validation data to use; all of these are
 # shipped with bcbio so we don&#39;t have to prep standards
@@ -632,6 +725,7 @@ write.table(template,
             col.names=TRUE,
             quote=FALSE,
             sep=&#39;,&#39;)</code></pre>
+</div>
 <div id="wgs-negative-controls" class="section level3">
 <h3>WGS Negative Controls</h3>
 <p>For negative controls we only need to collect all relevant files in one place (hardlinks again) and check the results with <code>find . -type f -size +500M -exec ls -sh {} \; 2&gt; /dev/null</code>.</p>
@@ -660,6 +754,98 @@ write.table(paste(&#39;ln&#39;, link$from, link$to, sep=&#39; &#39;),
             col.names=FALSE,
             row.names=FALSE,
             quote=FALSE)</code></pre>
+</div>
+<div id="wts" class="section level3">
+<h3>WTS</h3>
+<p>For WTS samples the process is easier since we do not need to handle phenotypes or batch pairing:</p>
+<pre class="r"><code># Use the same information to generate the bcbio CSV file
+# Keep the required columns and add information for peddy
+template &lt;- bcbio %&gt;% 
+  mutate(family_id=subject_id) %&gt;%
+  mutate(individual_id=subject_id) %&gt;%
+  select(samplename=targetname, 
+         description=sample_name,
+         batch=subject_id,
+         phenotype, family_id, individual_id)
+
+# Since we are merging add the R1/R2 readpair information. Could probably 
+# be more elegant...
+template_R1 &lt;- template %&gt;%
+  mutate(samplename = paste(samplename, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;))
+template_R2 &lt;- template %&gt;%
+  mutate(samplename = paste(samplename, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;))
+template &lt;- rbind(template_R1, template_R2)
+
+write.table(template,
+            file=here::here(&#39;output&#39;, paste(PROJECT, &#39;_&#39;, TYPE, &#39;.csv&#39;, sep=&#39;&#39;)),
+            row.names=FALSE,
+            col.names=TRUE,
+            quote=FALSE,
+            sep=&#39;,&#39;)</code></pre>
+</div>
+<div id="create-bcbio-config-positive-wts-controls" class="section level3">
+<h3>Create bcbio config (positive WTS controls)</h3>
+<p>Different configuration for WTS controls – we do not validate against a benchmark / standard.</p>
+<pre class="r"><code># rsync command as before
+bcbio &lt;- samples %&gt;%
+  filter(project == &#39;Positive-control&#39; &amp; 
+           type == &#39;WTS&#39; &amp;
+           results == &#39;-&#39;) %&gt;%
+  mutate(targetname = paste(illumina_id, sample_name, sep=&#39;_&#39;)) %&gt;%
+  select(fastq, sample_id, sample_name, targetname, subject_id, phenotype)
+
+# Create a file list ready for linking
+read1 &lt;- bcbio %&gt;%
+  mutate(from = paste(fastq, &#39;/&#39;, sample_id, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  mutate(to = paste(targetname, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  select(from, to)
+
+read2 &lt;- bcbio %&gt;%
+  mutate(from = paste(fastq, &#39;/&#39;, sample_id, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  mutate(to = paste(targetname, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  select(from, to)
+
+link &lt;- rbind(read1, read2)
+
+# Write the file list for linking
+write.table(paste(&#39;ln&#39;, link$from, link$to, sep=&#39; &#39;),
+            file=here::here(&#39;output&#39;, &#39;posControl_WTS_files.txt&#39;),
+            col.names=FALSE,
+            row.names=FALSE,
+            quote=FALSE)
+
+# As before, generate bcbio CSV. Simpler process here.
+template &lt;- bcbio %&gt;% 
+  mutate(family_id=subject_id) %&gt;%
+  mutate(individual_id=subject_id) %&gt;%
+  select(samplename=targetname, 
+         batch=subject_id,
+         phenotype, family_id, individual_id)
+
+# Add timestamp to description, batch
+template &lt;- template %&gt;%
+  separate(samplename, c(&#39;timestamp&#39;, &#39;machine&#39;, &#39;run&#39;),
+           sep=&#39;_&#39;, extra=&quot;drop&quot;, 
+           remove=FALSE) %&gt;%
+  mutate(description=paste(timestamp, machine, run, batch, sep=&#39;-&#39;)) %&gt;%
+  mutate(batch=paste(&#39;batch&#39;, timestamp, machine, run, batch, sep=&#39;-&#39;)) %&gt;%
+    select(samplename, description, batch, phenotype,
+         family_id, individual_id)
+
+# Since we are merging add the R1/R2 readpair information. Could probably 
+# be more elegant...
+template_R1 &lt;- template %&gt;%
+  mutate(samplename = paste(samplename, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;))
+template_R2 &lt;- template %&gt;%
+  mutate(samplename = paste(samplename, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;))
+template &lt;- rbind(template_R1, template_R2)
+
+write.table(template,
+           file=here::here(&#39;output&#39;, &#39;posControl_WTS.csv&#39;),
+           row.names=FALSE,
+           col.names=TRUE,
+           quote=FALSE,
+           sep=&#39;,&#39;)</code></pre>
 </div>
 </div>
 <div id="session-information" class="section level2">

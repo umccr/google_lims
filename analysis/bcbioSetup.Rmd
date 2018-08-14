@@ -351,7 +351,7 @@ write.table(template,
 
 Different configuration for WTS controls -- we do not validate against a benchmark / standard. 
 
-```{r posControlFiles, eval=FALSE}
+```{r posControlFilesWTS, eval=FALSE}
 # rsync command as before
 bcbio <- samples %>%
   filter(project == 'Positive-control' & 
