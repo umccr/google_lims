@@ -10,8 +10,6 @@ output:
     code_folding: hide
 ---
 
-Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in.
-
 ```{r custom, echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
 library(scales)
@@ -32,9 +30,27 @@ library(here)
 library(skimr)
 ```
 
-## Clean up data
+## Introduction
 
-Unifying variable names and simplifying subject IDs for bcbio. Replacing empty `results` cells (which indicate samples that still need processing) with a `-` to distinguish from true NAs; also getting rid of whitespace in subject identifiers. Otherwise standard data cleanup with `janitor`. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.
+Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in.
+
+
+## Workflow
+
+The process is currently manual, i.e., run code block by code block in RStudio as we are still trying to sort out edge cases. It is also useful being able to inspect the data frames listing files, phenotypes and batches before kicking off a bcbio run. A typical workflow includes the steps below. 
+
+### 1. Setting up project information
+
+This currently requires specifying both project name and the type of sequencing data (`WGS`, `WTS`, `10X-WGS`, etc.) and will pull out all files of that type and project which do not have results associated with them yet. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID. The exact names can be copied from the `Project` and `Type` columns of the [Google-LIMS sheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit?usp=sharing).
+
+```{r project, eval=FALSE}
+PROJECT <- 'Research-APGI-Garvan-KRAS-wt'
+TYPE <- 'WGS'
+```
+
+### 2. Import data from Google spreadsheet
+
+This step generates a data frame from the Google spreadsheet, unifying variable names and simplifying subject IDs for bcbio along the way. It replacesg empty `results` cells (which indicate samples that still need processing) with a `-` to distinguish from true NAs and gets rid of whitespace in subject identifiers. Otherwise standard data cleanup with `janitor`. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.
 
 ```{r importData, message=FALSE, eval=FALSE}
 # Register UMCCR spreadsheet. Use cached authentication
@@ -58,18 +74,8 @@ samples <- samples_gs %>%
   mutate(results = ifelse(is.na(results), '-', results))
 ```
 
-## bcbio config
 
-Detail the project information. This currently requires specifying both project name and the type of sequencing data (`WGS`, `WTS`, `10X-WGS`, etc.) and will pull out all files of that type and from that project that do not have results associated with them. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID.
-
-```{r project, eval=FALSE}
-PROJECT <- '10X-Collaboration'
-TYPE <- '10X_WGS'
-```
-
-## WGS 
-
-### Create rsync list
+### 3. Create rsync list: WGS tumor/normal use case
 
 Find all FASTQs for samples that still need to be processed. The generated output file can be used on Spartan to generate (hard)links ready for `rsync` to NCI or `aws s3 cp` to, well, S3. It also generates 'better' sample names by renaming the FASTQ files from the filename to the sample name.
 
@@ -109,7 +115,7 @@ write.table(paste('ln', link$from, link$to, sep=' '),
             quote=FALSE)
 ```
 
-### Create bcbio config (tumor/normal WGS)
+### 4. Create bcbio config: WGS tumor/normal use case
 
 Generate a `.csv` sample descriptor, assigning patient/family identifiers for Peddy, assigning batches based on the subject id, and pairing tumor/normals as needed. Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using `bcbio_prepare_samples.py`.
 
@@ -181,8 +187,31 @@ write.table(template,
             sep=',')
 ```
 
+### 5. Data set generation
 
-## WGS Positive Controls
+Assuming a run on Spartan:
+
+* copy over the two newly generated files to Spartan (`scp TIMESTAMP_PROJECT* spartan:~/`)
+* create a new project directory on Spartan (`mkdir /data/cephfs/punim0010/projects/myproject; cd /data/cephfs/punim0010/projects/myproject`
+* create a data directory and link required files (`mkdir data; cd data; mv ~/TIMESTAMP_PROJECT* .; sh TIMESTAMP_PROJECT_files.txt`)
+
+This should result in all required FASTQ files being present in the current data directories. Errors usually mean permissions need to be updated, or the sample name is incorrectly captured in the spreadsheet. The next step merges FASTQ files where necessary and generates the final sample manifest for bcbio:
+
+* Copy over the merge script (`cp /data/cephfs/punim0010/projects/std_workflow/merge.sh .`) and edit the `--csv` flag to use the generated sample sheet (`TIMESTAMP_PROJECT_files.csv`)
+* Submit the job to the scheduler (`sbatch merge`)
+
+This will result in a new `merged` CSV alongside our standard template:
+
+* `mv *-merged.csv ..; cd ..`
+* `bcbio_nextgen.py -w template ../std_workflow/std_workflow_cancer.yaml TIMESTAMP_PROJECT-merged.csv data/merged/*.gz`
+* `cp ../std_workflows/run.sh TIMESTAMP_PROJECT-merged/work; cd TIMESTAMP_PROJECT-merged/work`
+
+Edit the `run.sh` job submission script to point at the newly generated bcbio YAML template and you should be good to go.
+
+
+## Alternative workflows
+
+### WGS Positive Controls
 
 Positive controls use a slightly different template (and only require germline calls); we also do not merge files prior to processing. We do add a timestamp to the batch based on the Illumina Run Identifier to be abe to sort / filter by time of the run in MultiQC and define the gold standard / benchmarkfiles to use for `rtg eval`:
 
@@ -286,7 +315,7 @@ write.table(paste('ln', link$from, link$to, sep=' '),
             quote=FALSE)
 ```
 
-## WTS
+### WTS
 
 For WTS samples the process is easier since we do not need to handle phenotypes or batch pairing:
 
@@ -316,8 +345,6 @@ write.table(template,
             quote=FALSE,
             sep=',')
 ```
-
-
 
 
 ### Create bcbio config (positive WTS controls)
