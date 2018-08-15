@@ -6,4 +6,4 @@
 #PBS -l ncpus=1
 #PBS -l software=bcbio
 #PBS -l wd
-bcbio_prepare_samples.py --out merged --csv kolling.csv -n 32 -q normal -s pbspro -t ipython -r 'walltime=48:00:00;noselect' --retries 1 --timeout 900
+bcbio_prepare_samples.py --out merged --csv samples.csv -n 32 -q normal -s pbspro -t ipython -r 'walltime=48:00:00;noselect' --retries 1 --timeout 900

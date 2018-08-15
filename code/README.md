@@ -1,3 +1,3 @@
 # Code
 
-Save command-line scripts and shared R code here.
+bcbio templates and PBSPro job submission scripts for use with NCI's Raijin. 
