@@ -37,9 +37,21 @@ details:
       svcaller: [cnvkit, manta]
       svprioritize: cancer/az300
 
-      # Extras
+      # Extras. Ensure use of gatk4, do not call in alt genome regions,
+      # refine Manta SV calls with Hartwig's BPI
       tools_on: [gatk4, break-point-inspector, noalt_calling]
+
+      # Define variant annotation. vcfanno uses the default Gemini tracks
       tools_off: [gemini]
       vcfanno: [gemini]
 upload:
   dir: ../final
+# Optional resource definitions. Tweak depending on the queue the job is
+# being submitted to. The defaults below work for `normal`
+resources:
+  machine:
+    cores: 16
+    memory: 128
+  default:
+    memory: 3G
+    cores: 16

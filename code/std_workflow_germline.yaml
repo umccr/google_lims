@@ -42,3 +42,12 @@ details:
       vcfanno: [gemini]
 upload:
   dir: ../final
+# Optional resource definitions. Tweak depending on the queue the job is
+# being submitted to. The defaults below work for `normal`
+resources:
+  machine:
+    cores: 16
+    memory: 128
+  default:
+    memory: 3G
+    cores: 16
