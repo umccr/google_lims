@@ -16,9 +16,19 @@ details:
       coverage: actionable/ACMG56
       mixup_check: qsignature
 
-      # Variant calling, 2-out-of-3. All callers handle InDels
+      # Variant calling. Simple best-practice germline calls
+      # are good enough here
       variantcaller: [gatk-haplotype]
 
       tools_off: [gemini]
 upload:
   dir: ../final
+# Optional resource definitions. Tweak depending on the queue the job is
+# being submitted to. The defaults below work for `normal`
+resources:
+  machine:
+    cores: 16
+    memory: 128
+  default:
+    memory: 3G
+    cores: 16

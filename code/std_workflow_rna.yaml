@@ -2,15 +2,27 @@ details:
   - analysis: RNA-seq
     genome_build: GRCh37
     algorithm:
+      # Creating standard alignments for visual inspection; Star is also
+      # required for Oncofuse
       aligner: star
       quality_format: standard
+
+      # May have to re-visit trimming choice for NovaSeq data
       trim_reads: false
 
+      # Star- and Kallisto-driven fusion callers
       fusion_caller: [pizzly, oncofuse]
-#      variantcaller: [gatk-haplotype]
 
       tools_on: [gatk4]
       tools_off: [gemini]
-
 upload:
   dir: ../final
+# Optional resource definitions. Tweak depending on the queue the job is
+# being submitted to. The defaults below work for `normal`
+resources:
+  machine:
+    cores: 16
+    memory: 128
+  default:
+    memory: 3G
+    cores: 16
