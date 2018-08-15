@@ -15,6 +15,10 @@ details:
 
       # ad hoc downsampling. Set to 100 for challenging samples
       maxcov_downsample: false
+
+      # Do not call in `alt` regions. In theory this is already
+      # handled through `tools_on: [noalt_calling]` but that
+      # still needs testing
       variant_regions: /g/data/gx8/extras/GRCh37_noalt.bed
 
       # QC and coverage assessent
@@ -29,8 +33,11 @@ details:
       # Structural variation. No ensemble calling option here
       svcaller: [cnvkit, manta]
 
-      # Extras
-      tools_on: [gatk4, break-point-inspector, noalt_calling] 
+      # Extras. Ensure use of gatk4, do not call in alt genome regions,
+      # refine Manta SV calls with Hartwig's BPI
+      tools_on: [gatk4, break-point-inspector, noalt_calling]
+
+      # Define variant annotation. vcfanno uses the default Gemini tracks
       tools_off: [gemini]
       vcfanno: [gemini]
 upload:
