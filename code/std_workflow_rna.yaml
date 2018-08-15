@@ -1,0 +1,16 @@
+details:
+  - analysis: RNA-seq
+    genome_build: GRCh37
+    algorithm:
+      aligner: star
+      quality_format: standard
+      trim_reads: false
+
+      fusion_caller: [pizzly, oncofuse]
+#      variantcaller: [gatk-haplotype]
+
+      tools_on: [gatk4]
+      tools_off: [gemini]
+
+upload:
+  dir: ../final

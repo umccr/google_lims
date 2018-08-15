@@ -1,0 +1,37 @@
+details:
+  - analysis: variant2
+    genome_build: GRCh37
+    algorithm:
+      # Alignment parameters
+      aligner: bwa
+      recalibrate: false
+      realign: false
+      mark_duplicates: true
+      remove_lcr: false
+
+      # Poly-G filtering
+      trim_reads: atropos
+      adapters: polyx
+
+      # ad hoc downsampling. Set to 100 for challenging samples
+      maxcov_downsample: false
+      variant_regions: /g/data/gx8/extras/GRCh37_noalt.bed
+
+      # QC and coverage assessent
+      coverage: actionable/ACMG56
+      mixup_check: qsignature
+
+      # Variant calling, 2-out-of-3. All callers handle InDels
+      variantcaller: [vardict, strelka2, gatk-haplotype]
+      ensemble:
+        numpass: 2
+
+      # Structural variation. No ensemble calling option here
+      svcaller: [cnvkit, manta]
+
+      # Extras
+      tools_on: [gatk4, break-point-inspector, noalt_calling] 
+      tools_off: [gemini]
+      vcfanno: [gemini]
+upload:
+  dir: ../final
