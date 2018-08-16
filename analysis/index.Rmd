@@ -6,4 +6,10 @@ output:
     toc: false
 ---
 
-TBA.
+## bcbio configuration and sample summaries
+
+* A [dashboard](dashboard.html) showing the current NovaSeq sequencing and processing state
+* Code to [sanity check](checkLims.html) the Google LIMS spreadsheet
+* A basic framework to generate [CSV and YAML templates](bcbioSetup.html) for bcbio on Raijin
+
+
