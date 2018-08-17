@@ -9,6 +9,8 @@ navbar:
       href: about.html
     - text: "License"
       href: license.html
+    - text: "NovaSeq Dashboard"
+      href: dashboard.html
   right:
     - icon: fa-github
       href: https://github.com/jdblischak/workflowr
