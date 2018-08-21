@@ -89,11 +89,12 @@ results_df %>%
 Second pass. Of results stored in the correct `Results` folder flag those not ending with a timestamp:
 
 ```{r checkTimestamp}
+# Joy. Parse_Data manages to extract a valid timestamp out of Illumina directories. 
 results_df %>%
-  filter(str_detect(results, '/data/cephfs/punim0010/data/Results')) %>%
+  filter(str_detect(results, '/data/cephfs/punim0010/data/Results/')) %>%
   mutate(timestamp=basename(results)) %>%
   mutate(parsed=parse_date(timestamp)) %>%
-  filter(is.na(parsed)) %>%
+  filter(is.na(parsed) | str_detect(results, 'A00130')) %>%
   kable()
 ```
 
@@ -101,6 +102,7 @@ Third pass. Make sure project name matches storage folder.
 
 ```{r checkProject}
 results_df %>%
+  filter(str_detect(results, '/data/cephfs/punim0010/data/Results/')) %>%
   mutate(folder=str_replace(results, '/data/cephfs/punim0010/data/Results/', '')) %>%
   separate(folder, 'store', '/', remove=FALSE, extra='drop') %>%
   filter(project != store) %>%
