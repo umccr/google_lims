@@ -1,10 +1,11 @@
 ---
 title: "UMCCR LIMS Sanity Checks"
-output: 
-  flexdashboard::flex_dashboard:
-    orientation: columns
-    theme: paper
-    vertical_layout: fill
+output:
+  html_document:
+    theme: readable
+    toc: false
+    toc_float: false
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
