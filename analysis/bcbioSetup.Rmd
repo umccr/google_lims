@@ -54,20 +54,22 @@ This step generates a data frame from the Google spreadsheet, unifying variable 
 
 ```{r importData, message=FALSE, eval=FALSE}
 # Register UMCCR spreadsheet. Use cached authentication
-gs_auth(token="./googlesheets_token.rds")
+gs_auth(token = "./googlesheets_token.rds") # plain gs_auth() writes .httr-oauth to workdir, then all is good
 samples_gs <- gs_key('1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs')
 
 # Create a backup copy each time we access the sample info
 tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
 timestamp <- strftime(tm , "%Y-%m-%dT%H%M")
-filename <- paste(timestamp, 'backup.csv', sep='_')
+filename <- paste(timestamp, 'backup.csv', sep = '_')
+backup_dir <- file.path(here::here('output', 'backup'))
+dir.create(backup_dir, recursive = TRUE) # mkdir -p (warns if it already exists):
 
 samples_gs %>%
-  gs_download(ws='Sheet1', to=here::here('output', 'backup', filename)) 
+  gs_download(ws = 'Sheet1', to = file.path(backup_dir, filename))
 
 # Tweak for analysis
 samples <- samples_gs %>%
-  gs_read(ws='Sheet1') %>%
+  gs_read(ws = 'Sheet1') %>%
   clean_names() %>%
   remove_empty(c('rows', 'cols')) %>%
   mutate(subject_id = gsub(' ', '.', subject_id)) %>%
@@ -88,7 +90,7 @@ bcbio <- samples %>%
            results == '-') %>%
   select(fastq, sample_id, sample_name, subject_id, phenotype) %>%
   mutate(runname = basename(fastq)) %>%
-  mutate(targetname = paste(runname, sample_name, sep='_')) 
+  mutate(targetname = paste(runname, sample_name, sep = '_'))
 
 # Former filters currently not in use, just for reference
 #   results != 'Failed' &
@@ -96,23 +98,24 @@ bcbio <- samples %>%
 
 # Create a file list ready for linking
 read1 <- bcbio %>%
-  mutate(from = paste(fastq, '/', sample_id, '_R1_001.fastq.gz', sep='')) %>%
-  mutate(to = paste(targetname, '_R1_001.fastq.gz', sep='')) %>%
+  mutate(from = paste0(fastq, '/', sample_id, '_R1_001.fastq.gz')) %>%
+  mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
   select(from, to)
 
 read2 <- bcbio %>%
-  mutate(from = paste(fastq, '/', sample_id, '_R2_001.fastq.gz', sep='')) %>%
-  mutate(to = paste(targetname, '_R2_001.fastq.gz', sep='')) %>%
+  mutate(from = paste0(fastq, '/', sample_id, '_R2_001.fastq.gz')) %>%
+  mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
   select(from, to)
 
 link <- rbind(read1, read2)
 
 # Write the file list for linking on Spartan
-write.table(paste('ln', link$from, link$to, sep=' '),
-            file=here::here('output', paste(timestamp, '_', PROJECT, '_', TYPE, '_files.txt', sep='')),
-            col.names=FALSE,
-            row.names=FALSE,
-            quote=FALSE)
+# ** Not sure if a `.sh` extension would make it clearer.
+write.table(paste('ln', link$from, link$to, sep = ' '),
+            file = here::here('output', paste0(timestamp, '_', PROJECT, '_', TYPE, '_files.txt')),
+            col.names = FALSE,
+            row.names = FALSE,
+            quote = FALSE)
 ```
 
 ### 4. Create bcbio config: WGS tumor/normal use case
@@ -123,14 +126,14 @@ Generate a `.csv` sample descriptor, assigning patient/family identifiers for Pe
 # Use the same information to generate the bcbio CSV file
 # Keep the required columns and add information for peddy
 template <- bcbio %>% 
-  mutate(family_id=subject_id) %>%
-  mutate(individual_id=subject_id) %>%
-  select(samplename=targetname, 
-         description=sample_name,
-         batch=subject_id,
+  mutate(family_id = subject_id) %>%
+  mutate(individual_id = subject_id) %>%
+  select(samplename = targetname,
+         description = sample_name,
+         batch = subject_id,
          phenotype, family_id, individual_id)
 
-# Handle cases where a normal matches more than tumor sample. 
+# Handle cases where a normal matches more than one tumor sample.
 # Courtesy of [Peter Diakumis](https://github.com/pdiakumis)
 get_new_batch <- function(batch, phenotype) {
   stopifnot(length(batch) == length(phenotype))
@@ -163,50 +166,49 @@ batches <- unique_samples %>%
 
 # Bring back the batch information to the main template
 template <- template %>%
-  left_join(batches, by=c('description')) %>%
-  select(samplename=samplename.x,
+  left_join(batches, by = c('description')) %>%
+  select(samplename = samplename.x,
          description,
-         batch=new_batch,
-         phenotype=phenotype.x,
-         family_id=family_id.x,
-         individual_id=individual_id.x)
+         batch = new_batch,
+         phenotype = phenotype.x,
+         family_id = family_id.x,
+         individual_id = individual_id.x)
 
 # Since we are merging add the R1/R2 readpair information. Could probably 
 # be more elegant...
-template_R1 <- template %>%
-  mutate(samplename = paste(samplename, '_R1_001.fastq.gz', sep=''))
-template_R2 <- template %>%
-  mutate(samplename = paste(samplename, '_R2_001.fastq.gz', sep=''))
+template_R1 <- template %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
+template_R2 <- template %>% mutate(samplename = paste0(samplename, '_R2_001.fastq.gz'))
 template <- rbind(template_R1, template_R2)
 
 write.table(template,
-            file=here::here('output', paste(timestamp, '_', PROJECT, '_', TYPE, '.csv', sep='')),
-            row.names=FALSE,
-            col.names=TRUE,
-            quote=FALSE,
-            sep=',')
+            file = here::here('output', paste0(timestamp, '_', PROJECT, '_', TYPE, '.csv')),
+            row.names = FALSE,
+            col.names = TRUE,
+            quote = FALSE,
+            sep = ',')
 ```
 
 ### 5. Data set generation
 
 Assuming a run on Spartan:
 
-* copy over the two newly generated files to Spartan (`scp TIMESTAMP_PROJECT* spartan:~/`)
-* create a new project directory on Spartan (`mkdir /data/cephfs/punim0010/projects/myproject; cd /data/cephfs/punim0010/projects/myproject`
-* create a data directory and link required files (`mkdir data; cd data; mv ~/TIMESTAMP_PROJECT* .; sh TIMESTAMP_PROJECT_files.txt`)
+* create a new project directory on Spartan, with a `data` subdirectory (`mkdir -p /data/cephfs/punim0010/projects/<myproject>/data; cd /data/cephfs/punim0010/projects/<myproject>/data`)
+* copy over the two newly generated files to Spartan (`scp TIMESTAMP_PROJECT* spartan:/data/cephfs/punim0010/projects/<myproject>/data`)
+* link required files (`sh TIMESTAMP_PROJECT_files.txt`)
 
 This should result in all required FASTQ files being present in the current data directories. Errors usually mean permissions need to be updated, or the sample name is incorrectly captured in the spreadsheet. The next step merges FASTQ files where necessary and generates the final sample manifest for bcbio:
 
 * Copy over the merge script (`cp /data/cephfs/punim0010/projects/std_workflow/merge.sh .`) and edit the `--csv` flag to use the generated sample sheet (`TIMESTAMP_PROJECT_files.csv`)
-* Submit the job to the scheduler (`sbatch merge`)
+* Submit the job to the scheduler (`sbatch merge.sh`)
 
 This will result in a new `merged` CSV alongside our standard template:
 
 * `mv *-merged.csv ..; cd ..`
 * `bcbio_nextgen.py -w template ../std_workflow/std_workflow_cancer.yaml TIMESTAMP_PROJECT-merged.csv data/merged/*.gz`
-* `cp ../std_workflows/run.sh TIMESTAMP_PROJECT-merged/work; cd TIMESTAMP_PROJECT-merged/work`
+* `cp ../std_workflow/run.sh TIMESTAMP_PROJECT-merged/work; cd TIMESTAMP_PROJECT-merged/work`
 
-Edit the `run.sh` job submission script to point at the newly generated bcbio YAML template and you should be good to go.
+Edit the `run.sh` job submission script to point at the newly generated bcbio YAML template and you should be good to go
+with `sbatch run.sh`.
 
 
 ## Alternative workflows
