@@ -44,8 +44,8 @@ The process is currently manual, i.e., run code block by code block in RStudio a
 This currently requires specifying both project name and the type of sequencing data (`WGS`, `WTS`, `10X-WGS`, etc.) and will pull out all files of that type and project which do not have results associated with them yet. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID. The exact names can be copied from the `Project` and `Type` columns of the [Google-LIMS sheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit?usp=sharing).
 
 ```{r project, eval=FALSE}
-PROJECT <- 'Research-APGI-Garvan-KRAS-wt'
-TYPE <- 'WGS'
+PROJECT <- 'Avner-KRAS-wt'
+TYPE <- 'WTS'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -339,7 +339,9 @@ template_R2 <- template %>%
 template <- rbind(template_R1, template_R2)
 
 write.table(template,
-            file=here::here('output', paste(PROJECT, '_', TYPE, '.csv', sep='')),
+            file=here::here('output', paste(timestamp, '_', 
+                                            PROJECT, '_', 
+                                            TYPE, '.csv', sep='')),
             row.names=FALSE,
             col.names=TRUE,
             quote=FALSE,
