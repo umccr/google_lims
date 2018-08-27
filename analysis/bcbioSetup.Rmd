@@ -43,8 +43,11 @@ The process is currently manual, i.e., run code block by code block in RStudio a
 
 This currently requires specifying both project name and the type of sequencing data (`WGS`, `WTS`, `10X-WGS`, etc.) and will pull out all files of that type and project which do not have results associated with them yet. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID. The exact names can be copied from the `Project` and `Type` columns of the [Google-LIMS sheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit?usp=sharing).
 
+The Googlesheets framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
+
+
 ```{r project, eval=FALSE}
-PROJECT <- 'Avner-KRAS-wt'
+PROJECT <- 'Research-APGI-Garvan-KRAS-wt'
 TYPE <- 'WTS'
 ```
 
