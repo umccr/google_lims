@@ -210,8 +210,35 @@ This will result in a new `merged` CSV alongside our standard template:
 * `bcbio_nextgen.py -w template ../std_workflow/std_workflow_cancer.yaml TIMESTAMP_PROJECT-merged.csv data/merged/*.gz`
 * `cp ../std_workflow/run.sh TIMESTAMP_PROJECT-merged/work; cd TIMESTAMP_PROJECT-merged/work`
 
-Edit the `run.sh` job submission script to point at the newly generated bcbio YAML template and you should be good to go
-with `sbatch run.sh`.
+Edit the `run.sh` job submission script to point at the newly generated bcbio YAML template and you should be good to go with `sbatch run.sh`.
+
+### 6. Monitoring a run
+
+The easiest way to follow the progress of a run is with a `less +F log/bcbio-nextgen-debug.log`; if this gets too much just following the commands log in the same directory would also do the trick.
+
+### 7. Post-processing with [umccrise](https://github.com/umccr/umccrise)
+
+Once the run finishes run the post-processing script. On Raijin, starting from the `work` directory where `run.sh` is placed:
+
+    `cd ..;source /g/data3/gx8/extras/umccrise/load_umccrise.sh;umccrise . -j 16 --cluster-auto`
+
+And on Spartan:
+
+    `cd ..;source /data/cephfs/punim0010/extras/umccrise/load_umccrise.sh;umccrise . -j 16 --cluster-auto`
+
+The post-processing will take abot an hour per sample, mostly due to creating mini-BAM files from the full BAMs.
+
+
+### 8. Archival and records
+
+Our current data archive resides on Spartan, although most of the processed data is now also on AWS S3. For now the process still is:
+
+* `/data/cephfs/punim0010/data/Results`
+* create `PROJECTDIR` if it does not exist, using the project name listed in the google-lims spreadsheet; it should match the project name that has been used to process the samples
+* `cd PROJECTDIR` and create a timestamp matching the timestamp of bcbio's `final` directory. E.g., if a `ls final` includes `2018-08-11_2018-07-31T0005_Tothill-A5_WGS-merged` create a directory `2018-08-11`
+* move (or rsync) the `final`, `config` and `umccrised` directories into the newly created timestamp directory
+* record the full path including the timestamp in the `Results` column of the Google Docs spreadsheet
+* move the [Trello cards](https://trello.com/b/05zkoAZU/umccr-patients) matching the current samples to the new state, ideally also uploading QC reports, PCGR reports, and the Rmd summary for each sample
 
 
 ## Alternative workflows
