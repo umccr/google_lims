@@ -45,10 +45,13 @@ This currently requires specifying both project name and the type of sequencing 
 
 The Googlesheets framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
 
+An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects.
+
 
 ```{r project, eval=FALSE}
-PROJECT <- 'Research-APGI-Garvan-KRAS-wt'
-TYPE <- 'WTS'
+PROJECT <- 'pvac_exploration'
+TYPE <- 'WGS'
+SECONDARY <- 'pvac'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -76,7 +79,8 @@ samples <- samples_gs %>%
   clean_names() %>%
   remove_empty(c('rows', 'cols')) %>%
   mutate(subject_id = gsub(' ', '.', subject_id)) %>%
-  mutate(results = ifelse(is.na(results), '-', results))
+  mutate(results = ifelse(is.na(results), '-', results)) %>%
+  mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis))
 ```
 
 
@@ -88,9 +92,9 @@ Find all FASTQs for samples that still need to be processed. The generated outpu
 # Keep rows matching project and type requested; extract path to FASTQ
 # and generate new file name for these
 bcbio <- samples %>%
-  filter(project == PROJECT & 
-           type == TYPE &
-           results == '-') %>%
+  filter(type == TYPE &
+           (project == PROJECT & results == '-') | 
+           (secondary_analysis == SECONDARY)) %>%
   select(fastq, sample_id, sample_name, subject_id, phenotype) %>%
   mutate(runname = basename(fastq)) %>%
   mutate(targetname = paste(runname, sample_name, sep = '_'))
