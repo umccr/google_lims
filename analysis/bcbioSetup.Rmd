@@ -221,15 +221,33 @@ The easiest way to follow the progress of a run is with a `less +F log/bcbio-nex
 
 ### 7. Post-processing with [umccrise](https://github.com/umccr/umccrise)
 
-Once the run finishes run the post-processing script. On Raijin, starting from the `work` directory where `run.sh` is placed:
+Once the bcbio run finishes, you need to run the `umccrise` post-processing script. 
+Make sure you follow the directions [in the wiki](https://github.com/umccr/wiki/blob/master/computing/cloud/aws.md)
+for setting up your AWS credentials, in order to upload mini-BAM files to AWS for IGV viewing.
 
-    `cd ..;source /g/data3/gx8/extras/umccrise/load_umccrise.sh;umccrise . -j 16 --cluster-auto`
+Starting from the `work` directory where `run.sh` is placed:
 
-And on Spartan:
+* On Raijin:
 
-    `cd ..;source /data/cephfs/punim0010/extras/umccrise/load_umccrise.sh;umccrise . -j 16 --cluster-auto`
+```bash
+cd ..
+source /g/data3/gx8/extras/umccrise/load_umccrise.sh
+export AWS_PROFILE=umccr
+umccrise . -j 16 --cluster-auto` # by default outputs to 'umccrise'
+## or use `umccrise /path/to/bcbio/final -j 16 --cluster-auto -o umccrise_alternative_name`
+```
 
-The post-processing will take abot an hour per sample, mostly due to creating mini-BAM files from the full BAMs.
+* On Spartan:
+
+```bash
+cd ..;
+source /data/cephfs/punim0010/extras/umccrise/load_umccrise.sh
+export AWS_PROFILE=umccr
+umccrise . -j 16 --cluster-auto` # by default outputs to 'umccrise'
+## or use `umccrise /path/to/bcbio/final -j 16 --cluster-auto -o umccrise_alternative_name`
+```
+
+The post-processing will take about an hour per sample, mostly due to creating mini-BAM files from the full BAMs.
 
 
 ### 8. Archival and records
