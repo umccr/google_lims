@@ -47,10 +47,9 @@ The Googlesheets framework requires authentication with oAuth. This can be done 
 
 An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects.
 
-
 ```{r project, eval=FALSE}
 PROJECT <- 'pvac_exploration'
-TYPE <- 'WGS'
+TYPE <- 'WTS'
 SECONDARY <- 'pvac'
 ```
 
@@ -84,7 +83,7 @@ samples <- samples_gs %>%
 ```
 
 
-### 3. Create rsync list: WGS tumor/normal use case
+### 3. Create rsync list
 
 Find all FASTQs for samples that still need to be processed. The generated output file can be used on Spartan to generate (hard)links ready for `rsync` to NCI or `aws s3 cp` to, well, S3. It also generates 'better' sample names by renaming the FASTQ files from the filename to the sample name.
 
@@ -93,8 +92,8 @@ Find all FASTQs for samples that still need to be processed. The generated outpu
 # and generate new file name for these
 bcbio <- samples %>%
   filter(type == TYPE &
-           (project == PROJECT & results == '-') | 
-           (secondary_analysis == SECONDARY)) %>%
+           ((project == PROJECT & results == '-') | 
+           (secondary_analysis == SECONDARY))) %>%
   select(fastq, sample_id, sample_name, subject_id, phenotype) %>%
   mutate(runname = basename(fastq)) %>%
   mutate(targetname = paste(runname, sample_name, sep = '_'))
