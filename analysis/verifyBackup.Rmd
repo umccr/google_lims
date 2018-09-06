@@ -1,0 +1,128 @@
+---
+title: "UMCCR Backup Check"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    theme: paper
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(tidyr)
+library(rmarkdown)
+library(dplyr)
+library(DT)
+library(readr)
+library(forcats)
+library(stringr)
+library(janitor)
+library(googlesheets)
+
+library(aws.s3)
+library(aws.iam)
+library(aws.signature)
+```
+
+A basic test to confirm primary data (FASTQs) from all runs tracked in [Google-lims](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0) are backed up on AWS Glacier, and to ensure processed results (bcbio runs: config information, BAMs, VCFs, etc.) is in sync with AWS S3. 
+
+## What data to track
+
+In brief, if the data is not captured in Google-Lims we are not creating backups. Positive / negative control runs are also excempted. 
+
+
+```{r dataPrep}
+# Register UMCCR spreadsheet. Use cached authentication
+gs_auth(token="./googlesheets_token.rds")
+samples_gs <- gs_key('1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs')
+
+# Tweak for analysis
+samples <- samples_gs %>%
+  gs_read(ws='Sheet1') %>%
+  clean_names() %>%
+  remove_empty(c('rows')) %>%
+  mutate(subject_id = gsub(' ', '.', subject_id)) %>%
+  mutate(results = ifelse(is.na(results), '-', results)) %>%
+  filter(project != 'Positive-control') %>%
+  filter(project != 'Negative-control')
+
+run_list <- unique(samples$illumina_id)
+```
+
+Find out which FASTQ data sets are missing on s3. This is only a comparison of the runfolder and FASTQ information; if for some reason a sample is just missing parts of the data (e.g., `R2` is not present) we would not detect the issue. We are also not making any guarantees about data corruyption. 
+
+```{r FASTQ}
+# Cleanup
+delete_saved_credentials()
+Sys.unsetenv("AWS_SESSION_TOKEN")
+Sys.unsetenv("AWS_ACCESS_KEY_ID")
+Sys.unsetenv("AWS_SECRET_ACCESS_KEY")
+
+# Set up session
+aws.signature::use_credentials(profile='user_oliver')
+aws.iam::assume_role(role='arn:aws:iam::472057503814:role/fastq_data_uploader', 
+                     session='test123', use=TRUE, verbose=TRUE)
+
+# Get contents of (FASTQ) backup bucket
+s3_content <- get_bucket(bucket = 'umccr-fastq-data-prod', 
+                         max=Inf, verbose=TRUE, region='ap-southeast-2')
+
+s3_df <- as.data.frame(s3_content) %>%
+  clean_names() %>%
+  mutate(filename = basename(key)) %>%
+  separate(key, c('run'), sep='/', extra='drop', remove=FALSE)
+
+# Any runs completely missing from s3?
+run_list[!run_list %in% unique(s3_df$run)]
+
+# Checking individual FASTQs. Limit to successful runs captured in Google-LIMS (argh...)
+s3_fastq <- s3_df %>%
+  filter(str_detect(filename, '.fastq.gz$')) %>% # FASTQ files only
+  mutate(size = as.numeric(size)) %>% # For filtering by file size
+  filter(run %in% run_list) %>% # Only those we captured on Google
+  mutate(filename = gsub('_R._001.fastq.gz', '', filename)) %>% # Ignore R1/R2
+  mutate(filename = gsub('_I._001.fastq.gz', '', filename)) %>% # Ignore Index
+  mutate(filename = gsub('_L\\d+$', '', filename)) %>% # Ignore lanes
+  mutate(filename = gsub('_S\\d+$', '', filename)) %>% # Strip `Snn` identifier
+  mutate(filename = gsub('_', '-', filename)) %>% # Unify hyphens
+  select(run, filename) %>%
+  distinct() %>%
+  mutate(composite = paste(run, filename, sep='#')) # Create composite key for merging
+
+# Drop the `_Sxx_` suffices
+google_fastq <- samples %>%
+  select(illumina_id, sample_id, fastq) %>%
+  mutate(sample_id = gsub('_S\\d+$', '', sample_id)) %>%
+  mutate(sample_id = gsub('_', '-', sample_id)) %>%
+  rename(filename = sample_id) %>%
+  rename(run = illumina_id) %>%
+  mutate(composite = paste(run, filename, sep='#'))
+  
+# Quick comparison
+summary(s3_fastq$filename %in% google_fastq$filename)
+summary(google_fastq$filename %in% s3_fastq$filename)
+
+# Mostly interested in FASTQs present in GoogleLims missing from S3
+merged <- google_fastq %>%
+  left_join(s3_fastq, by='composite')
+
+missing <- merged %>%
+  filter(is.na(run.y)) %>%
+  select(run=run.x, fastq) %>%
+  distinct()
+
+write.table(missing, file='2018-07-11_missingFASTQ.tsv', row.names=F, quote=F)
+
+# Spot checks
+toCheck <- '180412_A00130_0049_AH3WWTDSXX'
+
+google_fastq %>%
+  filter(run == toCheck)
+s3_fastq %>%
+  filter(run == toCheck)
+s3_df %>%
+  filter(run == toCheck)
+
+```
+
+
