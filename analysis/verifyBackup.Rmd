@@ -28,7 +28,7 @@ A basic test to confirm primary data (FASTQs) from all runs tracked in [Google-l
 
 ## What data to track
 
-In brief, if the data is not captured in Google-Lims we are not creating backups. Positive / negative control runs are also excempted. 
+In brief, if the data is not captured in Google-Lims we are not creating backups. Positive / negative control runs are also excluded. 
 
 
 ```{r dataPrep}
@@ -49,7 +49,9 @@ samples <- samples_gs %>%
 run_list <- unique(samples$illumina_id)
 ```
 
-Find out which FASTQ data sets are missing on s3. This is only a comparison of the runfolder and FASTQ information; if for some reason a sample is just missing parts of the data (e.g., `R2` is not present) we would not detect the issue. We are also not making any guarantees about data corruyption. 
+### Primary Data Backup
+
+Find out which FASTQ data sets are missing on s3. This is only a comparison of the runfolder and FASTQ information; if for some reason a sample is just missing parts of the data (e.g., `R2` is not present) we would not detect the issue. We are also not making any guarantees about data corruption. 
 
 ```{r FASTQ}
 # Cleanup
@@ -67,6 +69,8 @@ aws.iam::assume_role(role='arn:aws:iam::472057503814:role/fastq_data_uploader',
 s3_content <- get_bucket(bucket = 'umccr-fastq-data-prod', 
                          max=Inf, verbose=TRUE, region='ap-southeast-2')
 
+# Convert to a data frame for post-processing and fish out the sample
+# run information from the filename
 s3_df <- as.data.frame(s3_content) %>%
   clean_names() %>%
   mutate(filename = basename(key)) %>%
@@ -89,7 +93,8 @@ s3_fastq <- s3_df %>%
   distinct() %>%
   mutate(composite = paste(run, filename, sep='#')) # Create composite key for merging
 
-# Drop the `_Sxx_` suffices
+# Drop the `_Sxx_` suffices - those are not (yet) consistent between the Google Lims
+# and files on disk
 google_fastq <- samples %>%
   select(illumina_id, sample_id, fastq) %>%
   mutate(sample_id = gsub('_S\\d+$', '', sample_id)) %>%
@@ -101,8 +106,11 @@ google_fastq <- samples %>%
 # Quick comparison
 summary(s3_fastq$filename %in% google_fastq$filename)
 summary(google_fastq$filename %in% s3_fastq$filename)
+```
 
-# Mostly interested in FASTQs present in GoogleLims missing from S3
+We are interested in FASTQs present in Google-Lims but absent from S3:
+
+```{r compareFASTQ}
 merged <- google_fastq %>%
   left_join(s3_fastq, by='composite')
 
@@ -111,8 +119,27 @@ missing <- merged %>%
   select(run=run.x, fastq) %>%
   distinct()
 
-write.table(missing, file='2018-07-11_missingFASTQ.tsv', row.names=F, quote=F)
+missing %>%  
+  kable()
+```
 
+Keeping a record to send around:
+
+```{r recordMissingFASTQ}
+tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
+timestamp <- strftime(tm , "%Y-%m-%dT%H%M")
+
+write.table(missing,
+            file = here::here('output', paste0(timestamp, '_missingFASTQ.csv')),
+            row.names = FALSE,
+            col.names = TRUE,
+            quote = FALSE,
+            sep = ',')
+```
+
+Code stub to check for specific runs:
+
+```{r spotcheck, eval=FALSE}
 # Spot checks
 toCheck <- '180412_A00130_0049_AH3WWTDSXX'
 
@@ -122,7 +149,50 @@ s3_fastq %>%
   filter(run == toCheck)
 s3_df %>%
   filter(run == toCheck)
-
 ```
+
+
+### Secondary Data Backup
+
+* If we have `results` they should be on S3
+
+```{r parseResults}
+
+results <- samples %>%
+  filter(results != '-') %>% 
+  select(run, timestamp, project, sample_name, subject_id, fastq, results) %>%
+  mutate(runname = basename(fastq)) %>%
+  mutate(targetname = paste(runname, sample_name, sep = '_'))
+
+# Cleanup
+# XXXX DO WE NEED THIS HERE AS WELL?
+delete_saved_credentials()
+Sys.unsetenv("AWS_SESSION_TOKEN")
+Sys.unsetenv("AWS_ACCESS_KEY_ID")
+Sys.unsetenv("AWS_SECRET_ACCESS_KEY")
+
+# Set up session
+aws.signature::use_credentials(profile='user_oliver')
+aws.iam::assume_role(role='arn:aws:iam::472057503814:role/fastq_data_uploader', 
+                     session='test123', use=TRUE, verbose=TRUE)
+
+# Get contents of (bcbio results) backup bucket
+s3_content <- get_bucket(bucket = 'umccr-primary-data-prod', 
+                         max=Inf, verbose=TRUE, region='ap-southeast-2')
+
+# Convert to a data frame for post-processing and fish out the sample
+# run information from the filename
+s3_results <- as.data.frame(s3_content) %>%
+  clean_names() %>%
+  mutate(filename = basename(key)) %>%
+  separate(key, c('project', 'timestamp'), sep='/', extra='drop', remove=FALSE)
+```
+
+
+### Safe-to-delete
+
+* What runs had a) all data processed, b) FASTQs in Glacier, and c) results on S3?
+
+
 
 
