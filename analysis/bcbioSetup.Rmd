@@ -48,9 +48,9 @@ The Googlesheets framework requires authentication with oAuth. This can be done 
 An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects.
 
 ```{r project, eval=FALSE}
-PROJECT <- 'pvac_exploration'
-TYPE <- 'WTS'
-SECONDARY <- 'pvac'
+PROJECT <- 'Accreditation'
+TYPE <- 'WGS'
+SECONDARY <- ''
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -76,10 +76,10 @@ samples_gs %>%
 samples <- samples_gs %>%
   gs_read(ws = 'Sheet1') %>%
   clean_names() %>%
+  mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis)) %>%
   remove_empty(c('rows', 'cols')) %>%
   mutate(subject_id = gsub(' ', '.', subject_id)) %>%
-  mutate(results = ifelse(is.na(results), '-', results)) %>%
-  mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis))
+  mutate(results = ifelse(is.na(results), '-', results)) 
 ```
 
 
