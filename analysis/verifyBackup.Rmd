@@ -18,6 +18,7 @@ library(forcats)
 library(stringr)
 library(janitor)
 library(googlesheets)
+library(kableExtra)
 
 library(aws.s3)
 library(aws.iam)
@@ -31,7 +32,7 @@ A basic test to confirm primary data (FASTQs) from all runs tracked in [Google-l
 In brief, if the data is not captured in Google-Lims we are not creating backups. Positive / negative control runs are also excluded. 
 
 
-```{r dataPrep}
+```{r dataPrep, echo=FALSE, warning=FALSE, message=FALSE}
 # Register UMCCR spreadsheet. Use cached authentication
 gs_auth(token="./googlesheets_token.rds")
 samples_gs <- gs_key('1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs')
@@ -46,14 +47,24 @@ samples <- samples_gs %>%
   filter(project != 'Positive-control') %>%
   filter(project != 'Negative-control')
 
-run_list <- unique(samples$illumina_id)
+# Subset to what we need only. Drop the `_Sxx_` suffices - those are not (yet) consistent 
+# between the Google Lims and files on disk. Also create a composite key for 
+# matching against the S3 stored files
+google <- samples %>%
+  select(illumina_id, run, timestamp, project, sample_id, sample_name, subject_id, fastq, results) %>%
+  mutate(runname = basename(fastq)) %>%
+  mutate(targetname = paste(runname, sample_name, sep = '_')) %>%
+  mutate(sample_id = gsub('_S\\d+$', '', sample_id)) %>%
+  mutate(sample_id = gsub('_', '-', sample_id)) %>%
+  rename(filename = sample_id) %>%
+  mutate(composite = paste(illumina_id, filename, sep='#'))
 ```
 
 ### Primary Data Backup
 
 Find out which FASTQ data sets are missing on s3. This is only a comparison of the runfolder and FASTQ information; if for some reason a sample is just missing parts of the data (e.g., `R2` is not present) we would not detect the issue. We are also not making any guarantees about data corruption. 
 
-```{r FASTQ}
+```{r FASTQ, echo=FALSE, warning=FALSE, message=FALSE}
 # Cleanup
 delete_saved_credentials()
 Sys.unsetenv("AWS_SESSION_TOKEN")
@@ -62,8 +73,8 @@ Sys.unsetenv("AWS_SECRET_ACCESS_KEY")
 
 # Set up session
 aws.signature::use_credentials(profile='user_oliver')
-aws.iam::assume_role(role='arn:aws:iam::472057503814:role/fastq_data_uploader', 
-                     session='test123', use=TRUE, verbose=TRUE)
+foo <- aws.iam::assume_role(role='arn:aws:iam::472057503814:role/fastq_data_uploader', 
+                     session='test123', use=TRUE, verbose=FALSE)
 
 # Get contents of (FASTQ) backup bucket
 s3_content <- get_bucket(bucket = 'umccr-fastq-data-prod', 
@@ -74,58 +85,48 @@ s3_content <- get_bucket(bucket = 'umccr-fastq-data-prod',
 s3_df <- as.data.frame(s3_content) %>%
   clean_names() %>%
   mutate(filename = basename(key)) %>%
-  separate(key, c('run'), sep='/', extra='drop', remove=FALSE)
+  separate(key, c('illumina_id'), sep='/', extra='drop', remove=FALSE)
+```
 
+Some basic sanity checks:
+
+```{r fastqCheck}
 # Any runs completely missing from s3?
-run_list[!run_list %in% unique(s3_df$run)]
+run_list <- unique(google$illumina_id)
+run_list[!run_list %in% unique(s3_df$illumina_id)]
 
 # Checking individual FASTQs. Limit to successful runs captured in Google-LIMS (argh...)
 s3_fastq <- s3_df %>%
   filter(str_detect(filename, '.fastq.gz$')) %>% # FASTQ files only
   mutate(size = as.numeric(size)) %>% # For filtering by file size
-  filter(run %in% run_list) %>% # Only those we captured on Google
-  mutate(filename = gsub('_R._001.fastq.gz', '', filename)) %>% # Ignore R1/R2
-  mutate(filename = gsub('_I._001.fastq.gz', '', filename)) %>% # Ignore Index
-  mutate(filename = gsub('_L\\d+$', '', filename)) %>% # Ignore lanes
-  mutate(filename = gsub('_S\\d+$', '', filename)) %>% # Strip `Snn` identifier
+  filter(illumina_id %in% run_list) %>% # Only those we captured on Google
   mutate(filename = gsub('_', '-', filename)) %>% # Unify hyphens
-  select(run, filename) %>%
+  mutate(filename = gsub('-R.-001.fastq.gz', '', filename)) %>% # Ignore R1/R2
+  mutate(filename = gsub('-I.-001.fastq.gz', '', filename)) %>% # Ignore Index
+  mutate(filename = gsub('-R..fastq.gz', '', filename)) %>% # Likewise for those with missing lane
+  mutate(filename = gsub('-I..fastq.gz', '', filename)) %>% # Ignore Index
+  mutate(filename = gsub('-L\\d+$', '', filename)) %>% # Ignore lanes
+  mutate(filename = gsub('-S\\d+$', '', filename)) %>% # Strip `Snn` identifier
+  select(illumina_id, filename) %>%
   distinct() %>%
-  mutate(composite = paste(run, filename, sep='#')) # Create composite key for merging
+  mutate(composite = paste(illumina_id, filename, sep='#')) # Create composite key for merging
 
-# Drop the `_Sxx_` suffices - those are not (yet) consistent between the Google Lims
-# and files on disk
-google_fastq <- samples %>%
-  select(illumina_id, sample_id, fastq) %>%
-  mutate(sample_id = gsub('_S\\d+$', '', sample_id)) %>%
-  mutate(sample_id = gsub('_', '-', sample_id)) %>%
-  rename(filename = sample_id) %>%
-  rename(run = illumina_id) %>%
-  mutate(composite = paste(run, filename, sep='#'))
-  
 # Quick comparison
-summary(s3_fastq$filename %in% google_fastq$filename)
-summary(google_fastq$filename %in% s3_fastq$filename)
+summary(s3_fastq$filename %in% google$filename)
+summary(google$filename %in% s3_fastq$filename)
 ```
 
-We are interested in FASTQs present in Google-Lims but absent from S3:
+This should be empty, i.e., all FASTQ files tracked in the spreadsheet are found in the S3 FASTQ filename list. If not, the next step explores what is missing:
 
-```{r compareFASTQ}
-merged <- google_fastq %>%
-  left_join(s3_fastq, by='composite')
-
-missing <- merged %>%
-  filter(is.na(run.y)) %>%
-  select(run=run.x, fastq) %>%
-  distinct()
-
-missing %>%  
+```{r compareFastq, eval=FALSE}
+google %>%
+  select(illumina_id, filename, composite) %>%
+  filter(!google$filename %in% s3_fastq$filename) %>%
   kable()
-```
 
-Keeping a record to send around:
+# Keep a record to send around
+missing <- merged[!google$filename %in% s3_fastq$filename, ]
 
-```{r recordMissingFASTQ}
 tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
 timestamp <- strftime(tm , "%Y-%m-%dT%H%M")
 
@@ -135,35 +136,26 @@ write.table(missing,
             col.names = TRUE,
             quote = FALSE,
             sep = ',')
-```
 
-Code stub to check for specific runs:
+# Trouble shoot specific runs
+toCheck <- '170519_A00121_0011_AH23HJDMXX'
 
-```{r spotcheck, eval=FALSE}
-# Spot checks
-toCheck <- '180412_A00130_0049_AH3WWTDSXX'
-
-google_fastq %>%
-  filter(run == toCheck)
 s3_fastq %>%
-  filter(run == toCheck)
-s3_df %>%
-  filter(run == toCheck)
+  filter(illumina_id == toCheck) %>%
+  kable()
+
+google %>%
+  filter(runname == toCheck) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = F)
 ```
 
 
 ### Secondary Data Backup
 
-* If we have `results` they should be on S3
+If we have `results` they should be sync'd with S3. Get data stored in the secondary / results bucket:
 
-```{r parseResults}
-
-results <- samples %>%
-  filter(results != '-') %>% 
-  select(run, timestamp, project, sample_name, subject_id, fastq, results) %>%
-  mutate(runname = basename(fastq)) %>%
-  mutate(targetname = paste(runname, sample_name, sep = '_'))
-
+```{r parseResults, echo=FALSE, warning=FALSE, message=FALSE}
 # Cleanup
 # XXXX DO WE NEED THIS HERE AS WELL?
 delete_saved_credentials()
@@ -173,7 +165,7 @@ Sys.unsetenv("AWS_SECRET_ACCESS_KEY")
 
 # Set up session
 aws.signature::use_credentials(profile='user_oliver')
-aws.iam::assume_role(role='arn:aws:iam::472057503814:role/fastq_data_uploader', 
+foo <- aws.iam::assume_role(role='arn:aws:iam::472057503814:role/fastq_data_uploader', 
                      session='test123', use=TRUE, verbose=TRUE)
 
 # Get contents of (bcbio results) backup bucket
@@ -182,16 +174,56 @@ s3_content <- get_bucket(bucket = 'umccr-primary-data-prod',
 
 # Convert to a data frame for post-processing and fish out the sample
 # run information from the filename
-s3_results <- as.data.frame(s3_content) %>%
+s3_df <- as.data.frame(s3_content) %>%
   clean_names() %>%
   mutate(filename = basename(key)) %>%
-  separate(key, c('project', 'timestamp'), sep='/', extra='drop', remove=FALSE)
+  separate(key, c('project', 'timestamp'), sep='/', extra='drop', remove=FALSE) %>%
+  select(project, timestamp, filename)
 ```
+
+Standard bcbio results folders should be present on S3:
+
+```{r findResults}
+# Use the Google-Lims result path to look up target directory
+results <- google %>%
+  mutate(results = ifelse(results == 'n/a', '-', results)) %>%
+  filter(results != '-') %>%
+  filter(str_detect(results, 'Results/')) %>% # No Local, Transient results
+  select(run, project, results) %>%
+  mutate(timestamp = basename(results)) %>%
+  distinct()
+
+results %>%
+  left_join(s3_df, by=c('project', 'timestamp')) %>%
+  filter(is.na(filename)) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = F)
+```
+
+Good enough. Given that we automated sample naming only halfway into 2018 and samples are being re-used across runs there isn't any sane way to match Google-Lims `sample_id`s with the S3 filenames. 
 
 
 ### Safe-to-delete
 
-* What runs had a) all data processed, b) FASTQs in Glacier, and c) results on S3?
+What runs had a) all data processed, b) FASTQs in Glacier, and c) results on S3?
+
+```{r delete}
+head(results)
+
+google %>%
+  mutate(results = ifelse(results == 'n/a', '-', results)) %>%
+  select(illumina_id, project, results) %>%
+  mutate(timestamp = basename(results)) %>%
+  distinct() %>%
+  left_join(s3_df, by=c('project', 'timestamp')) %>%
+  mutate(illumina_id=as.factor(illumina_id)) %>%
+  group_by(illumina_id) %>%
+  summarise(missing = sum(is.na(filename))) %>%
+  filter(missing == 0) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = F)
+```
+
 
 
 

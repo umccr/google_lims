@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>UMCCR Backup Check</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/font-awesome-5.0.13/css/fa-svg-with-js.css" rel="stylesheet" />
+<script src="site_libs/font-awesome-5.0.13/js/fontawesome-all.min.js"></script>
+<script src="site_libs/font-awesome-5.0.13/js/fa-v4-shims.min.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">google_lims</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+<li>
+  <a href="dashboard.html">NovaSeq Dashboard</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">UMCCR Backup Check</h1>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2018-09-12</p>
+<strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
+<ul>
+<li>
+<p><details> <summary> <strong style="color:red;">✖</strong> <strong>R Markdown file:</strong> uncommitted changes </summary> The R Markdown file has unstaged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Environment:</strong> empty </summary></p>
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Seed:</strong> <code>set.seed(20180807)</code> </summary></p>
+<p>The command <code>set.seed(20180807)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Session information:</strong> recorded </summary></p>
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/umccr/google_lims/tree/a005cad7b3490baac495e8332cde4c3829ea06c5" target="_blank">a005cad</a> </summary></p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    googlesheets_token.rds
+    Ignored:    output/backup/
+
+Unstaged changes:
+    Modified:   analysis/snippets.txt
+    Modified:   analysis/verifyBackup.Rmd
+    Modified:   code/merge.sh
+    Modified:   code/run.sh
+
+</code></pre>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
+</li>
+</ul>
+<details> <summary> <small><strong>Expand here to see past versions:</strong></small> </summary>
+<ul>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+File
+</th>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:left;">
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/39b485fd0d3eb619b4d41888e6d0267c5fe512aa/analysis/verifyBackup.Rmd" target="_blank">39b485f</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-09-06
+</td>
+<td style="text-align:left;">
+First stab at looking for S3 result folders
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/ee98afb8d7692c1c9ea1efe5d3e6194836268223/analysis/verifyBackup.Rmd" target="_blank">ee98afb</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-09-06
+</td>
+<td style="text-align:left;">
+Added test of S3/Glacier backup data
+</td>
+</tr>
+</tbody>
+</table>
+</ul>
+<p></details></p>
+<hr />
+<p>A basic test to confirm primary data (FASTQs) from all runs tracked in <a href="https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0">Google-lims</a> are backed up on AWS Glacier, and to ensure processed results (bcbio runs: config information, BAMs, VCFs, etc.) is in sync with AWS S3.</p>
+<div id="what-data-to-track" class="section level2">
+<h2>What data to track</h2>
+<p>In brief, if the data is not captured in Google-Lims we are not creating backups. Positive / negative control runs are also excluded.</p>
+<div id="primary-data-backup" class="section level3">
+<h3>Primary Data Backup</h3>
+<p>Find out which FASTQ data sets are missing on s3. This is only a comparison of the runfolder and FASTQ information; if for some reason a sample is just missing parts of the data (e.g., <code>R2</code> is not present) we would not detect the issue. We are also not making any guarantees about data corruption.</p>
+<pre><code>[1] TRUE</code></pre>
+<p>Some basic sanity checks:</p>
+<pre class="r"><code># Any runs completely missing from s3?
+run_list &lt;- unique(google$illumina_id)
+run_list[!run_list %in% unique(s3_df$illumina_id)]</code></pre>
+<pre><code>character(0)</code></pre>
+<pre class="r"><code># Checking individual FASTQs. Limit to successful runs captured in Google-LIMS (argh...)
+s3_fastq &lt;- s3_df %&gt;%
+  filter(str_detect(filename, &#39;.fastq.gz$&#39;)) %&gt;% # FASTQ files only
+  mutate(size = as.numeric(size)) %&gt;% # For filtering by file size
+  filter(illumina_id %in% run_list) %&gt;% # Only those we captured on Google
+  mutate(filename = gsub(&#39;_&#39;, &#39;-&#39;, filename)) %&gt;% # Unify hyphens
+  mutate(filename = gsub(&#39;-R.-001.fastq.gz&#39;, &#39;&#39;, filename)) %&gt;% # Ignore R1/R2
+  mutate(filename = gsub(&#39;-I.-001.fastq.gz&#39;, &#39;&#39;, filename)) %&gt;% # Ignore Index
+  mutate(filename = gsub(&#39;-R..fastq.gz&#39;, &#39;&#39;, filename)) %&gt;% # Likewise for those with missing lane
+  mutate(filename = gsub(&#39;-I..fastq.gz&#39;, &#39;&#39;, filename)) %&gt;% # Ignore Index
+  mutate(filename = gsub(&#39;-L\\d+$&#39;, &#39;&#39;, filename)) %&gt;% # Ignore lanes
+  mutate(filename = gsub(&#39;-S\\d+$&#39;, &#39;&#39;, filename)) %&gt;% # Strip `Snn` identifier
+  select(illumina_id, filename) %&gt;%
+  distinct() %&gt;%
+  mutate(composite = paste(illumina_id, filename, sep=&#39;#&#39;)) # Create composite key for merging
+
+# Quick comparison
+summary(s3_fastq$filename %in% google$filename)</code></pre>
+<pre><code>   Mode   FALSE    TRUE 
+logical     138     840 </code></pre>
+<pre class="r"><code>summary(google$filename %in% s3_fastq$filename)</code></pre>
+<pre><code>   Mode    TRUE 
+logical     931 </code></pre>
+<p>This should be empty, i.e., all FASTQ files tracked in the spreadsheet are found in the S3 FASTQ filename list. If not, the next step explores what is missing:</p>
+<pre class="r"><code>google %&gt;%
+  select(illumina_id, filename, composite) %&gt;%
+  filter(!google$filename %in% s3_fastq$filename) %&gt;%
+  kable()
+
+# Keep a record to send around
+missing &lt;- merged[!google$filename %in% s3_fastq$filename, ]
+
+tm &lt;- as.POSIXlt(Sys.time(), &quot;UTC&quot;, &quot;%Y-%m-%dT%H:%M:%S&quot;)
+timestamp &lt;- strftime(tm , &quot;%Y-%m-%dT%H%M&quot;)
+
+write.table(missing,
+            file = here::here(&#39;output&#39;, paste0(timestamp, &#39;_missingFASTQ.csv&#39;)),
+            row.names = FALSE,
+            col.names = TRUE,
+            quote = FALSE,
+            sep = &#39;,&#39;)
+
+# Trouble shoot specific runs
+toCheck &lt;- &#39;170519_A00121_0011_AH23HJDMXX&#39;
+
+s3_fastq %&gt;%
+  filter(illumina_id == toCheck) %&gt;%
+  kable()
+
+google %&gt;%
+  filter(runname == toCheck) %&gt;%
+  kable() %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;), full_width = F)</code></pre>
+</div>
+<div id="secondary-data-backup" class="section level3">
+<h3>Secondary Data Backup</h3>
+<p>If we have <code>results</code> they should be sync’d with S3. Get data stored in the secondary / results bucket:</p>
+<pre><code>[1] TRUE</code></pre>
+<p>Standard bcbio results folders should be present on S3:</p>
+<pre class="r"><code># Use the Google-Lims result path to look up target directory
+results &lt;- google %&gt;%
+  mutate(results = ifelse(results == &#39;n/a&#39;, &#39;-&#39;, results)) %&gt;%
+  filter(results != &#39;-&#39;) %&gt;%
+  filter(str_detect(results, &#39;Results/&#39;)) %&gt;% # No Local, Transient results
+  select(run, project, results) %&gt;%
+  mutate(timestamp = basename(results)) %&gt;%
+  distinct()
+
+results %&gt;%
+  left_join(s3_df, by=c(&#39;project&#39;, &#39;timestamp&#39;)) %&gt;%
+  filter(is.na(filename)) %&gt;%
+  kable() %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;), full_width = F)</code></pre>
+<table class="table table-striped table-hover" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;">
+run
+</th>
+<th style="text-align:left;">
+project
+</th>
+<th style="text-align:left;">
+results
+</th>
+<th style="text-align:left;">
+timestamp
+</th>
+<th style="text-align:left;">
+filename
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:left;">
+Tothill-A5
+</td>
+<td style="text-align:left;">
+/data/cephfs/punim0010/data/Results/Tothill-A5/2018-08-30
+</td>
+<td style="text-align:left;">
+2018-08-30
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+49
+</td>
+<td style="text-align:left;">
+Tothill-A5
+</td>
+<td style="text-align:left;">
+/data/cephfs/punim0010/data/Results/Tothill-A5/2018-08-30
+</td>
+<td style="text-align:left;">
+2018-08-30
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+70
+</td>
+<td style="text-align:left;">
+Tothill-A5
+</td>
+<td style="text-align:left;">
+/data/cephfs/punim0010/data/Results/Tothill-A5/2018-08-30
+</td>
+<td style="text-align:left;">
+2018-08-30
+</td>
+<td style="text-align:left;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+<p>Good enough. Given that we automated sample naming only halfway into 2018 and samples are being re-used across runs there isn’t any sane way to match Google-Lims <code>sample_id</code>s with the S3 filenames.</p>
+</div>
+<div id="safe-to-delete" class="section level3">
+<h3>Safe-to-delete</h3>
+<p>What runs had a) all data processed, b) FASTQs in Glacier, and c) results on S3?</p>
+<pre class="r"><code>head(results)</code></pre>
+<pre><code># A tibble: 6 x 4
+    run project    results                                     timestamp  
+  &lt;int&gt; &lt;chr&gt;      &lt;chr&gt;                                       &lt;chr&gt;      
+1    12 Avner      /data/cephfs/punim0010/data/Results/Avner/… 2018-01-31 
+2    12 Avner      /data/cephfs/punim0010/data/Results/Avner/… 2018-03-11 
+3    14 Tothill-A5 /data/cephfs/punim0010/data/Results/Tothil… 2018-04-09 
+4    15 Tothill-A5 /data/cephfs/punim0010/data/Results/Tothil… 2018-04-09 
+5    16 Patients   /data/cephfs/punim0010/data/Results/Patien… 2017-08-09 
+6    17 Avner      /data/cephfs/punim0010/data/Results/Avner/… 2018-02-07…</code></pre>
+<pre class="r"><code>google %&gt;%
+  mutate(results = ifelse(results == &#39;n/a&#39;, &#39;-&#39;, results)) %&gt;%
+  select(illumina_id, project, results) %&gt;%
+  mutate(timestamp = basename(results)) %&gt;%
+  distinct() %&gt;%
+  left_join(s3_df, by=c(&#39;project&#39;, &#39;timestamp&#39;)) %&gt;%
+  mutate(illumina_id=as.factor(illumina_id)) %&gt;%
+  group_by(illumina_id) %&gt;%
+  summarise(missing = sum(is.na(filename))) %&gt;%
+  filter(missing == 0) %&gt;%
+  kable() %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;), full_width = F)</code></pre>
+<table class="table table-striped table-hover" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+illumina_id
+</th>
+<th style="text-align:right;">
+missing
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+170519_A00121_0012_BH2355DMXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+170704_A00130_0014_AH2C33DMXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+170707_A00130_0015_BH27LKDMXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+170802_A00130_0017_BH2N5WDMXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+170912_A00130_0022_AH3JV3DMXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+171009_A00130_0024_BH52VYDMXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+171009_A00130_0025_AH52WFDMXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+171012_A00130_0026_AH52VVDMXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+171016_A00130_0028_BH533CDMXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+171019_A00130_0030_AH5G27DMXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+171207_A00130_0034_BH2FTJDSXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+180209_A00130_0037_AH32LTDSXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+180319_A00130_0043_AHCLLVDMXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+180323_A00130_0045_BHCL53DMXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+180326_A00130_0046_AH3VVVDSXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+180326_A00130_0047_BHCLMKDMXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+180412_A00130_0050_BH3WLTDSXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+180504_A00130_0056_AH3WWJDSXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+180504_A00130_0057_BH3WW3DSXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+180525_A00130_0062_AH5FKCDSXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+180530_A00130_0064_AH55TLDSXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+180718_A00130_0067_AH5M5MDSXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+180718_A00130_0068_BH5M73DSXX
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.5.0 (2018-04-23)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS High Sierra 10.13.3
+
+Matrix products: default
+BLAS: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] bindrcpp_0.2.2      aws.signature_0.4.4 aws.iam_0.1.7      
+ [4] aws.s3_0.3.12       kableExtra_0.9.0    googlesheets_0.3.0 
+ [7] janitor_1.1.1       stringr_1.3.1       forcats_0.3.0      
+[10] readr_1.1.1         DT_0.4              dplyr_0.7.6        
+[13] rmarkdown_1.10      tidyr_0.8.1         knitr_1.20         
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_0.12.18      highr_0.7         pillar_1.3.0     
+ [4] compiler_3.5.0    cellranger_1.1.0  git2r_0.23.0     
+ [7] workflowr_1.1.1   bindr_0.1.1       base64enc_0.1-3  
+[10] R.methodsS3_1.7.1 R.utils_2.6.0     tools_3.5.0      
+[13] digest_0.6.15     jsonlite_1.5      viridisLite_0.3.0
+[16] evaluate_0.11     tibble_1.4.2      pkgconfig_2.0.2  
+[19] rlang_0.2.2       cli_1.0.0         rstudioapi_0.7   
+[22] curl_3.2          yaml_2.2.0        xml2_1.2.0       
+[25] httr_1.3.1        htmlwidgets_1.2   hms_0.4.2        
+[28] rprojroot_1.3-2   tidyselect_0.2.4  snakecase_0.9.2  
+[31] glue_1.3.0        R6_2.2.2          fansi_0.3.0      
+[34] purrr_0.2.5       magrittr_1.5      whisker_0.3-2    
+[37] scales_1.0.0      backports_1.1.2   htmltools_0.3.6  
+[40] rvest_0.3.2       assertthat_0.2.0  colorspace_1.3-2 
+[43] utf8_1.1.4        stringi_1.2.4     munsell_0.5.0    
+[46] crayon_1.3.4      R.oo_1.22.0      </code></pre>
+</div>
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+<hr>
+<p>
+  This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+  analysis was created with
+  <a href="https://github.com/jdblischak/workflowr">workflowr</a> 1.1.1
+</p>
+<hr>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
