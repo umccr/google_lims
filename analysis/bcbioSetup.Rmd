@@ -213,6 +213,14 @@ This should result in all required FASTQ files being present in the current data
 * Copy over the merge script (`cp /data/cephfs/punim0010/projects/std_workflow/merge.sh .`) and edit the `--csv` flag to use the generated sample sheet (`TIMESTAMP_PROJECT_files.csv`)
 * Submit the job to the scheduler (`sbatch merge.sh`)
 
+
+**NOTE**: if the scheduler above doesn't work for some reason, you can just connect to an interactive session and simply run:
+
+```
+bcbio_prepare_samples.py --out merged --csv 2018-10-10T2348_Tothill-Research_WGS.csv -n32 # I don't think you really need 32 cores; just go with as many FASTQs you have
+```
+
+
 This will result in a new `merged` CSV alongside our standard template:
 
 * `mv *-merged.csv ..; cd ..`
@@ -239,8 +247,8 @@ Starting from the `work` directory where `run.sh` is placed:
 cd ..
 source /g/data3/gx8/extras/umccrise/load_umccrise.sh
 export AWS_PROFILE=umccr
-umccrise . -j 16 --cluster-auto` # by default outputs to 'umccrise'
-## or use `umccrise /path/to/bcbio/final -j 16 --cluster-auto -o umccrise_alternative_name`
+umccrise . -j 16 --cluster-auto` # by default outputs to 'umccrised'
+## or use `umccrise /path/to/bcbio/final -j 16 --cluster-auto -o umccrised_alternative_name`
 ```
 
 * On Spartan:
@@ -249,8 +257,8 @@ umccrise . -j 16 --cluster-auto` # by default outputs to 'umccrise'
 cd ..;
 source /data/cephfs/punim0010/extras/umccrise/load_umccrise.sh
 export AWS_PROFILE=umccr
-umccrise . -j 16 --cluster-auto` # by default outputs to 'umccrise'
-## or use `umccrise /path/to/bcbio/final -j 16 --cluster-auto -o umccrise_alternative_name`
+umccrise . -j 16 --cluster-auto` # by default outputs to 'umccrised'
+## or use `umccrise /path/to/bcbio/final -j 16 --cluster-auto -o umccrised_alternative_name`
 ```
 
 The post-processing will take about an hour per sample, mostly due to creating mini-BAM files from the full BAMs.
@@ -264,6 +272,8 @@ Our current data archive resides on Spartan, although most of the processed data
 * create `PROJECTDIR` if it does not exist, using the project name listed in the google-lims spreadsheet; it should match the project name that has been used to process the samples
 * `cd PROJECTDIR` and create a timestamp matching the timestamp of bcbio's `final` directory. E.g., if a `ls final` includes `2018-08-11_2018-07-31T0005_Tothill-A5_WGS-merged` create a directory `2018-08-11`
 * move (or rsync) the `final`, `config` and `umccrised` directories into the newly created timestamp directory
+    * delete the `work` directory.
+    * delete the project directory you created, along with its `data` subdirectory.
 * record the full path including the timestamp in the `Results` column of the Google Docs spreadsheet
 * move the [Trello cards](https://trello.com/b/05zkoAZU/umccr-patients) matching the current samples to the new state, ideally also uploading QC reports, PCGR reports, and the Rmd summary for each sample
 
