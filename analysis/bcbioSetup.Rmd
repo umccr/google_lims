@@ -160,7 +160,13 @@ get_new_batch <- function(batch, phenotype) {
 }
 
 # Remove top-up samples (samples with the exact same description)
-# before calculating batch assignments. We'll add them back in later
+# before calculating batch assignments. We'll add them back in later.
+# This assumes topups are consistently flagged with a `_topup`
+# suffix
+template <- template %>%
+  mutate(description = str_replace(description, '_topup', ''))
+
+# Only keep one sample row for samples that _do_ have topups
 unique_samples <- template %>%
   group_by(description) %>%
   filter(row_number(description) == 1)
