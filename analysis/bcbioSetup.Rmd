@@ -48,7 +48,7 @@ The Googlesheets framework requires authentication with oAuth. This can be done 
 An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects.
 
 ```{r project, eval=FALSE}
-PROJECT <- 'LongTermSurvivors'
+PROJECT <- 'Avner'
 TYPE <- 'WGS'
 SECONDARY <- ''
 ```
@@ -94,22 +94,27 @@ bcbio <- samples %>%
   filter(type == TYPE &
            ((project == PROJECT & results == '-') | 
            (secondary_analysis == SECONDARY))) %>%
-  select(fastq, sample_id, sample_name, subject_id, phenotype) %>%
+  select(fastq, run, project, sample_id, sample_name, subject_id, phenotype) %>%
   mutate(runname = basename(fastq)) %>%
-  mutate(targetname = paste(runname, sample_name, sep = '_'))
-
-# Former filters currently not in use, just for reference
-#   results != 'Failed' &
-#   !str_detect(results, 'cephfs')) %>%
+  mutate(targetname = paste(runname, sample_name, sep = '_')) %>%
+  mutate(targetname = str_replace_all(targetname, '-', '_'))
 
 # Create a file list ready for linking
+#
+# With Run 81 the file structure from `bcl2fastq` changed. FASTQs are no
+# longer round in the top level run folder, but in
+# ```<Illumina_ID>/<Project>/<SampleName>/<SampleID>_R1_001.fastq.gz```
 read1 <- bcbio %>%
-  mutate(from = paste0(fastq, '/', sample_id, '_R1_001.fastq.gz')) %>%
+  mutate(from = ifelse(run<= 80,
+                       paste0(fastq, '/', sample_id, '_R1_001.fastq.gz'),
+                       paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'))) %>%
   mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
   select(from, to)
 
 read2 <- bcbio %>%
-  mutate(from = paste0(fastq, '/', sample_id, '_R2_001.fastq.gz')) %>%
+  mutate(from = ifelse(run<= 80,
+                       paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
+                       paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'))) %>%
   mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
   select(from, to)
 
