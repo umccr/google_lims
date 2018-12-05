@@ -83,6 +83,7 @@ First pass. Highlight results stored _outside_ of the `Results` folder.
 ```{r checkFolder}
 results_df %>%
   filter(!str_detect(results, '/data/cephfs/punim0010/data/Results')) %>%
+  unique() %>%
   kable()
 ```
 

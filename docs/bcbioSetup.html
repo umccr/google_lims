@@ -11,7 +11,7 @@
 
 <meta name="author" content="Oliver Hofmann" />
 
-<meta name="date" content="2018-08-17" />
+<meta name="date" content="2018-12-05" />
 
 <title>UMCCR Sample Summary</title>
 
@@ -27,7 +27,9 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.0.13/css/fa-svg-with-js.css" rel="stylesheet" />
+<script src="site_libs/font-awesome-5.0.13/js/fontawesome-all.min.js"></script>
+<script src="site_libs/font-awesome-5.0.13/js/fa-v4-shims.min.js"></script>
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
@@ -95,6 +97,9 @@ img {
 }
 .tabbed-pane {
   padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
 }
 button.code-folding-btn:focus {
   outline: none;
@@ -316,12 +321,12 @@ div.section {
 
 <h1 class="title toc-ignore">UMCCR Sample Summary</h1>
 <h4 class="author"><em>Oliver Hofmann</em></h4>
-<h4 class="date"><em>2018-08-17</em></h4>
+<h4 class="date"><em>2018-12-05</em></h4>
 
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-17</p>
+<p><strong>Last updated:</strong> 2018-12-05</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
@@ -345,7 +350,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/umccr/google_lims/tree/9ac7c5f1644138da7ad9f2320d1b2ecbbad90c6d" target="_blank">9ac7c5f</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/umccr/google_lims/tree/0b12a2a48d8b688ec70e730ccb207ca1d78658a3" target="_blank">0b12a2a</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -356,9 +361,10 @@ Ignored files:
     Ignored:    output/backup/
 
 Untracked files:
-    Untracked:  analysis/verifyBackup.Rmd
+    Untracked:   (Oliver’s MacBook's conflicted copy 2018-11-16).Rhistory
 
 Unstaged changes:
+    Modified:   analysis/checkLims.Rmd
     Modified:   analysis/snippets.txt
     Modified:   code/merge.sh
     Modified:   code/run.sh
@@ -390,6 +396,295 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/7ec59a2ba831bdb0c09a341af42ec0ff542cd9b8/analysis/bcbioSetup.Rmd" target="_blank">7ec59a2</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-11-30
+</td>
+<td style="text-align:left;">
+Change file linking section to adjust for new bcl2fastq output format
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/421d9de353383d0ed4f29e34a681e31f4d3be089/analysis/bcbioSetup.Rmd" target="_blank">421d9de</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-11-14
+</td>
+<td style="text-align:left;">
+Merge branch ‘master’ of github.com:umccr/google_lims
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/e96df97e6c9b1fc4ef80ead573cb41ff2cf12cb4/analysis/bcbioSetup.Rmd" target="_blank">e96df97</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-11-14
+</td>
+<td style="text-align:left;">
+Support for topup samples
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/60460df957e9cd9073fdd908a5b70d4dcae7d533/analysis/bcbioSetup.Rmd" target="_blank">60460df</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-11-14
+</td>
+<td style="text-align:left;">
+Added support for topup samples following naming convention
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/fcc4524fab1b8458b8bfdf751ec07d1f980cd4be/analysis/bcbioSetup.Rmd" target="_blank">fcc4524</a>
+</td>
+<td style="text-align:left;">
+pdiakumis
+</td>
+<td style="text-align:left;">
+2018-10-12
+</td>
+<td style="text-align:left;">
+bcbio-merge alternative command
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/a005cad7b3490baac495e8332cde4c3829ea06c5/analysis/bcbioSetup.Rmd" target="_blank">a005cad</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-09-11
+</td>
+<td style="text-align:left;">
+Fixed empty secondary analysis condition
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/185314e867af9143455a83b14ff77fa86392a9be/analysis/bcbioSetup.Rmd" target="_blank">185314e</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-09-06
+</td>
+<td style="text-align:left;">
+Merge branch ‘master’ of github.com:umccr/google_lims
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/afc8431042e9430e9dba209889e1937bc6dbb8b5/analysis/bcbioSetup.Rmd" target="_blank">afc8431</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-09-06
+</td>
+<td style="text-align:left;">
+Testing secondary analysis flag for WTS data
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/9679c1fe84832d9411ae279a1188b07e5a21d9c7/analysis/bcbioSetup.Rmd" target="_blank">9679c1f</a>
+</td>
+<td style="text-align:left;">
+pdiakumis
+</td>
+<td style="text-align:left;">
+2018-09-05
+</td>
+<td style="text-align:left;">
+add umccrise AWS setup info
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/431386460e312e2c4ba8a8e75d59b01a15302cc6/analysis/bcbioSetup.Rmd" target="_blank">4313864</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-09-04
+</td>
+<td style="text-align:left;">
+Added support for a <code>secondary_analysis</code> flag to pull out samples across projects
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/3ecf84b354a02fb8db8d95ca11592160f2393ccd/analysis/bcbioSetup.Rmd" target="_blank">3ecf84b</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-08-31
+</td>
+<td style="text-align:left;">
+Detailed post-processing steps
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/ac55b4807c8d04f8cfce93f1d9f767ea4e41b58c/analysis/bcbioSetup.Rmd" target="_blank">ac55b48</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-08-28
+</td>
+<td style="text-align:left;">
+Merge branch ‘master’ of github.com:umccr/google_lims
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/19754c7857492793d1ad32d031bdd12310d3d355/analysis/bcbioSetup.Rmd" target="_blank">19754c7</a>
+</td>
+<td style="text-align:left;">
+Oliver Hofmann
+</td>
+<td style="text-align:left;">
+2018-08-28
+</td>
+<td style="text-align:left;">
+Merge pull request #1 from umccr/peter1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/6fc60cf0d98a866aa3a5d4df9d55d0b051a4247a/analysis/bcbioSetup.Rmd" target="_blank">6fc60cf</a>
+</td>
+<td style="text-align:left;">
+pdiakumis
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+<td style="text-align:left;">
+create backup dir, paste0 for short, spacing, minor typos
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/4d4b533919ec059f65d806f656af698fddf2c742/analysis/bcbioSetup.Rmd" target="_blank">4d4b533</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+<td style="text-align:left;">
+Added pointers for Google authentication.
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/umccr/google_lims/blob/4ecc6a8a41e4d0ad8b365bc1d7bd4f570a61c934/analysis/bcbioSetup.Rmd" target="_blank">4ecc6a8</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-08-27
+</td>
+<td style="text-align:left;">
+Fixed timestamp for WTS
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/umccr/google_lims/41f6fe1b3c237f8bf192d805f09211ddf452df77/docs/bcbioSetup.html" target="_blank">41f6fe1</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-08-17
+</td>
+<td style="text-align:left;">
+Build site.
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -541,68 +836,80 @@ Added rsync and bcbio sample sheet generator
 <div id="setting-up-project-information" class="section level3">
 <h3>1. Setting up project information</h3>
 <p>This currently requires specifying both project name and the type of sequencing data (<code>WGS</code>, <code>WTS</code>, <code>10X-WGS</code>, etc.) and will pull out all files of that type and project which do not have results associated with them yet. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID. The exact names can be copied from the <code>Project</code> and <code>Type</code> columns of the <a href="https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit?usp=sharing">Google-LIMS sheet</a>.</p>
-<pre class="r"><code>PROJECT &lt;- &#39;Research-APGI-Garvan-KRAS-wt&#39;
-TYPE &lt;- &#39;WGS&#39;</code></pre>
+<p>The Googlesheets framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the <a href="https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html">googlesheet authentication vignette</a> for details.</p>
+<p>An alternative use is to set the “secondary” analysis flag to match the samples that need to be processed, regardless of processing status. The <code>PROJECT</code> name will be used to name config and sample files, but any sample with the matching <code>SECONDARY</code> entry in the <code>secondary analysis</code> column of the spreadsheet will be added as long as it is of the right <code>TYPE</code>. This is useful when re-processing samples for research projects.</p>
+<pre class="r"><code>PROJECT &lt;- &#39;Avner&#39;
+TYPE &lt;- &#39;WGS&#39;
+SECONDARY &lt;- &#39;&#39;</code></pre>
 </div>
 <div id="import-data-from-google-spreadsheet" class="section level3">
 <h3>2. Import data from Google spreadsheet</h3>
 <p>This step generates a data frame from the Google spreadsheet, unifying variable names and simplifying subject IDs for bcbio along the way. It replacesg empty <code>results</code> cells (which indicate samples that still need processing) with a <code>-</code> to distinguish from true NAs and gets rid of whitespace in subject identifiers. Otherwise standard data cleanup with <code>janitor</code>. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.</p>
 <pre class="r"><code># Register UMCCR spreadsheet. Use cached authentication
-gs_auth(token=&quot;./googlesheets_token.rds&quot;)
+gs_auth(token = &quot;./googlesheets_token.rds&quot;) # plain gs_auth() writes .httr-oauth to workdir, then all is good
 samples_gs &lt;- gs_key(&#39;1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs&#39;)
 
 # Create a backup copy each time we access the sample info
 tm &lt;- as.POSIXlt(Sys.time(), &quot;UTC&quot;, &quot;%Y-%m-%dT%H:%M:%S&quot;)
 timestamp &lt;- strftime(tm , &quot;%Y-%m-%dT%H%M&quot;)
-filename &lt;- paste(timestamp, &#39;backup.csv&#39;, sep=&#39;_&#39;)
+filename &lt;- paste(timestamp, &#39;backup.csv&#39;, sep = &#39;_&#39;)
+backup_dir &lt;- file.path(here::here(&#39;output&#39;, &#39;backup&#39;))
+dir.create(backup_dir, recursive = TRUE) # mkdir -p (warns if it already exists):
 
 samples_gs %&gt;%
-  gs_download(ws=&#39;Sheet1&#39;, to=here::here(&#39;output&#39;, &#39;backup&#39;, filename)) 
+  gs_download(ws = &#39;Sheet1&#39;, to = file.path(backup_dir, filename))
 
 # Tweak for analysis
 samples &lt;- samples_gs %&gt;%
-  gs_read(ws=&#39;Sheet1&#39;) %&gt;%
+  gs_read(ws = &#39;Sheet1&#39;) %&gt;%
   clean_names() %&gt;%
+  mutate(secondary_analysis = ifelse(is.na(secondary_analysis), &#39;-&#39;, secondary_analysis)) %&gt;%
   remove_empty(c(&#39;rows&#39;, &#39;cols&#39;)) %&gt;%
   mutate(subject_id = gsub(&#39; &#39;, &#39;.&#39;, subject_id)) %&gt;%
-  mutate(results = ifelse(is.na(results), &#39;-&#39;, results))</code></pre>
+  mutate(results = ifelse(is.na(results), &#39;-&#39;, results)) </code></pre>
 </div>
-<div id="create-rsync-list-wgs-tumornormal-use-case" class="section level3">
-<h3>3. Create rsync list: WGS tumor/normal use case</h3>
+<div id="create-rsync-list" class="section level3">
+<h3>3. Create rsync list</h3>
 <p>Find all FASTQs for samples that still need to be processed. The generated output file can be used on Spartan to generate (hard)links ready for <code>rsync</code> to NCI or <code>aws s3 cp</code> to, well, S3. It also generates ‘better’ sample names by renaming the FASTQ files from the filename to the sample name.</p>
 <pre class="r"><code># Keep rows matching project and type requested; extract path to FASTQ
 # and generate new file name for these
 bcbio &lt;- samples %&gt;%
-  filter(project == PROJECT &amp; 
-           type == TYPE &amp;
-           results == &#39;-&#39;) %&gt;%
-  select(fastq, sample_id, sample_name, subject_id, phenotype) %&gt;%
+  filter(type == TYPE &amp;
+           ((project == PROJECT &amp; results == &#39;-&#39;) | 
+           (secondary_analysis == SECONDARY))) %&gt;%
+  select(fastq, run, project, sample_id, sample_name, subject_id, phenotype) %&gt;%
   mutate(runname = basename(fastq)) %&gt;%
-  mutate(targetname = paste(runname, sample_name, sep=&#39;_&#39;)) 
-
-# Former filters currently not in use, just for reference
-#   results != &#39;Failed&#39; &amp;
-#   !str_detect(results, &#39;cephfs&#39;)) %&gt;%
+  mutate(targetname = paste(runname, sample_name, sep = &#39;_&#39;)) %&gt;%
+  mutate(targetname = str_replace_all(targetname, &#39;-&#39;, &#39;_&#39;))
 
 # Create a file list ready for linking
+#
+# With Run 81 the file structure from `bcl2fastq` changed. FASTQs are no
+# longer round in the top level run folder, but in
+# ```&lt;Illumina_ID&gt;/&lt;Project&gt;/&lt;SampleName&gt;/&lt;SampleID&gt;_R1_001.fastq.gz```
 read1 &lt;- bcbio %&gt;%
-  mutate(from = paste(fastq, &#39;/&#39;, sample_id, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
-  mutate(to = paste(targetname, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  mutate(from = ifelse(run&lt;= 80,
+                       paste0(fastq, &#39;/&#39;, sample_id, &#39;_R1_001.fastq.gz&#39;),
+                       paste0(fastq, &#39;/&#39;, project, &#39;/&#39;, sample_name, &#39;/&#39;, sample_id, &#39;_R1_001.fastq.gz&#39;))) %&gt;%
+  mutate(to = paste0(targetname, &#39;_R1_001.fastq.gz&#39;)) %&gt;%
   select(from, to)
 
 read2 &lt;- bcbio %&gt;%
-  mutate(from = paste(fastq, &#39;/&#39;, sample_id, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
-  mutate(to = paste(targetname, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;)) %&gt;%
+  mutate(from = ifelse(run&lt;= 80,
+                       paste0(fastq, &#39;/&#39;, sample_id, &#39;_R2_001.fastq.gz&#39;),
+                       paste0(fastq, &#39;/&#39;, project, &#39;/&#39;, sample_name, &#39;/&#39;, sample_id, &#39;_R2_001.fastq.gz&#39;))) %&gt;%
+  mutate(to = paste0(targetname, &#39;_R2_001.fastq.gz&#39;)) %&gt;%
   select(from, to)
 
 link &lt;- rbind(read1, read2)
 
 # Write the file list for linking on Spartan
-write.table(paste(&#39;ln&#39;, link$from, link$to, sep=&#39; &#39;),
-            file=here::here(&#39;output&#39;, paste(timestamp, &#39;_&#39;, PROJECT, &#39;_&#39;, TYPE, &#39;_files.txt&#39;, sep=&#39;&#39;)),
-            col.names=FALSE,
-            row.names=FALSE,
-            quote=FALSE)</code></pre>
+# ** Not sure if a `.sh` extension would make it clearer.
+write.table(paste(&#39;ln&#39;, link$from, link$to, sep = &#39; &#39;),
+            file = here::here(&#39;output&#39;, paste0(timestamp, &#39;_&#39;, PROJECT, &#39;_&#39;, TYPE, &#39;_files.txt&#39;)),
+            col.names = FALSE,
+            row.names = FALSE,
+            quote = FALSE)</code></pre>
 </div>
 <div id="create-bcbio-config-wgs-tumornormal-use-case" class="section level3">
 <h3>4. Create bcbio config: WGS tumor/normal use case</h3>
@@ -610,14 +917,14 @@ write.table(paste(&#39;ln&#39;, link$from, link$to, sep=&#39; &#39;),
 <pre class="r"><code># Use the same information to generate the bcbio CSV file
 # Keep the required columns and add information for peddy
 template &lt;- bcbio %&gt;% 
-  mutate(family_id=subject_id) %&gt;%
-  mutate(individual_id=subject_id) %&gt;%
-  select(samplename=targetname, 
-         description=sample_name,
-         batch=subject_id,
+  mutate(family_id = subject_id) %&gt;%
+  mutate(individual_id = subject_id) %&gt;%
+  select(samplename = targetname,
+         description = sample_name,
+         batch = subject_id,
          phenotype, family_id, individual_id)
 
-# Handle cases where a normal matches more than tumor sample. 
+# Handle cases where a normal matches more than one tumor sample.
 # Courtesy of [Peter Diakumis](https://github.com/pdiakumis)
 get_new_batch &lt;- function(batch, phenotype) {
   stopifnot(length(batch) == length(phenotype))
@@ -638,7 +945,13 @@ get_new_batch &lt;- function(batch, phenotype) {
 }
 
 # Remove top-up samples (samples with the exact same description)
-# before calculating batch assignments. We&#39;ll add them back in later
+# before calculating batch assignments. We&#39;ll add them back in later.
+# This assumes topups are consistently flagged with a `_topup`
+# suffix
+template &lt;- template %&gt;%
+  mutate(description = str_replace(description, &#39;_topup&#39;, &#39;&#39;))
+
+# Only keep one sample row for samples that _do_ have topups
 unique_samples &lt;- template %&gt;%
   group_by(description) %&gt;%
   filter(row_number(description) == 1)
@@ -650,49 +963,91 @@ batches &lt;- unique_samples %&gt;%
 
 # Bring back the batch information to the main template
 template &lt;- template %&gt;%
-  left_join(batches, by=c(&#39;description&#39;)) %&gt;%
-  select(samplename=samplename.x,
+  left_join(batches, by = c(&#39;description&#39;)) %&gt;%
+  select(samplename = samplename.x,
          description,
-         batch=new_batch,
-         phenotype=phenotype.x,
-         family_id=family_id.x,
-         individual_id=individual_id.x)
+         batch = new_batch,
+         phenotype = phenotype.x,
+         family_id = family_id.x,
+         individual_id = individual_id.x)
 
 # Since we are merging add the R1/R2 readpair information. Could probably 
 # be more elegant...
-template_R1 &lt;- template %&gt;%
-  mutate(samplename = paste(samplename, &#39;_R1_001.fastq.gz&#39;, sep=&#39;&#39;))
-template_R2 &lt;- template %&gt;%
-  mutate(samplename = paste(samplename, &#39;_R2_001.fastq.gz&#39;, sep=&#39;&#39;))
+template_R1 &lt;- template %&gt;% mutate(samplename = paste0(samplename, &#39;_R1_001.fastq.gz&#39;))
+template_R2 &lt;- template %&gt;% mutate(samplename = paste0(samplename, &#39;_R2_001.fastq.gz&#39;))
 template &lt;- rbind(template_R1, template_R2)
 
 write.table(template,
-            file=here::here(&#39;output&#39;, paste(timestamp, &#39;_&#39;, PROJECT, &#39;_&#39;, TYPE, &#39;.csv&#39;, sep=&#39;&#39;)),
-            row.names=FALSE,
-            col.names=TRUE,
-            quote=FALSE,
-            sep=&#39;,&#39;)</code></pre>
+            file = here::here(&#39;output&#39;, paste0(timestamp, &#39;_&#39;, PROJECT, &#39;_&#39;, TYPE, &#39;.csv&#39;)),
+            row.names = FALSE,
+            col.names = TRUE,
+            quote = FALSE,
+            sep = &#39;,&#39;)</code></pre>
 </div>
 <div id="data-set-generation" class="section level3">
 <h3>5. Data set generation</h3>
 <p>Assuming a run on Spartan:</p>
 <ul>
-<li>copy over the two newly generated files to Spartan (<code>scp TIMESTAMP_PROJECT* spartan:~/</code>)</li>
-<li>create a new project directory on Spartan (<code>mkdir /data/cephfs/punim0010/projects/myproject; cd /data/cephfs/punim0010/projects/myproject</code></li>
-<li>create a data directory and link required files (<code>mkdir data; cd data; mv ~/TIMESTAMP_PROJECT* .; sh TIMESTAMP_PROJECT_files.txt</code>)</li>
+<li>create a new project directory on Spartan, with a <code>data</code> subdirectory (<code>mkdir -p /data/cephfs/punim0010/projects/&lt;myproject&gt;/data; cd /data/cephfs/punim0010/projects/&lt;myproject&gt;/data</code>)</li>
+<li>copy over the two newly generated files to Spartan (<code>scp TIMESTAMP_PROJECT* spartan:/data/cephfs/punim0010/projects/&lt;myproject&gt;/data</code>)</li>
+<li>link required files (<code>sh TIMESTAMP_PROJECT_files.txt</code>)</li>
 </ul>
 <p>This should result in all required FASTQ files being present in the current data directories. Errors usually mean permissions need to be updated, or the sample name is incorrectly captured in the spreadsheet. The next step merges FASTQ files where necessary and generates the final sample manifest for bcbio:</p>
 <ul>
 <li>Copy over the merge script (<code>cp /data/cephfs/punim0010/projects/std_workflow/merge.sh .</code>) and edit the <code>--csv</code> flag to use the generated sample sheet (<code>TIMESTAMP_PROJECT_files.csv</code>)</li>
-<li>Submit the job to the scheduler (<code>sbatch merge</code>)</li>
+<li>Submit the job to the scheduler (<code>sbatch merge.sh</code>)</li>
 </ul>
+<p><strong>NOTE</strong>: if the scheduler above doesn’t work for some reason, you can just connect to an interactive session and simply run:</p>
+<pre><code>bcbio_prepare_samples.py --out merged --csv 2018-10-10T2348_Tothill-Research_WGS.csv -n32 # I don&#39;t think you really need 32 cores; just go with as many FASTQs you have</code></pre>
 <p>This will result in a new <code>merged</code> CSV alongside our standard template:</p>
 <ul>
 <li><code>mv *-merged.csv ..; cd ..</code></li>
 <li><code>bcbio_nextgen.py -w template ../std_workflow/std_workflow_cancer.yaml TIMESTAMP_PROJECT-merged.csv data/merged/*.gz</code></li>
-<li><code>cp ../std_workflows/run.sh TIMESTAMP_PROJECT-merged/work; cd TIMESTAMP_PROJECT-merged/work</code></li>
+<li><code>cp ../std_workflow/run.sh TIMESTAMP_PROJECT-merged/work; cd TIMESTAMP_PROJECT-merged/work</code></li>
 </ul>
-<p>Edit the <code>run.sh</code> job submission script to point at the newly generated bcbio YAML template and you should be good to go.</p>
+<p>Edit the <code>run.sh</code> job submission script to point at the newly generated bcbio YAML template and you should be good to go with <code>sbatch run.sh</code>.</p>
+</div>
+<div id="monitoring-a-run" class="section level3">
+<h3>6. Monitoring a run</h3>
+<p>The easiest way to follow the progress of a run is with a <code>less +F log/bcbio-nextgen-debug.log</code>; if this gets too much just following the commands log in the same directory would also do the trick.</p>
+</div>
+<div id="post-processing-with-umccrise" class="section level3">
+<h3>7. Post-processing with <a href="https://github.com/umccr/umccrise">umccrise</a></h3>
+<p>Once the bcbio run finishes, you need to run the <code>umccrise</code> post-processing script. Make sure you follow the directions <a href="https://github.com/umccr/wiki/blob/master/computing/cloud/aws.md">in the wiki</a> for setting up your AWS credentials, in order to upload mini-BAM files to AWS for IGV viewing.</p>
+<p>Starting from the <code>work</code> directory where <code>run.sh</code> is placed:</p>
+<ul>
+<li>On Raijin:</li>
+</ul>
+<pre class="bash"><code>cd ..
+source /g/data3/gx8/extras/umccrise/load_umccrise.sh
+export AWS_PROFILE=umccr
+umccrise . -j 16 --cluster-auto` # by default outputs to &#39;umccrised&#39;
+## or use `umccrise /path/to/bcbio/final -j 16 --cluster-auto -o umccrised_alternative_name`</code></pre>
+<ul>
+<li>On Spartan:</li>
+</ul>
+<pre class="bash"><code>cd ..;
+source /data/cephfs/punim0010/extras/umccrise/load_umccrise.sh
+export AWS_PROFILE=umccr
+umccrise . -j 16 --cluster-auto` # by default outputs to &#39;umccrised&#39;
+## or use `umccrise /path/to/bcbio/final -j 16 --cluster-auto -o umccrised_alternative_name`</code></pre>
+<p>The post-processing will take about an hour per sample, mostly due to creating mini-BAM files from the full BAMs.</p>
+</div>
+<div id="archival-and-records" class="section level3">
+<h3>8. Archival and records</h3>
+<p>Our current data archive resides on Spartan, although most of the processed data is now also on AWS S3. For now the process still is:</p>
+<ul>
+<li><code>/data/cephfs/punim0010/data/Results</code></li>
+<li>create <code>PROJECTDIR</code> if it does not exist, using the project name listed in the google-lims spreadsheet; it should match the project name that has been used to process the samples</li>
+<li><code>cd PROJECTDIR</code> and create a timestamp matching the timestamp of bcbio’s <code>final</code> directory. E.g., if a <code>ls final</code> includes <code>2018-08-11_2018-07-31T0005_Tothill-A5_WGS-merged</code> create a directory <code>2018-08-11</code></li>
+<li>move (or rsync) the <code>final</code>, <code>config</code> and <code>umccrised</code> directories into the newly created timestamp directory
+<ul>
+<li>delete the <code>work</code> directory.</li>
+<li>delete the project directory you created, along with its <code>data</code> subdirectory.</li>
+</ul></li>
+<li>record the full path including the timestamp in the <code>Results</code> column of the Google Docs spreadsheet</li>
+<li>move the <a href="https://trello.com/b/05zkoAZU/umccr-patients">Trello cards</a> matching the current samples to the new state, ideally also uploading QC reports, PCGR reports, and the Rmd summary for each sample</li>
+</ul>
 </div>
 </div>
 <div id="alternative-workflows" class="section level2">
@@ -817,7 +1172,9 @@ template_R2 &lt;- template %&gt;%
 template &lt;- rbind(template_R1, template_R2)
 
 write.table(template,
-            file=here::here(&#39;output&#39;, paste(PROJECT, &#39;_&#39;, TYPE, &#39;.csv&#39;, sep=&#39;&#39;)),
+            file=here::here(&#39;output&#39;, paste(timestamp, &#39;_&#39;, 
+                                            PROJECT, &#39;_&#39;, 
+                                            TYPE, &#39;.csv&#39;, sep=&#39;&#39;)),
             row.names=FALSE,
             col.names=TRUE,
             quote=FALSE,
@@ -893,7 +1250,7 @@ write.table(template,
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 3.5.0 (2018-04-23)
 Platform: x86_64-apple-darwin15.6.0 (64-bit)
-Running under: macOS High Sierra 10.13.3
+Running under: macOS High Sierra 10.13.6
 
 Matrix products: default
 BLAS: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRblas.0.dylib
@@ -906,27 +1263,27 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] skimr_1.0.2        here_0.1           googlesheets_0.2.2
- [4] janitor_1.0.0      stringr_1.3.0      forcats_0.3.0     
- [7] readr_1.1.1        DT_0.4             dplyr_0.7.4       
-[10] rmarkdown_1.9      tidyr_0.8.0        knitr_1.20        
-[13] RColorBrewer_1.1-2 gtools_3.5.0       gridExtra_2.3     
-[16] scales_0.5.0       ggplot2_2.2.1     
+ [1] skimr_1.0.3        here_0.1           googlesheets_0.3.0
+ [4] janitor_1.1.1      stringr_1.3.1      forcats_0.3.0     
+ [7] readr_1.1.1        DT_0.4             dplyr_0.7.6       
+[10] rmarkdown_1.10     tidyr_0.8.1        knitr_1.20        
+[13] RColorBrewer_1.1-2 gtools_3.8.1       gridExtra_2.3     
+[16] scales_1.0.0       ggplot2_3.0.0     
 
 loaded via a namespace (and not attached):
- [1] Rcpp_0.12.16      cellranger_1.1.0  compiler_3.5.0   
- [4] pillar_1.2.1      git2r_0.23.0      plyr_1.8.4       
+ [1] Rcpp_0.12.18      cellranger_1.1.0  compiler_3.5.0   
+ [4] pillar_1.3.0      git2r_0.23.0      plyr_1.8.4       
  [7] workflowr_1.1.1   bindr_0.1.1       R.methodsS3_1.7.1
 [10] R.utils_2.6.0     tools_3.5.0       digest_0.6.15    
-[13] evaluate_0.10.1   tibble_1.4.2      gtable_0.2.0     
-[16] pkgconfig_2.0.1   rlang_0.2.0       yaml_2.1.18      
-[19] bindrcpp_0.2.2    hms_0.4.2         htmlwidgets_1.2  
-[22] tidyselect_0.2.4  rprojroot_1.3-2   grid_3.5.0       
-[25] glue_1.2.0        R6_2.2.2          pander_0.6.1     
-[28] purrr_0.2.4       magrittr_1.5      whisker_0.3-2    
+[13] evaluate_0.11     tibble_1.4.2      gtable_0.2.0     
+[16] pkgconfig_2.0.2   rlang_0.2.2       yaml_2.2.0       
+[19] bindrcpp_0.2.2    withr_2.1.2       hms_0.4.2        
+[22] htmlwidgets_1.2   rprojroot_1.3-2   grid_3.5.0       
+[25] tidyselect_0.2.4  glue_1.3.0        R6_2.2.2         
+[28] purrr_0.2.5       magrittr_1.5      whisker_0.3-2    
 [31] backports_1.1.2   htmltools_0.3.6   assertthat_0.2.0 
-[34] colorspace_1.3-2  stringi_1.1.7     lazyeval_0.2.1   
-[37] munsell_0.4.3     R.oo_1.22.0      </code></pre>
+[34] colorspace_1.3-2  stringi_1.2.4     lazyeval_0.2.1   
+[37] munsell_0.5.0     crayon_1.3.4      R.oo_1.22.0      </code></pre>
 </div>
 
 <!-- Adjust MathJax settings so that all math formulae are shown using

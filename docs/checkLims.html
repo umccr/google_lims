@@ -330,12 +330,11 @@ div.section {
 </div>
 
 
-<p><strong>Last updated:</strong> 2018-08-22</p>
+<p><strong>Last updated:</strong> 2018-12-05</p>
 <strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
 <ul>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>R Markdown file:</strong> up-to-date </summary></p>
-<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+<p><details> <summary> <strong style="color:red;">✖</strong> <strong>R Markdown file:</strong> uncommitted changes </summary> The R Markdown file has unstaged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
 </details>
 </li>
 <li>
@@ -354,7 +353,7 @@ div.section {
 </details>
 </li>
 <li>
-<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/umccr/google_lims/tree/2e1f2e29a1c6e9d028f849f78918be7ac309baf1" target="_blank">2e1f2e2</a> </summary></p>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/umccr/google_lims/tree/0b12a2a48d8b688ec70e730ccb207ca1d78658a3" target="_blank">0b12a2a</a> </summary></p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
 <pre><code>
 Ignored files:
@@ -365,9 +364,10 @@ Ignored files:
     Ignored:    output/backup/
 
 Untracked files:
-    Untracked:  analysis/verifyBackup.Rmd
+    Untracked:   (Oliver’s MacBook's conflicted copy 2018-11-16).Rhistory
 
 Unstaged changes:
+    Modified:   analysis/checkLims.Rmd
     Modified:   analysis/snippets.txt
     Modified:   code/merge.sh
     Modified:   code/run.sh
@@ -399,6 +399,23 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:left;">
+html
+</td>
+<td style="text-align:left;">
+<a href="https://cdn.rawgit.com/umccr/google_lims/918c7f9e7e9dbc7a6d24fe0bde6959d4afd4ecfa/docs/checkLims.html" target="_blank">918c7f9</a>
+</td>
+<td style="text-align:left;">
+ohofmann
+</td>
+<td style="text-align:left;">
+2018-08-22
+</td>
+<td style="text-align:left;">
+Updated LIMS reports and dashboard
+</td>
+</tr>
 <tr>
 <td style="text-align:left;">
 Rmd
@@ -625,7 +642,7 @@ samples &lt;- samples_gs %&gt;%
 <pre><code>Accessing worksheet titled &#39;Sheet1&#39;.</code></pre>
 <pre><code>Parsed with column specification:
 cols(
-  IlluminaID = col_character(),
+  Illumina_ID = col_character(),
   Run = col_integer(),
   Timestamp = col_date(format = &quot;&quot;),
   SampleID = col_character(),
@@ -634,10 +651,12 @@ cols(
   SubjectID = col_character(),
   Type = col_character(),
   Phenotype = col_character(),
+  `Secondary Analysis` = col_character(),
   FASTQ = col_character(),
   Results = col_character(),
   Trello = col_character(),
-  Notes = col_character()
+  Notes = col_character(),
+  ToDo = col_logical()
 )</code></pre>
 <div id="manual-check" class="section level2">
 <h2>Manual check</h2>
@@ -651,10 +670,13 @@ cols(
 [11] &quot;Research-APGI-Garvan-KRAS-wt&quot; &quot;Avner-KRAS-wt&quot;               
 [13] &quot;LongTermSurvivors&quot;            &quot;Luciano-10X&quot;                 
 [15] &quot;LiKaShing-IM_Gastric&quot;         &quot;Hovens-Research&quot;             
-[17] &quot;Research-Croagh-KRAS-wt&quot;      &quot;Tothill-Collibri-Trial&quot;      </code></pre>
+[17] &quot;Research-Croagh-KRAS-wt&quot;      &quot;Tothill-Collibri-Trial&quot;      
+[19] &quot;Tothill-NEB-Trial&quot;            &quot;KRAS-WT&quot;                     
+[21] &quot;Luciano-10X-snRNA&quot;            &quot;Luciano-10x-CNV&quot;             
+[23] &quot;Tothill-Research&quot;             &quot;ShereneLoi&quot;                  </code></pre>
 <pre class="r"><code>unique(samples$type)</code></pre>
 <pre><code>[1] &quot;WGS&quot;          &quot;WES&quot;          &quot;10X_scRNA-3&#39;&quot; &quot;WTS&quot;         
-[5] &quot;10X_scRNA-5&#39;&quot; &quot;10X_WGS&quot;      &quot;10X_VDJ&quot;      &quot;10X&quot;         
+[5] &quot;10X_scRNA-5&#39;&quot; &quot;10X_WGS&quot;      &quot;10X_VDJ&quot;      &quot;10X_CNV&quot;     
 [9] &quot;10X_scRNA&quot;   </code></pre>
 <pre class="r"><code>sample_df &lt;- samples %&gt;%
   select(project, type) %&gt;%
@@ -676,7 +698,7 @@ sample_df %&gt;%
               backgroundRepeat = &#39;no-repeat&#39;,
               backgroundPosition = &#39;center&#39;)</code></pre>
 <div id="htmlwidget-2496d64ad12edac6a3ae" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-2496d64ad12edac6a3ae">{"x":{"filter":"none","data":[["10X-Collaboration","Accreditation","Accreditation-PCR-free-test","Avner","Avner-KRAS-wt","Cori-Research","Hovens-Research","Kolling-Research","LiKaShing-IM_Gastric","LongTermSurvivors","Luciano-10X","Patients","Research-APGI-Garvan","Research-APGI-Garvan-KRAS-wt","Research-Croagh-KRAS-wt","Tothill-A5","Tothill-Collibri-Trial","Tothill-CUP"],[0,0,0,0,0,0,0,0,0,0,68,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,11,0,0,0,0,0,0,0],[9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9],[4,0,0,0,0,0,0,0,0,0,20,0,0,0,0,0,0,0],[2,0,0,0,0,0,0,0,0,0,36,0,0,0,0,0,0,0],[16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[6,24,3,54,4,45,2,12,7,11,0,22,120,37,16,161,11,0],[0,3,0,32,2,35,0,0,0,15,0,8,20,11,0,0,0,18]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>10X<\/th>\n      <th>10X_scRNA<\/th>\n      <th>10X_scRNA-3'<\/th>\n      <th>10X_scRNA-5'<\/th>\n      <th>10X_VDJ<\/th>\n      <th>10X_WGS<\/th>\n      <th>WES<\/th>\n      <th>WGS<\/th>\n      <th>WTS<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":25,"dom":"ft","lengthMenu":[25,50,100],"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"rowCallback":"function(row, data) {\nvar value=data[1]; $(this.api().cell(row, 1).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[2]; $(this.api().cell(row, 2).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[3]; $(this.api().cell(row, 3).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[4]; $(this.api().cell(row, 4).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[5]; $(this.api().cell(row, 5).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[6]; $(this.api().cell(row, 6).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[7]; $(this.api().cell(row, 7).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[8]; $(this.api().cell(row, 8).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[9]; $(this.api().cell(row, 9).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (161 - value)/161 * 100 + '%, lightblue ' + (161 - value)/161 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\n}"}},"evals":["options.rowCallback"],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-2496d64ad12edac6a3ae">{"x":{"filter":"none","data":[["10X-Collaboration","Accreditation","Accreditation-PCR-free-test","Avner","Avner-KRAS-wt","Cori-Research","Hovens-Research","Kolling-Research","KRAS-WT","LiKaShing-IM_Gastric","LongTermSurvivors","Luciano-10X","Luciano-10x-CNV","Luciano-10X-snRNA","Patients","Research-APGI-Garvan","Research-APGI-Garvan-KRAS-wt","Research-Croagh-KRAS-wt","ShereneLoi","Tothill-A5","Tothill-Collibri-Trial","Tothill-CUP","Tothill-NEB-Trial","Tothill-Research"],[0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,10,0,0,0,0,0,0,0,0,0,0,0,0],[9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9,0,0],[4,0,0,0,0,0,0,0,0,0,0,99,0,4,0,0,0,0,0,0,0,0,0,12],[2,0,0,0,0,0,0,0,0,0,0,36,0,0,0,0,0,0,0,0,0,0,0,0],[16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[6,35,3,100,4,45,2,12,0,7,41,0,0,0,33,121,37,16,12,171,11,0,0,6],[0,3,0,73,2,35,0,0,5,0,23,0,0,0,13,29,13,0,0,3,0,18,21,0]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>10X_CNV<\/th>\n      <th>10X_scRNA<\/th>\n      <th>10X_scRNA-3'<\/th>\n      <th>10X_scRNA-5'<\/th>\n      <th>10X_VDJ<\/th>\n      <th>10X_WGS<\/th>\n      <th>WES<\/th>\n      <th>WGS<\/th>\n      <th>WTS<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":25,"dom":"ft","lengthMenu":[25,50,100],"columnDefs":[{"className":"dt-right","targets":[1,2,3,4,5,6,7,8,9]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false,"rowCallback":"function(row, data) {\nvar value=data[1]; $(this.api().cell(row, 1).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (171 - value)/171 * 100 + '%, lightblue ' + (171 - value)/171 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[2]; $(this.api().cell(row, 2).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (171 - value)/171 * 100 + '%, lightblue ' + (171 - value)/171 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[3]; $(this.api().cell(row, 3).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (171 - value)/171 * 100 + '%, lightblue ' + (171 - value)/171 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[4]; $(this.api().cell(row, 4).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (171 - value)/171 * 100 + '%, lightblue ' + (171 - value)/171 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[5]; $(this.api().cell(row, 5).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (171 - value)/171 * 100 + '%, lightblue ' + (171 - value)/171 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[6]; $(this.api().cell(row, 6).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (171 - value)/171 * 100 + '%, lightblue ' + (171 - value)/171 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[7]; $(this.api().cell(row, 7).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (171 - value)/171 * 100 + '%, lightblue ' + (171 - value)/171 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[8]; $(this.api().cell(row, 8).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (171 - value)/171 * 100 + '%, lightblue ' + (171 - value)/171 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\nvar value=data[9]; $(this.api().cell(row, 9).node()).css({'background':isNaN(parseFloat(value)) || value <= 0 ? '' : 'linear-gradient(90deg, transparent ' + (171 - value)/171 * 100 + '%, lightblue ' + (171 - value)/171 * 100 + '%)','background-size':'100% 90%','background-repeat':'no-repeat','background-position':'center'});\n}"}},"evals":["options.rowCallback"],"jsHooks":[]}</script>
 </div>
 <div id="storage-keys" class="section level2">
 <h2>Storage keys</h2>
@@ -687,6 +709,7 @@ sample_df %&gt;%
 <p>First pass. Highlight results stored <em>outside</em> of the <code>Results</code> folder.</p>
 <pre class="r"><code>results_df %&gt;%
   filter(!str_detect(results, &#39;/data/cephfs/punim0010/data/Results&#39;)) %&gt;%
+  unique() %&gt;%
   kable()</code></pre>
 <table>
 <thead>
@@ -699,54 +722,6 @@ sample_df %&gt;%
 <tr class="odd">
 <td align="left">10X-Collaboration</td>
 <td align="left">/data/cephfs/punim0010/projects/10X_scRNA-20180226</td>
-</tr>
-<tr class="even">
-<td align="left">10X-Collaboration</td>
-<td align="left">/data/cephfs/punim0010/projects/10X_scRNA-20180226</td>
-</tr>
-<tr class="odd">
-<td align="left">10X-Collaboration</td>
-<td align="left">/data/cephfs/punim0010/projects/10X_scRNA-20180226</td>
-</tr>
-<tr class="even">
-<td align="left">10X-Collaboration</td>
-<td align="left">/data/cephfs/punim0010/projects/10X_scRNA-20180226</td>
-</tr>
-<tr class="odd">
-<td align="left">10X-Collaboration</td>
-<td align="left">/data/cephfs/punim0010/projects/10X_scRNA-20180226</td>
-</tr>
-<tr class="even">
-<td align="left">10X-Collaboration</td>
-<td align="left">/data/cephfs/punim0010/projects/10X_scRNA-20180226</td>
-</tr>
-<tr class="odd">
-<td align="left">10X-Collaboration</td>
-<td align="left">/data/cephfs/punim0010/projects/10X_scRNA-20180226</td>
-</tr>
-<tr class="even">
-<td align="left">10X-Collaboration</td>
-<td align="left">/data/cephfs/punim0010/projects/10X_scRNA-20180226</td>
-</tr>
-<tr class="odd">
-<td align="left">10X-Collaboration</td>
-<td align="left">/data/cephfs/punim0010/projects/10X_scRNA-20180226</td>
-</tr>
-<tr class="even">
-<td align="left">10X-Collaboration</td>
-<td align="left">/data/cephfs/punim0010/projects/10X_scRNA-20180226</td>
-</tr>
-<tr class="odd">
-<td align="left">10X-Collaboration</td>
-<td align="left">/data/cephfs/punim0010/projects/10X_scRNA-20180226</td>
-</tr>
-<tr class="even">
-<td align="left">10X-Collaboration</td>
-<td align="left">/data/cephfs/punim0010/projects/10X_scRNA-20180226</td>
-</tr>
-<tr class="odd">
-<td align="left">10X-Collaboration</td>
-<td align="left">/data/cephfs/punim0010/projects/Hsu_10X-VDJ</td>
 </tr>
 <tr class="even">
 <td align="left">10X-Collaboration</td>
@@ -766,7 +741,30 @@ results_df %&gt;%
   mutate(parsed=parse_date(timestamp)) %&gt;%
   filter(is.na(parsed) | str_detect(results, &#39;A00130&#39;)) %&gt;%
   kable()</code></pre>
-<p>project results timestamp parsed ——– ——– ———- ——-</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">project</th>
+<th align="left">results</th>
+<th align="left">timestamp</th>
+<th align="left">parsed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Accreditation</td>
+<td align="left">/data/cephfs/punim0010/data/Results/Accreditation/RCPA-QAP</td>
+<td align="left">RCPA-QAP</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">Accreditation</td>
+<td align="left">/data/cephfs/punim0010/data/Results/Accreditation/EMQN-QAP</td>
+<td align="left">EMQN-QAP</td>
+<td align="left">NA</td>
+</tr>
+</tbody>
+</table>
 <p>Third pass. Make sure project name matches storage folder.</p>
 <pre class="r"><code>results_df %&gt;%
   filter(str_detect(results, &#39;/data/cephfs/punim0010/data/Results/&#39;)) %&gt;%
@@ -781,7 +779,7 @@ results_df %&gt;%
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 3.5.0 (2018-04-23)
 Platform: x86_64-apple-darwin15.6.0 (64-bit)
-Running under: macOS High Sierra 10.13.3
+Running under: macOS High Sierra 10.13.6
 
 Matrix products: default
 BLAS: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRblas.0.dylib
