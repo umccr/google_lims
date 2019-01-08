@@ -78,6 +78,10 @@ samples <- samples_gs %>%
   remove_empty(c('rows', 'cols')) %>%
   mutate(subject_id = gsub(' ', '.', subject_id)) %>%
   mutate(results = ifelse(is.na(results), '-', results)) 
+
+# Add unique id to each row
+samples <- samples %>%
+  mutate(row_id = rownames(samples))
 ```
 
 ### 3. Find files ready for processing
@@ -91,7 +95,7 @@ bcbio <- samples %>%
   filter(type == TYPE &
            ((project == PROJECT & results == '-') | 
            (secondary_analysis == SECONDARY))) %>% 
-  select(fastq, run, project, sample_id, sample_name, subject_id, phenotype) %>%
+  select(fastq, run, project, sample_id, sample_name, subject_id, phenotype, row_id) %>%
   mutate(runname = basename(fastq)) %>%
   mutate(targetname = paste(runname, sample_name, sep = '_')) %>%
   mutate(targetname = str_replace_all(targetname, '-', '_'))
@@ -111,7 +115,7 @@ template <- bcbio %>%
   select(samplename = targetname,
          description = sample_name,
          batch = subject_id,
-         phenotype, family_id, individual_id)
+         phenotype, family_id, individual_id, row_id)
 
 # Handle cases where a normal matches more than one tumor sample.
 # Courtesy of [Peter Diakumis](https://github.com/pdiakumis)
@@ -142,6 +146,7 @@ template <- template %>%
 
 # Only keep one sample row for samples that _do_ have topups
 unique_samples <- template %>%
+  select(-row_id) %>%
   group_by(description) %>%
   filter(row_number(description) == 1)
 
@@ -158,7 +163,8 @@ template <- template %>%
          batch = new_batch,
          phenotype = phenotype.x,
          family_id = family_id.x,
-         individual_id = individual_id.x)
+         individual_id = individual_id.x,
+         row_id)
 
 # Identify batches for which we have both tumor and tumor samples
 # Well. Technically just testing that we have two distinct phenotypes...
@@ -174,32 +180,78 @@ template <- template %>%
   filter(batch %in% complete_batches)
 ```
 
+### 5. Generating bcbio csv templates on a per-batch basis:
 
 ```{r perBatch}
 write_batch <- function(complete_batch, summary) {
+  
+  # Create a unique project name
+  batch_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_', complete_batch)
+
+  # Set up the project directory
+  dir.create(here::here('output', batch_name, 'data'), showWarnings=FALSE, recursive=TRUE)
+    
+  # Subset to one batch
   summary <- summary %>%
     filter(batch == complete_batch)
 
-  summary_R1 <- summary %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
-  summary_R2 <- summary %>% mutate(samplename = paste0(samplename, '_R2_001.fastq.gz'))
-  summary <- rbind(summary_R1, summary_R2)
+  # Find corresponding entries in the Google-Lims
+  bcbio_subset <- bcbio %>%
+    filter(row_id %in% summary$row_id)
 
-  write.table(summary,
-              file = here::here('output', paste0(timestamp, '_', PROJECT, '_', TYPE, '_', complete_batch, '.csv')),
+  # Create a file list ready for linking
+  #
+  # With Run 81 the file structure from `bcl2fastq` changed. FASTQs are no
+  # longer round in the top level run folder, but in
+  # ```<Illumina_ID>/<Project>/<SampleName>/<SampleID>_R1_001.fastq.gz```
+  read1 <- bcbio_subset %>%
+    mutate(from = ifelse(run<= 80,
+                         paste0(fastq, '/', sample_id, '_R1_001.fastq.gz'),
+                         paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'))) %>%
+    mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
+    select(from, to)
+
+  read2 <- bcbio_subset %>%
+    mutate(from = ifelse(run<= 80,
+                         paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
+                         paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'))) %>%
+    mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
+    select(from, to)
+
+  link <- rbind(read1, read2)
+
+  # Write the file list for linking on Spartan
+  write.table(paste('ln', link$from, link$to, sep = ' '),
+              file = here::here('output', batch_name, 'data', paste0(batch_name, '_files.sh')),
+              col.names = FALSE,
               row.names = FALSE,
-              col.names = TRUE,
-              quote = FALSE,
-              sep = ',')
-  }
+              quote = FALSE)
+
+#  summary_R1 <- summary %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
+#  summary_R2 <- summary %>% mutate(samplename = paste0(samplename, '_R2_001.fastq.gz'))
+#  summary <- rbind(summary_R1, summary_R2)
+
+  # Write CSV for bcbio
+#  write.table(summary,
+#              file = here::here('output', paste0(timestamp, '_', PROJECT, '_', TYPE, '_', complete_batch, '.csv')),
+#              row.names = FALSE,
+#              col.names = TRUE,
+#              quote = FALSE,
+#              sep = ',')
+}
 
 for (batch in complete_batches) {
   write_batch(batch, template)
 }
+```
 
 
+```{r rsync}
 
 
 ```
+
+
 
 
 > Find all FASTQs for samples that still need to be processed. The generated output file can be used on Spartan to generate (hard)links ready for `rsync` to NCI or `aws s3 cp` to, well, S3. It also generates 'better' sample names by renaming the FASTQ files from the filename to the sample name.
