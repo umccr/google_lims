@@ -227,17 +227,17 @@ write_batch <- function(complete_batch, summary) {
               row.names = FALSE,
               quote = FALSE)
 
-#  summary_R1 <- summary %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
-#  summary_R2 <- summary %>% mutate(samplename = paste0(samplename, '_R2_001.fastq.gz'))
-#  summary <- rbind(summary_R1, summary_R2)
-
   # Write CSV for bcbio
-#  write.table(summary,
-#              file = here::here('output', paste0(timestamp, '_', PROJECT, '_', TYPE, '_', complete_batch, '.csv')),
-#              row.names = FALSE,
-#              col.names = TRUE,
-#              quote = FALSE,
-#              sep = ',')
+  summary_R1 <- summary %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
+  summary_R2 <- summary %>% mutate(samplename = paste0(samplename, '_R2_001.fastq.gz'))
+  summary <- rbind(summary_R1, summary_R2)
+
+  write.table(summary,
+              file = here::here('output', batch_name, 'data', paste0(batch_name, '.csv')),
+              row.names = FALSE,
+              col.names = TRUE,
+              quote = FALSE,
+              sep = ',')
 }
 
 for (batch in complete_batches) {
