@@ -1,0 +1,184 @@
+---
+title: "UMCCR bcbio single patient config"
+author: "Oliver Hofmann"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    toc: false
+    toc_float: false
+    code_folding: hide
+---
+
+```{r custom, echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(scales)
+library(gridExtra)
+library(gtools)
+library(RColorBrewer)
+library(knitr)
+library(tidyr)
+library(rmarkdown)
+library(dplyr)
+library(DT)
+library(readr)
+library(forcats)
+library(stringr)
+library(janitor)
+library(googlesheets)
+library(here)
+library(skimr)
+```
+
+## Introduction
+
+Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in. This version differs from the `bcbioSetup.Rmd` in that it is meant for _single_ patient samples only, i.e., samples are only batched for individual patients not across a whole project.
+
+### 1. Setting up project information
+
+This currently requires specifying both project name and the type of sequencing data (`WGS`, `WTS`, `10X-WGS`, etc.) and will pull out all files of that type and project which do not have results associated with them yet. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID. The exact names can be copied from the `Project` and `Type` columns of the [Google-LIMS sheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit?usp=sharing).
+
+The Googlesheets framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
+
+An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects.
+
+The idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
+
+```{r project, eval=FALSE}
+PROJECT <- 'Tothill-CUP'
+TYPE <- 'WGS'
+SECONDARY <- ''
+```
+
+### 2. Import data from Google spreadsheet
+
+This step generates a data frame from the Google spreadsheet, unifying variable names and simplifying subject IDs for bcbio along the way. It replacesg empty `results` cells (which indicate samples that still need processing) with a `-` to distinguish from true NAs and gets rid of whitespace in subject identifiers. Otherwise standard data cleanup with `janitor`. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.
+
+```{r importData, message=FALSE, eval=FALSE}
+# Register UMCCR spreadsheet. Use cached authentication
+gs_auth(token = "./googlesheets_token.rds") # plain gs_auth() writes .httr-oauth to workdir, then all is good
+samples_gs <- gs_key('1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs')
+
+# Create a backup copy each time we access the sample info
+tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
+timestamp <- strftime(tm , "%Y-%m-%dT%H%M")
+filename <- paste(timestamp, 'backup.csv', sep = '_')
+backup_dir <- file.path(here::here('output', 'backup'))
+dir.create(backup_dir, recursive = TRUE) # mkdir -p (warns if it already exists):
+
+samples_gs %>%
+  gs_download(ws = 'Sheet1', to = file.path(backup_dir, filename))
+
+# Tweak for analysis
+samples <- samples_gs %>%
+  gs_read(ws = 'Sheet1') %>%
+  clean_names() %>%
+  mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis)) %>%
+  remove_empty(c('rows', 'cols')) %>%
+  mutate(subject_id = gsub(' ', '.', subject_id)) %>%
+  mutate(results = ifelse(is.na(results), '-', results)) 
+```
+
+### 3. Find files ready for processing
+
+Find all samples that a) still need to be processed, and b) for which we have both tumor and normal sample ready to go. 
+
+```{r csv, eval=FALSE}
+# Keep rows matching project and type requested; extract path to FASTQ
+# and generate new file name for these
+bcbio <- samples %>%
+  filter(type == TYPE &
+           ((project == PROJECT & results == '-') | 
+           (secondary_analysis == SECONDARY))) %>% 
+  select(fastq, run, project, sample_id, sample_name, subject_id, phenotype) %>%
+  mutate(runname = basename(fastq)) %>%
+  mutate(targetname = paste(runname, sample_name, sep = '_')) %>%
+  mutate(targetname = str_replace_all(targetname, '-', '_'))
+```
+
+
+### 4. Group samples
+
+Assigning patient/family identifiers for Peddy, assigning batches based on the subject id, and pairing tumor/normals as needed. Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using `bcbio_prepare_samples.py`. Finally, remove samples for which we do not have a matched normal.
+
+```{r bcbioconfig, eval=FALSE}
+# Use the same information to generate the bcbio CSV file
+# Keep the required columns and add information for peddy
+template <- bcbio %>% 
+  mutate(family_id = subject_id) %>%
+  mutate(individual_id = subject_id) %>%
+  select(samplename = targetname,
+         description = sample_name,
+         batch = subject_id,
+         phenotype, family_id, individual_id)
+
+# Handle cases where a normal matches more than one tumor sample.
+# Courtesy of [Peter Diakumis](https://github.com/pdiakumis)
+get_new_batch <- function(batch, phenotype) {
+  stopifnot(length(batch) == length(phenotype))
+  n <- length(batch)
+
+  new_batch <- vector(mode = "character", length = n)
+  x <- table(phenotype)
+
+  if (n > 2) {
+    tum_ns <- seq_len(x["tumor"])
+    new_batch[phenotype == "tumor"] <- paste0(batch[phenotype == "tumor"], '_', tum_ns)
+    # assume only one normal for now
+    new_batch[phenotype == "normal"] <- paste0(batch[phenotype == "tumor"], '_', tum_ns, collapse = ";")
+  } else {
+    new_batch <- batch
+  }
+  return(new_batch)
+}
+
+# Remove top-up samples (samples with the exact same description)
+# before calculating batch assignments. We'll add them back in later.
+# This assumes topups are consistently flagged with a `_topup`
+# suffix
+template <- template %>%
+  mutate(description = str_replace(description, '_topup', ''))
+
+# Only keep one sample row for samples that _do_ have topups
+unique_samples <- template %>%
+  group_by(description) %>%
+  filter(row_number(description) == 1)
+
+# Create batch information
+batches <- unique_samples %>%
+  group_by(batch) %>%
+  mutate(new_batch = get_new_batch(batch, phenotype)) 
+
+# Bring back the batch information to the main template
+template <- template %>%
+  left_join(batches, by = c('description')) %>%
+  select(samplename = samplename.x,
+         description,
+         batch = new_batch,
+         phenotype = phenotype.x,
+         family_id = family_id.x,
+         individual_id = individual_id.x)
+
+# Identify batches for which we have both tumor and tumor samples
+# Well. Technically just testing that we have two distinct phenotypes...
+complete_batches <- template %>%
+  group_by(batch) %>%
+  summarise(phenotype_count = n_distinct(phenotype)) %>%
+  filter(phenotype_count == 2) %>%
+  select(batch)
+complete_batches <- as.vector(complete_batches$batch)
+
+# Only retain samples that fulfill the 'complete batch' requirement
+template <- template %>%
+  filter(batch %in% complete_batches)
+```
+
+
+
+
+
+
+
+
+
+> Find all FASTQs for samples that still need to be processed. The generated output file can be used on Spartan to generate (hard)links ready for `rsync` to NCI or `aws s3 cp` to, well, S3. It also generates 'better' sample names by renaming the FASTQ files from the filename to the sample name.
