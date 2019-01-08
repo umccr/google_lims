@@ -28,6 +28,7 @@ library(janitor)
 library(googlesheets)
 library(here)
 library(skimr)
+library(purrr)
 ```
 
 ## Introduction
@@ -83,7 +84,7 @@ samples <- samples_gs %>%
 
 Find all samples that a) still need to be processed, and b) for which we have both tumor and normal sample ready to go. 
 
-```{r csv, eval=FALSE}
+```{r subsetSamples, eval=FALSE}
 # Keep rows matching project and type requested; extract path to FASTQ
 # and generate new file name for these
 bcbio <- samples %>%
@@ -101,7 +102,7 @@ bcbio <- samples %>%
 
 Assigning patient/family identifiers for Peddy, assigning batches based on the subject id, and pairing tumor/normals as needed. Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using `bcbio_prepare_samples.py`. Finally, remove samples for which we do not have a matched normal.
 
-```{r bcbioconfig, eval=FALSE}
+```{r assignBatches, eval=FALSE}
 # Use the same information to generate the bcbio CSV file
 # Keep the required columns and add information for peddy
 template <- bcbio %>% 
@@ -174,11 +175,31 @@ template <- template %>%
 ```
 
 
+```{r perBatch}
+write_batch <- function(complete_batch, summary) {
+  summary <- summary %>%
+    filter(batch == complete_batch)
+
+  summary_R1 <- summary %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
+  summary_R2 <- summary %>% mutate(samplename = paste0(samplename, '_R2_001.fastq.gz'))
+  summary <- rbind(summary_R1, summary_R2)
+
+  write.table(summary,
+              file = here::here('output', paste0(timestamp, '_', PROJECT, '_', TYPE, '_', complete_batch, '.csv')),
+              row.names = FALSE,
+              col.names = TRUE,
+              quote = FALSE,
+              sep = ',')
+  }
+
+for (batch in complete_batches) {
+  write_batch(batch, template)
+}
 
 
 
 
-
+```
 
 
 > Find all FASTQs for samples that still need to be processed. The generated output file can be used on Spartan to generate (hard)links ready for `rsync` to NCI or `aws s3 cp` to, well, S3. It also generates 'better' sample names by renaming the FASTQ files from the filename to the sample name.
