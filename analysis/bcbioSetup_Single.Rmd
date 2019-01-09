@@ -182,6 +182,10 @@ template <- template %>%
 
 ### 5. Generating bcbio csv templates on a per-batch basis:
 
+Generate a file with pointers to the sample FASTQs and their preferred new names as well as a sample descriptor (`.csv`) for bcbio to use as part of it's templating approach. The resulting directory structure can be copied to Spartan, e.g.:
+
+> `scp -r BATCHFILES spartan:/data/cephfs/punim0010/data/Transfer/raijin/`
+
 ```{r perBatch}
 write_batch <- function(complete_batch, summary) {
   
@@ -245,13 +249,15 @@ for (batch in complete_batches) {
 }
 ```
 
+### 6. Sync data from Spartan to Raijin
 
-```{r rsync}
+WGS/WTS runs are being processed at Raijin. Collect the required file in one place and rsync over with:
+
+> `rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/ omh563@r-dm.nci.org.au:/g/data3/gx8/projects/Hofmann_Workflow`
+> `find /data/cephfs/punim0010/data/Transfer/raijin/* -type d -empty -delete`
 
 
-```
 
 
 
 
-> Find all FASTQs for samples that still need to be processed. The generated output file can be used on Spartan to generate (hard)links ready for `rsync` to NCI or `aws s3 cp` to, well, S3. It also generates 'better' sample names by renaming the FASTQ files from the filename to the sample name.
