@@ -46,7 +46,7 @@ An alternative use is to set the "secondary" analysis flag to match the samples 
 The idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
 ```{r project, eval=FALSE}
-PROJECT <- 'Tothill-CUP'
+PROJECT <- 'Avner'
 TYPE <- 'WGS'
 SECONDARY <- ''
 ```
@@ -253,8 +253,23 @@ for (batch in complete_batches) {
 
 WGS/WTS runs are being processed at Raijin. Collect the required file in one place and rsync over with:
 
+> `find /data/cephfs/punim0010/data/Transfer/raijin/ -name *files.sh* -execdir sh {} \;`
 > `rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/ omh563@r-dm.nci.org.au:/g/data3/gx8/projects/Hofmann_Workflow`
 > `find /data/cephfs/punim0010/data/Transfer/raijin/* -type d -empty -delete`
+
+### 7. Run projects on Raijin
+
+Raijin now has a `config_bcbio.sh` script in `/g/data/gx8/projects/std_workflow`. For now, the target path is hardcoded into the script, so I recommend copying it over to where data was rsync'd over from Spartan and editing the path accordingly. In brief, `config_bcbio.sh` will:
+
+* find all sample directories in the configured parent directory
+* copy the `merge.sh` script from `std_workflow` over and adjust it for each batch
+* trigger the sample merging and generate the revised sample sheet
+* configure a bcbio run using the revised (merged) sample sheet 
+
+All that's left is then to kick off the actual runs:
+
+> `find /g/data/gx8/projects/Hofmann_Test/ -name run.sh -execdir qsub {} \;`
+
 
 
 
