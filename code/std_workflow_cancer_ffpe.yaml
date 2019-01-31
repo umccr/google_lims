@@ -22,22 +22,28 @@ details:
       mixup_check: qsignature
 
       # Variant calling, 2-out-of-3. All callers handle InDels
-      variantcaller: [vardict, strelka2, gatk-haplotype]
+      variantcaller:
+        germline: [strelka2]
+        somatic: [strelka2] 
       ensemble:
         numpass: 2
 
+      # Call down to 1% allelic frequency
+      min_allele_fraction: 1
+
       # Structural variation. No ensemble calling option here
-      svcaller: [cnvkit, manta]
+      svcaller: [manta]
+      svprioritize: cancer/az300
 
       # Extras
-      tools_on: [gatk4, break-point-inspector, noalt_calling] 
-      tools_off: [gemini]
-      vcfanno: [gemini]
+      tools_on: [break-point-inspector, noalt_calling]
+      tools_off: [contamination]
 upload:
   dir: ../final
 resources:
   machine:
-    cores: 16
+    cores: 28
     memory: 128
   default:
-    memory: 3G
+    memory: 4G
+    cores: 28

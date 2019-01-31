@@ -15,43 +15,37 @@ details:
 
       # ad hoc downsampling. Set to 100 for challenging samples
       maxcov_downsample: false
-
-      # Do not call in `alt` regions. In theory this is already
-      # handled through `tools_on: [noalt_calling]` but that
-      # still needs testing
       variant_regions: /g/data/gx8/extras/GRCh37_noalt.bed
 
-      # QC and coverage assessent. Peter McCallum cancer panel
-      # as reference
-      coverage: /g/data/gx8/extras/2018-02-16_PMCC_Panel_Regions.bed
+      # QC and coverage assessent
+      coverage: /g/data3/gx8/extras/cancer_genes/umccr_cancer_genes.GRCh37.transcript.bed
       mixup_check: qsignature
 
       # Variant calling, 2-out-of-3. All callers handle InDels
       variantcaller:
         germline: [vardict, strelka2, gatk-haplotype]
-        somatic: [vardict, strelka2, mutect2]
+        somatic: [vardict, strelka2, mutect2] 
       ensemble:
         numpass: 2
 
+      # Call down to 1% allelic frequency
+      min_allele_fraction: 1
+
       # Structural variation. No ensemble calling option here
-      svcaller: [cnvkit, manta]
+      svcaller: [manta]
       svprioritize: cancer/az300
 
-      # Extras. Ensure use of gatk4, do not call in alt genome regions,
-      # refine Manta SV calls with Hartwig's BPI
-      tools_on: [gatk4, break-point-inspector, noalt_calling]
-
-      # Define variant annotation. vcfanno uses the default Gemini tracks
-      tools_off: [gemini]
-      vcfanno: [gemini]
+      # Extras
+      tools_on: [break-point-inspector, noalt_calling]
+      tools_off: [contamination]
 upload:
   dir: ../final
-# Optional resource definitions. Tweak depending on the queue the job is
-# being submitted to. The defaults below work for `normal`
 resources:
   machine:
-    cores: 16
+    cores: 28
     memory: 128
   default:
-    memory: 3G
-    cores: 16
+    memory: 4G
+    cores: 28
+  manta:
+    options: [--generateEvidenceBam --outputContig]

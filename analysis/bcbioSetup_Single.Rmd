@@ -46,7 +46,7 @@ An alternative use is to set the "secondary" analysis flag to match the samples 
 The idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
 ```{r project, eval=FALSE}
-PROJECT <- 'Avner'
+PROJECT <- 'Patients'
 TYPE <- 'WGS'
 SECONDARY <- ''
 ```

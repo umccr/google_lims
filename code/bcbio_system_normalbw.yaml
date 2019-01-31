@@ -1,0 +1,41 @@
+# Reference genomes and pointer to samples
+local:
+  ref: /g/data3/gx8/local/development/bcbio/genomes/Hsapiens
+  inputs:
+    - INPUTDIR
+
+# Define resources to be used for individual programs on multicore machines.
+# These can be defined specifically for memory and processor availability.
+# - memory: Specify usage for memory intensive programs. The indicated value
+#           specifies the wanted *per core* usage.
+# - cores: Define cores that can be used for multicore programs. The indicated
+#          value is the maximum cores that should be allocated for a program.
+# - jvm_opts: specify details
+resources:
+  machine:
+    cores: 28
+    memory: 128
+  # default options, used if other items below are not present
+  # avoids needing to configure/adjust for every program
+  default:
+    memory: 4G
+    cores: 28
+    jvm_opts: ["-Xms750m", "-Xmx3000m"]
+  star:
+    memory: 6G
+  gatk:
+    jvm_opts: ["-Xms1000m", "-Xmx3000m"]
+  snpeff:
+    jvm_opts: ["-Xms750m", "-Xmx3g"]
+  qualimap:
+    memory: 4g
+  express:
+    memory: 8g
+  dexseq:
+    memory: 10g
+  macs2:
+    memory: 8g
+  seqcluster:
+    memory: 8g
+
+

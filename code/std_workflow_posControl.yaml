@@ -13,22 +13,12 @@ details:
       maxcov_downsample: false
 
       # QC and coverage assessent
-      coverage: actionable/ACMG56
+      coverage: /g/data3/gx8/extras/cancer_genes/umccr_cancer_genes.GRCh37.transcript.bed
       mixup_check: qsignature
 
-      # Variant calling. Simple best-practice germline calls
-      # are good enough here
+      # Variant calling, 2-out-of-3. All callers handle InDels
       variantcaller: [gatk-haplotype]
 
       tools_off: [gemini]
 upload:
   dir: ../final
-# Optional resource definitions. Tweak depending on the queue the job is
-# being submitted to. The defaults below work for `normal`
-resources:
-  machine:
-    cores: 16
-    memory: 128
-  default:
-    memory: 3G
-    cores: 16
