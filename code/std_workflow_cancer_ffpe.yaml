@@ -15,10 +15,10 @@ details:
 
       # ad hoc downsampling. Set to 100 for challenging samples
       maxcov_downsample: false
-      variant_regions: /g/data/gx8/extras/GRCh37_noalt.bed
+      variant_regions: GRCh37_noalt.bed
 
       # QC and coverage assessent
-      coverage: /g/data3/gx8/extras/cancer_genes/umccr_cancer_genes.GRCh37.transcript.bed
+      coverage: umccr_cancer_genes.GRCh37.transcript.bed
       mixup_check: qsignature
 
       # Variant calling, 2-out-of-3. All callers handle InDels
@@ -47,3 +47,5 @@ resources:
   default:
     memory: 4G
     cores: 28
+  manta:
+    options: [--generateEvidenceBam --outputContig]

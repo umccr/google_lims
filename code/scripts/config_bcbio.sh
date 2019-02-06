@@ -1,5 +1,5 @@
 # Hard-coded project directory for now; don't want this to go off the rails
-for DIRECTORY in /g/data/gx8/projects/Hofmann_IPMN/2019*/ ;
+for DIRECTORY in /g/data/gx8/projects/PROJECT/2019*/ ;
 do
   BATCH=$(basename $DIRECTORY)
   DATADIR="$DIRECTORY"data  
