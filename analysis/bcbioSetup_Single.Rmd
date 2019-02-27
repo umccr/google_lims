@@ -46,9 +46,9 @@ An alternative use is to set the "secondary" analysis flag to match the samples 
 The idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
 ```{r project, eval=FALSE}
-PROJECT <- 'Patients'
+PROJECT <- ''
 TYPE <- 'WGS'
-SECONDARY <- ''
+SECONDARY <- 'testcase'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -68,7 +68,7 @@ backup_dir <- file.path(here::here('output', 'backup'))
 dir.create(backup_dir, recursive = TRUE) # mkdir -p (warns if it already exists):
 
 samples_gs %>%
-  gs_download(ws = 'Sheet1', to = file.path(backup_dir, filename))
+  gs_download(ws = 'Sheet1', to = file.path(backup_dir, filename), overwrite = TRUE)
 
 # Tweak for analysis
 samples <- samples_gs %>%
@@ -150,6 +150,18 @@ unique_samples <- template %>%
   group_by(description) %>%
   filter(row_number(description) == 1)
 
+# Identify batches for which we have both tumor and tumor samples
+# Well. Technically just testing that we have two distinct phenotypes.
+# Could be made more specific (e.g., by ensuring that 'normal' is
+# present).
+complete_subjects <- 
+  template %>%
+  group_by(individual_id, batch) %>%
+  summarise(phenotype_count = n_distinct(phenotype)) %>%
+  filter(phenotype_count >= 2) %>%
+  select(individual_id)
+complete_subjects <- as.vector(complete_subjects$individual_id)
+
 # Create batch information
 batches <- unique_samples %>%
   group_by(batch) %>%
@@ -164,23 +176,15 @@ template <- template %>%
          phenotype = phenotype.x,
          family_id = family_id.x,
          individual_id = individual_id.x,
-         row_id)
+         row_id) 
 
-# Identify batches for which we have both tumor and tumor samples
-# Well. Technically just testing that we have two distinct phenotypes...
-complete_batches <- template %>%
-  group_by(batch) %>%
-  summarise(phenotype_count = n_distinct(phenotype)) %>%
-  filter(phenotype_count == 2) %>%
-  select(batch)
-complete_batches <- as.vector(complete_batches$batch)
 
 # Only retain samples that fulfill the 'complete batch' requirement
 template <- template %>%
-  filter(batch %in% complete_batches)
+  filter(individual_id %in% complete_subjects)
 ```
 
-### 5. Generating bcbio csv templates on a per-batch basis:
+### 5. Generating bcbio csv templates on a per-subject basis:
 
 Generate a file with pointers to the sample FASTQs and their preferred new names as well as a sample descriptor (`.csv`) for bcbio to use as part of it's templating approach. The resulting directory structure can be copied to Spartan, e.g.:
 
