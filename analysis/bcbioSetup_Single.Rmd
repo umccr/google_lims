@@ -191,22 +191,24 @@ Generate a file with pointers to the sample FASTQs and their preferred new names
 > `scp -r BATCHFILES spartan:/data/cephfs/punim0010/data/Transfer/raijin/`
 
 ```{r perBatch}
-write_batch <- function(complete_batch, summary) {
+write_subject <- function(complete, summary) {
   
   # Create a unique project name
-  batch_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_', complete_batch)
-
+  subject_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_', complete)
+  print(subject_name)
   # Set up the project directory
-  dir.create(here::here('output', batch_name, 'data'), showWarnings=FALSE, recursive=TRUE)
-    
-  # Subset to one batch
+  dir.create(here::here('output', subject_name, 'data'), showWarnings=FALSE, recursive=TRUE)
+     
+  # Subset to one individual
   summary <- summary %>%
-    filter(batch == complete_batch)
-
+    filter(individual_id == complete)
+  print(summary)
+   
   # Find corresponding entries in the Google-Lims
   bcbio_subset <- bcbio %>%
-    filter(row_id %in% summary$row_id)
-
+     filter(row_id %in% summary$row_id)
+  print(bcbio_subset)
+  
   # Create a file list ready for linking
   #
   # With Run 81 the file structure from `bcl2fastq` changed. FASTQs are no
@@ -230,7 +232,7 @@ write_batch <- function(complete_batch, summary) {
 
   # Write the file list for linking on Spartan
   write.table(paste('ln', link$from, link$to, sep = ' '),
-              file = here::here('output', batch_name, 'data', paste0(batch_name, '_files.sh')),
+              file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
               col.names = FALSE,
               row.names = FALSE,
               quote = FALSE)
@@ -241,15 +243,15 @@ write_batch <- function(complete_batch, summary) {
   summary <- rbind(summary_R1, summary_R2)
 
   write.table(summary,
-              file = here::here('output', batch_name, 'data', paste0(batch_name, '.csv')),
+              file = here::here('output', subject_name, 'data', paste0(subject_name, '.csv')),
               row.names = FALSE,
               col.names = TRUE,
               quote = FALSE,
               sep = ',')
 }
 
-for (batch in complete_batches) {
-  write_batch(batch, template)
+for (subject in complete_subjects) {
+  write_subject(subject, template)
 }
 ```
 
