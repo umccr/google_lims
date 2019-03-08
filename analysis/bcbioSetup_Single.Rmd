@@ -46,9 +46,9 @@ An alternative use is to set the "secondary" analysis flag to match the samples 
 The idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
 ```{r project, eval=FALSE}
-PROJECT <- ''
+PROJECT <- 'Tothill-A5'
 TYPE <- 'WGS'
-SECONDARY <- 'testcase'
+SECONDARY <- ''
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -178,7 +178,6 @@ template <- template %>%
          individual_id = individual_id.x,
          row_id) 
 
-
 # Only retain samples that fulfill the 'complete batch' requirement
 template <- template %>%
   filter(individual_id %in% complete_subjects)
@@ -202,12 +201,12 @@ write_subject <- function(complete, summary) {
   # Subset to one individual
   summary <- summary %>%
     filter(individual_id == complete)
-  print(summary)
+#  print(summary)
    
   # Find corresponding entries in the Google-Lims
   bcbio_subset <- bcbio %>%
      filter(row_id %in% summary$row_id)
-  print(bcbio_subset)
+#  print(bcbio_subset)
   
   # Create a file list ready for linking
   #
