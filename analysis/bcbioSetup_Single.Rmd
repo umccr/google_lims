@@ -25,7 +25,8 @@ library(readr)
 library(forcats)
 library(stringr)
 library(janitor)
-library(googlesheets)
+#library(googlesheets)
+library(googledrive)
 library(here)
 library(skimr)
 library(purrr)
@@ -46,9 +47,9 @@ An alternative use is to set the "secondary" analysis flag to match the samples 
 The idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
 ```{r project, eval=FALSE}
-PROJECT <- 'Tothill-A5'
+PROJECT <- ''
 TYPE <- 'WGS'
-SECONDARY <- ''
+SECONDARY <- 'debug'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -57,8 +58,8 @@ This step generates a data frame from the Google spreadsheet, unifying variable 
 
 ```{r importData, message=FALSE, eval=FALSE}
 # Register UMCCR spreadsheet. Use cached authentication
-gs_auth(token = "./googlesheets_token.rds") # plain gs_auth() writes .httr-oauth to workdir, then all is good
-samples_gs <- gs_key('1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs')
+gs_auth(token = "./googlesheets_token_umccr.rds") # plain gs_auth() writes .httr-oauth to workdir, then all is good
+
 
 # Create a backup copy each time we access the sample info
 tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
@@ -67,17 +68,22 @@ filename <- paste(timestamp, 'backup.csv', sep = '_')
 backup_dir <- file.path(here::here('output', 'backup'))
 dir.create(backup_dir, recursive = TRUE) # mkdir -p (warns if it already exists):
 
-samples_gs %>%
-  gs_download(ws = 'Sheet1', to = file.path(backup_dir, filename), overwrite = TRUE)
+# Google Drive implementation
+lims_key <- drive_find('^Google LIMS$', team_drive = 'LIMS')$id
+drive_download(as_id(lims_key), path = file.path(backup_dir, filename), overwrite = TRUE)
+
+# Import downloaded spreadsheet (sheet #1) as a tibble
+samples_gs <- read_csv(file.path(backup_dir, filename))
 
 # Tweak for analysis
 samples <- samples_gs %>%
-  gs_read(ws = 'Sheet1') %>%
+#  gs_read(ws = 'Sheet1') %>%
   clean_names() %>%
   mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis)) %>%
   remove_empty(c('rows', 'cols')) %>%
   mutate(subject_id = gsub(' ', '.', subject_id)) %>%
-  mutate(results = ifelse(is.na(results), '-', results)) 
+  mutate(results = ifelse(is.na(results), '-', results)) %>%
+  select(-matches('number_fastqs')) # Drop FASTQ count introduced with new version for now
 
 # Add unique id to each row
 samples <- samples %>%
@@ -95,8 +101,10 @@ bcbio <- samples %>%
   filter(type == TYPE &
            ((project == PROJECT & results == '-') | 
            (secondary_analysis == SECONDARY))) %>% 
-  select(fastq, run, project, sample_id, sample_name, subject_id, phenotype, row_id) %>%
-  mutate(runname = basename(fastq)) %>%
+  select(illumina_id, fastq, run, project, sample_id, sample_name, subject_id, 
+         phenotype, row_id) %>%
+  mutate(runname = illumina_id) %>%
+  select(-illumina_id) %>%
   mutate(targetname = paste(runname, sample_name, sep = '_')) %>%
   mutate(targetname = str_replace_all(targetname, '-', '_'))
 ```
@@ -154,8 +162,7 @@ unique_samples <- template %>%
 # Well. Technically just testing that we have two distinct phenotypes.
 # Could be made more specific (e.g., by ensuring that 'normal' is
 # present).
-complete_subjects <- 
-  template %>%
+complete_subjects <- template %>%
   group_by(individual_id, batch) %>%
   summarise(phenotype_count = n_distinct(phenotype)) %>%
   filter(phenotype_count >= 2) %>%
@@ -194,39 +201,38 @@ write_subject <- function(complete, summary) {
   
   # Create a unique project name
   subject_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_', complete)
-  print(subject_name)
+#  print(subject_name)
+  
   # Set up the project directory
   dir.create(here::here('output', subject_name, 'data'), showWarnings=FALSE, recursive=TRUE)
      
   # Subset to one individual
   summary <- summary %>%
     filter(individual_id == complete)
-#  print(summary)
-   
+
   # Find corresponding entries in the Google-Lims
   bcbio_subset <- bcbio %>%
      filter(row_id %in% summary$row_id)
-#  print(bcbio_subset)
-  
+
   # Create a file list ready for linking
   #
   # With Run 81 the file structure from `bcl2fastq` changed. FASTQs are no
   # longer round in the top level run folder, but in
   # ```<Illumina_ID>/<Project>/<SampleName>/<SampleID>_R1_001.fastq.gz```
   read1 <- bcbio_subset %>%
-    mutate(from = ifelse(run<= 80,
-                         paste0(fastq, '/', sample_id, '_R1_001.fastq.gz'),
-                         paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'))) %>%
+    mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R1_001.fastq.gz'),
+                            run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
+                            run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
     select(from, to)
-
+  
   read2 <- bcbio_subset %>%
-    mutate(from = ifelse(run<= 80,
-                         paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
-                         paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'))) %>%
+    mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
+                            run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
+                            run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
     select(from, to)
-
+  
   link <- rbind(read1, read2)
 
   # Write the file list for linking on Spartan
