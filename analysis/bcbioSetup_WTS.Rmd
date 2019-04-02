@@ -1,0 +1,210 @@
+---
+title: "UMCCR bcbio single patient config"
+author: "Oliver Hofmann"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    toc: false
+    toc_float: false
+    code_folding: hide
+---
+
+```{r custom, echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(scales)
+library(gridExtra)
+library(gtools)
+library(RColorBrewer)
+library(knitr)
+library(tidyr)
+library(rmarkdown)
+library(dplyr)
+library(DT)
+library(readr)
+library(forcats)
+library(stringr)
+library(janitor)
+library(googledrive)
+library(here)
+library(skimr)
+library(purrr)
+```
+
+## Introduction
+
+Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in. This version differs from the `bcbioSetup.Rmd` in that it is meant for _single_ patient samples only, i.e., samples are only batched for individual patients not across a whole project.
+
+### 1. Setting up project information
+
+This currently requires specifying both project name and the type of sequencing data (`WGS`, `WTS`, `10X-WGS`, etc.) and will pull out all files of that type and project which do not have results associated with them yet. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID. The exact names can be copied from the `Project` and `Type` columns of the [Google-LIMS sheet](https://docs.google.com/spreadsheets/u/1/d/1aaTvXrZSdA1ekiLEpW60OeNq2V7D_oEMBzTgC-uDJAM/edit#gid=0). The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
+
+An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects. Long term, the idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
+
+```{r project, eval=FALSE}
+PROJECT <- 'Tothill-A5'
+TYPE <- 'WTS'
+SECONDARY <- ''
+```
+
+### 2. Import data from Google spreadsheet
+
+This step generates a data frame from the Google spreadsheet, unifying variable names and simplifying subject IDs for bcbio along the way. It replaces empty `results` cells (which indicate samples that still need processing) with a `-` to distinguish from true NAs and gets rid of whitespace in subject identifiers (although ideally there should not be any empty cells in the sheet in the first place). Otherwise standard data cleanup with `janitor`. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.
+
+```{r importData, message=FALSE, eval=FALSE}
+# Register UMCCR spreadsheet. Use cached authentication
+gs_auth(token = "./googlesheets_token_umccr.rds") # plain gs_auth() writes .httr-oauth to workdir, then all is good
+
+# Create a backup copy each time we access the sample info
+tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
+timestamp <- strftime(tm , "%Y-%m-%dT%H%M")
+filename <- paste(timestamp, 'backup.csv', sep = '_')
+backup_dir <- file.path(here::here('output', 'backup'))
+dir.create(backup_dir, recursive = TRUE) # mkdir -p (warns if it already exists):
+
+# Google Drive implementation
+lims_key <- drive_find('^Google LIMS$', team_drive = 'LIMS')$id
+drive_download(as_id(lims_key), path = file.path(backup_dir, filename), overwrite = TRUE)
+
+# Import downloaded spreadsheet (sheet #1) as a tibble
+samples_gs <- read_csv(file.path(backup_dir, filename))
+
+# Tweak for analysis
+samples <- samples_gs %>%
+  clean_names() %>%
+  mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis)) %>%
+  remove_empty(c('rows', 'cols')) %>%
+  mutate(subject_id = gsub(' ', '.', subject_id)) %>%
+  mutate(results = ifelse(is.na(results), '-', results)) %>%
+  select(-matches('number_fastqs')) # Drop FASTQ count introduced with new version for now
+
+# Add unique id to each row
+samples <- samples %>%
+  mutate(row_id = rownames(samples))
+```
+
+### 3. Find files ready for processing
+
+Find all samples that belong to the provided project and that still need to be processed:
+
+```{r subsetSamples, eval=FALSE}
+# Keep rows matching project and type requested; extract path to FASTQ
+# and generate new file name for these
+bcbio <- samples %>%
+  filter(type == TYPE &
+           ((project == PROJECT & results == '-') | 
+           (secondary_analysis == SECONDARY))) %>% 
+  select(illumina_id, fastq, run, project, sample_id, sample_name, subject_id, 
+         phenotype, row_id) %>%
+  mutate(runname = illumina_id) %>%
+  select(-illumina_id) %>%
+  mutate(targetname = paste(runname, sample_name, sep = '_')) %>%
+  mutate(targetname = str_replace_all(targetname, '-', '_'))
+
+# Use the same information to generate the bcbio CSV file
+# Keep the required columns and add information for peddy
+template <- bcbio %>% 
+  mutate(family_id = subject_id) %>%
+  mutate(individual_id = subject_id) %>%
+  select(samplename = targetname,
+         description = sample_name,
+         batch = subject_id,
+         phenotype, family_id, individual_id, run, row_id)
+```
+
+### 4. Merge topup samples
+
+Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using `bcbio_prepare_samples.py`.
+
+```{r mergeTopups, eval=FALSE}
+# Remove top-up samples (samples with the exact same description)
+# before calculating batch assignments. We'll add them back in later.
+# This assumes topups are consistently flagged with a `_topup`
+# suffix
+template <- template %>%
+  mutate(description = str_replace(description, '_topup', ''))
+```
+
+### 5. Generating bcbio csv templates
+
+This step is relatively easy for WTS samples since we do not have to worry about batches, tumor/normal etc. Generate a file with pointers to the sample FASTQs and their preferred new names as well as a sample descriptor (`.csv`) for bcbio to use as part of it's templating approach. The resulting directory structure can be copied to Spartan, e.g.:
+
+> `scp -r BATCHFILES spartan:/data/cephfs/punim0010/data/Transfer/raijin/`
+
+```{r configbcbio}
+# Create a unique project name
+project_name <- paste0(timestamp, '_', PROJECT, '_', TYPE)
+
+# Set up the project directory
+dir.create(here::here('output', project_name, 'data'), showWarnings=FALSE, recursive=TRUE)
+
+read1 <- bcbio %>%
+  mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R1_001.fastq.gz'),
+                          run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
+                          run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
+  mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
+  select(from, to)
+  
+read2 <- bcbio %>%
+  mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
+                          run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
+                          run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
+  mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
+  select(from, to)
+  
+link <- rbind(read1, read2)
+
+# Write the file list for linking on Spartan
+write.table(paste('ln', link$from, link$to, sep = ' '),
+            file = here::here('output', project_name, 'data', paste(project_name, 'files.sh', sep='_')),
+            col.names = FALSE,
+            row.names = FALSE,
+            quote = FALSE)
+
+template <- bcbio %>% 
+  mutate(family_id=subject_id) %>%
+  mutate(individual_id=subject_id) %>%
+  select(samplename=targetname, 
+         description=sample_name,
+         genotype=run)
+
+summary_R1 <- template %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
+summary_R2 <- template %>% mutate(samplename = paste0(samplename, '_R2_001.fastq.gz'))
+summary <- rbind(summary_R1, summary_R2)
+
+
+write.table(summary,
+            file = here::here('output', project_name, 'data', paste(project_name, '.csv', sep='_')),
+            row.names = FALSE,
+            col.names = TRUE,
+            quote = FALSE,
+            sep = ',')```
+
+
+### 7. Sync data from Spartan to Raijin
+
+WGS/WTS runs are being processed at Raijin. Collect the required file in one place and rsync over with:
+
+> `find /data/cephfs/punim0010/data/Transfer/raijin/ -name *files.sh* -execdir sh {} \;`
+> `rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/ omh563@r-dm.nci.org.au:/g/data3/gx8/projects/Hofmann_Workflow`
+> `find /data/cephfs/punim0010/data/Transfer/raijin/* -type d -empty -delete`
+
+### 8. Run projects on Raijin
+
+Raijin now has a `config_bcbio.sh` script in `/g/data/gx8/projects/std_workflow`. For now, the target path is hardcoded into the script, so I recommend copying it over to where data was rsync'd over from Spartan and editing the path accordingly. In brief, `config_bcbio.sh` will:
+
+* find all sample directories in the configured parent directory
+* copy the `merge.sh` script from `std_workflow` over and adjust it for each batch
+* trigger the sample merging and generate the revised sample sheet
+* configure a bcbio run using the revised (merged) sample sheet 
+
+All that's left is then to kick off the actual runs:
+
+> `find /g/data/gx8/projects/Hofmann_Test/ -name run.sh -execdir qsub {} \;`
+
+
+
+
+
+
+
