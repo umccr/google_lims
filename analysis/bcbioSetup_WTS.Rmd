@@ -164,22 +164,22 @@ write.table(paste('ln', link$from, link$to, sep = ' '),
 template <- bcbio %>% 
   mutate(family_id=subject_id) %>%
   mutate(individual_id=subject_id) %>%
+  mutate(run=paste('run', run, sep='_')) %>%
   select(samplename=targetname, 
          description=sample_name,
-         genotype=run)
+         run=run) 
 
 summary_R1 <- template %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
 summary_R2 <- template %>% mutate(samplename = paste0(samplename, '_R2_001.fastq.gz'))
 summary <- rbind(summary_R1, summary_R2)
-
 
 write.table(summary,
             file = here::here('output', project_name, 'data', paste(project_name, '.csv', sep='_')),
             row.names = FALSE,
             col.names = TRUE,
             quote = FALSE,
-            sep = ',')```
-
+            sep = ',')
+```
 
 ### 7. Sync data from Spartan to Raijin
 
