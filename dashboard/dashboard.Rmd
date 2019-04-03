@@ -22,7 +22,7 @@ library(readr)
 library(forcats)
 library(stringr)
 library(janitor)
-library(googlesheets)
+library(googledrive)
 library(here)
 library(skimr)
 library(lubridate)
@@ -36,10 +36,21 @@ library(scales)
 
 ```{r dataPrep, echo=FALSE, warning=FALSE, error=FALSE}
 # Register UMCCR spreadsheet. Use cached authentication
-gs_auth(token="../googlesheets_token.rds")
+#gs_auth(token = "../googlesheets_token_umccr.rds")
 
-# Identifier for the spreadsheet to use. This is safe to store on GH
-samples_gs <- gs_key('1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs')
+# Create a backup copy each time we access the sample info
+tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
+timestamp <- strftime(tm , "%Y-%m-%dT%H%M")
+filename <- paste(timestamp, 'backup.csv', sep = '_')
+backup_dir <- file.path(here::here('output', 'backup'))
+dir.create(backup_dir, recursive = TRUE) # mkdir -p (warns if it already exists):
+
+# Google Drive implementation
+lims_key <- drive_find('^Google LIMS$', team_drive = 'LIMS')$id
+drive_download(as_id(lims_key), path = file.path(backup_dir, filename), overwrite = TRUE)
+
+# Import downloaded spreadsheet (sheet #1) as a tibble
+samples_gs <- read_csv(file.path(backup_dir, filename))
 
 # Import sample information and clean up spreadsheet. 
 # * remove empty cells
@@ -47,7 +58,6 @@ samples_gs <- gs_key('1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs')
 # * avoid NAs for empty result cells
 # * ignore control runs
 samples <- samples_gs %>%
-  gs_read(ws='Sheet1', verbose=FALSE) %>%
   clean_names() %>%
   remove_empty(c('rows', 'cols')) %>%
   mutate(subject_id = gsub(' ', '.', subject_id)) %>%
