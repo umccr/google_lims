@@ -1,5 +1,5 @@
 ---
-title: "UMCCR bcbio single patient config"
+title: "UMCCR bcbio WTS batch config"
 author: "Oliver Hofmann"
 date: "`r Sys.Date()`"
 output:
@@ -12,15 +12,10 @@ output:
 
 ```{r custom, echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
-library(scales)
-library(gridExtra)
-library(gtools)
-library(RColorBrewer)
 library(knitr)
 library(tidyr)
 library(rmarkdown)
 library(dplyr)
-library(DT)
 library(readr)
 library(forcats)
 library(stringr)
@@ -33,18 +28,20 @@ library(purrr)
 
 ## Introduction
 
-Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in. This version differs from the `bcbioSetup.Rmd` in that it is meant for _single_ patient samples only, i.e., samples are only batched for individual patients not across a whole project.
+Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in. This version differs from the `bcbioSetup_Single.Rmd` in that it is meant for cohorts / groups of WTS samples only, i.e., samples where we only have tumor information.
 
 ### 1. Setting up project information
 
-This currently requires specifying both project name and the type of sequencing data (`WGS`, `WTS`, `10X-WGS`, etc.) and will pull out all files of that type and project which do not have results associated with them yet. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID. The exact names can be copied from the `Project` and `Type` columns of the [Google-LIMS sheet](https://docs.google.com/spreadsheets/u/1/d/1aaTvXrZSdA1ekiLEpW60OeNq2V7D_oEMBzTgC-uDJAM/edit#gid=0). The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
+This currently requires specifying the project name and will pull out all files of that type and project which do not have results associated with them yet. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID. The exact names can be copied from the `Project` column of the [Google-LIMS sheet](https://docs.google.com/spreadsheets/u/1/d/1aaTvXrZSdA1ekiLEpW60OeNq2V7D_oEMBzTgC-uDJAM/edit#gid=0). The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
 
-An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects. Long term, the idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
+An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added. This is useful when re-processing samples for research projects. Long term, the idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
 ```{r project, eval=FALSE}
 PROJECT <- 'Tothill-A5'
-TYPE <- 'WTS'
 SECONDARY <- ''
+
+# Do not change
+TYPE <- 'WTS'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -53,7 +50,7 @@ This step generates a data frame from the Google spreadsheet, unifying variable 
 
 ```{r importData, message=FALSE, eval=FALSE}
 # Register UMCCR spreadsheet. Use cached authentication
-gs_auth(token = "./googlesheets_token_umccr.rds") # plain gs_auth() writes .httr-oauth to workdir, then all is good
+gs_auth(token = "./googlesheets_token_umccr.rds")
 
 # Create a backup copy each time we access the sample info
 tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
