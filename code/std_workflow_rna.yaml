@@ -7,10 +7,12 @@ details:
       trim_reads: false
 
       fusion_caller: [pizzly, oncofuse]
-#      variantcaller: [gatk-haplotype]
 
-      tools_on: [gatk4]
+      tools_on: [bcbiornaseq]
       tools_off: [gemini]
-
+    metadata:
+      bcbiornaseq:
+        organism: homo sapiens
+        interesting_groups: [genotype]
 upload:
   dir: ../final

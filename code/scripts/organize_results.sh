@@ -19,13 +19,14 @@ do
       mkdir -p sync/$TIMESTAMP/$PATIENT
 
       # Config, final directory and umccrise results only
-      ln -sn $RUNDIR/umccrised sync/$TIMESTAMP/$PATIENT/
-      ln -sn $RUNDIR/config sync/$TIMESTAMP/$PATIENT/
-      ln -sn $RUNDIR/final sync/$TIMESTAMP/$PATIENT/
+      # Leave a copy of the config behind in case of reruns
+      cp -al $RUNDIR/umccrised sync/$TIMESTAMP/$PATIENT/
+      cp -al $RUNDIR/config sync/$TIMESTAMP/$PATIENT/
+      cp -al $RUNDIR/final sync/$TIMESTAMP/$PATIENT/
 
       # Extra copy to make sync to desktops easier: just the reports
       mkdir -p reports/$PATIENT
-      ln -sn $RUNDIR/umccrised reports/$PATIENT/
+      cp -al $PWD/sync/$TIMESTAMP/$PATIENT/umccrised reports/$PATIENT/ # was ln -sn
 
       echo "  Ready for sync"
     else

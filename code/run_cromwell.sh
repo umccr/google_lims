@@ -2,7 +2,7 @@
 #PBS -P gx8
 #PBS -q normalsp
 #PBS -l walltime=96:00:00
-#PBS -l mem=8GB
+#PBS -l mem=4GB
 #PBS -l ncpus=1
 #PBS -l software=bcbio
 #PBS -l wd

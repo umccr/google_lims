@@ -19,13 +19,13 @@ do
       mkdir -p sync-cromwell/$TIMESTAMP/$PATIENT
 
       # Config, final directory and umccrise results only
-      ln -sn $RUNDIR/umccrised-cromwell sync-cromwell/$TIMESTAMP/$PATIENT/
-      ln -sn $RUNDIR/config sync-cromwell/$TIMESTAMP/$PATIENT/
-      ln -sn $RUNDIR/final-cromwell sync-cromwell/$TIMESTAMP/$PATIENT/
+      mv $RUNDIR/umccrised-cromwell sync-cromwell/$TIMESTAMP/$PATIENT/
+      cp -r $RUNDIR/config sync-cromwell/$TIMESTAMP/$PATIENT/
+      mv $RUNDIR/final-cromwell sync-cromwell/$TIMESTAMP/$PATIENT/
 
       # Extra copy to make sync to desktops easier: just the reports
       mkdir -p reports-cromwell/$PATIENT
-      ln -sn $RUNDIR/umccrised-cromwell reports-cromwell/$PATIENT/
+      ln -sn $PWD/sync-cromwell/$TIMESTAMP/$PATIENT/umccrised-cromwell reports-cromwell/$PATIENT/
 
       echo "  Ready for sync"
     else
