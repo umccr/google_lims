@@ -11,11 +11,6 @@ output:
 ---
 
 ```{r custom, echo=FALSE, message=FALSE, warning=FALSE}
-library(ggplot2)
-library(scales)
-library(gridExtra)
-library(gtools)
-library(RColorBrewer)
 library(knitr)
 library(tidyr)
 library(rmarkdown)
@@ -41,8 +36,8 @@ This currently requires specifying both project name and the type of sequencing 
 
 An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects. Long term, the idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
-```{r project, eval=FALSE}
-PROJECT <- 'Research-APGI-Garvan'
+```{r project}
+PROJECT <- 'Avner'
 TYPE <- 'WGS'
 SECONDARY <- ''
 ```
@@ -51,7 +46,7 @@ SECONDARY <- ''
 
 This step generates a data frame from the Google spreadsheet, unifying variable names and simplifying subject IDs for bcbio along the way. It replaces empty `results` cells (which indicate samples that still need processing) with a `-` to distinguish from true NAs and gets rid of whitespace in subject identifiers (although ideally there should not be any empty cells in the sheet in the first place). Otherwise standard data cleanup with `janitor`. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.
 
-```{r importData, message=FALSE, eval=FALSE}
+```{r importData, message=FALSE}
 # Register UMCCR spreadsheet. Use cached authentication
 gs_auth(token = "./googlesheets_token_umccr.rds") # plain gs_auth() writes .httr-oauth to workdir, then all is good
 
@@ -87,7 +82,7 @@ samples <- samples %>%
 
 Find all samples that a) still need to be processed, and b) for which we have both tumor and normal sample ready to go. 
 
-```{r subsetSamples, eval=FALSE}
+```{r subsetSamples}
 # Keep rows matching project and type requested; extract path to FASTQ
 # and generate new file name for these
 bcbio <- samples %>%
@@ -117,7 +112,7 @@ template <- bcbio %>%
 
 Assigning patient/family identifiers for Peddy, assigning batches based on the subject id, and pairing tumor/normals as needed. Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using `bcbio_prepare_samples.py`. Finally, remove samples for which we do not have a matched normal.
 
-```{r assignBatches, eval=FALSE}
+```{r assignBatches}
 # Handle cases where a normal matches more than one tumor sample.
 # Courtesy of [Peter Diakumis](https://github.com/pdiakumis)
 get_new_batch <- function(batch, phenotype) {
@@ -258,7 +253,7 @@ for (subject in complete_subjects) {
 In some cases we only need to distribute FASTQs. This will generate the link information to gather all relevant files in one place.
 
 
-```{r shareData}
+```{r shareData, eval=FALSE}
 bcbio_subset <- bcbio %>%
   filter(row_id %in% template$row_id)
 
