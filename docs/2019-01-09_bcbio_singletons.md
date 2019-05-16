@@ -50,6 +50,8 @@ After bcbio finishes the results are post-processed with `umccrise` which follow
 
 At the end of the run organise data into one place via `organize_results.sh`; reports for Trello end up in `reports`, the data for S3 in `sync`. Start an interactive job (`qsub -I -P gx8 -q copyq -l walltime=12:00:00,ncpus=1,wd,mem=32G,jobfs=100GB`), authenticate (`ssoaws`), assume the `fastq-uploader` role and run:
 
-`aws s3 cp --recursive --dryrun . s3://umccr-primary-data-prod/PROJECT/`
+`aws s3 sync --no-progress --dryrun . s3://umccr-primary-data-prod/PROJECT/`
 
 ... to upload all relevant data to the S3 results bucket.
+
+
