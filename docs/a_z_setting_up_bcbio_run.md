@@ -70,13 +70,22 @@ The output can be monitored with:
 
 `watch -d -n 300 'find 2019*/ -maxdepth 4 -name bcbio-nextgen-debug.log -path "*/log/*" -and -not -path "*/data/*" -and -not -path "*/bcbiotx/*" 2>/dev/null | xargs tail -n 2'`
 
-After bcbio finishes the results are post-processed with `umccrise` which follows the same configuration approach with the `config_umccrise.sh` script. Copy it to the project directory, change PROJECTNAME and run it, then follow the progress with:
+After bcbio finishes the results are post-processed with `umccrise` which follows the same configuration approach with the `config_umccrise.sh` script. Copy it to the project directory:
+
+`cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio.sh .`
+
+change PROJECTNAME and run it, then follow the progress with:
 
 `watch -d -n 300 'find 2019*/ -maxdepth 5 -name *snakemake*.log -path "*/umccrised/*" 2>/dev/null | xargs tail -n 2'`
 
 ## Organise results & upload to S3
 
-At the end of the run organise data into one place via `organize_results.sh`; reports for Trello end up in `reports`, the data for S3 in `sync`. Start an interactive job (`qsub -I -P gx8 -q copyq -l walltime=12:00:00,ncpus=1,wd,mem=32G,jobfs=100GB`), authenticate (`ssoaws`), assume the `fastq-uploader` role and run:
+At the end of the run organise data into one place via `organize_results.sh`:
+
+`cp /g/data3/gx8/projects/std_workflow/scripts/organize_results.sh .`
+
+Reports for Trello end up in `reports`, the data for S3 in `sync`. 
+Start an interactive job (`qsub -I -P gx8 -q copyq -l walltime=12:00:00,ncpus=1,wd,mem=32G,jobfs=100GB`), authenticate (`ssoaws`), assume the `fastq-uploader` role and run:
 
 `aws s3 sync --no-progress --dryrun . s3://umccr-primary-data-prod/PROJECT/`
 
