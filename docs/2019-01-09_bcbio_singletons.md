@@ -14,11 +14,11 @@ On Spartan, the `umccr` user executes three steps:
 
 This translates to:
 
-`find /data/cephfs/punim0010/data/Transfer/raijin/ -name *files.sh* -execdir sh {} \;`
+`find /data/cephfs/punim0010/data/Transfer/raijin_hofmann/ -name *files.sh* -execdir sh {} \;`
 
-`rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/ omh563@r-dm.nci.org.au:/g/data3/gx8/projects/PROJECTDIR`
+`rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin_hofmann/ omh563@r-dm.nci.org.au:/g/data3/gx8/projects/PROJECTDIR`
 
-`find /data/cephfs/punim0010/data/Transfer/raijin/* -type d -empty -delete`
+`find /data/cephfs/punim0010/data/Transfer/raijin_hofmann/* -type d -empty -delete`
 
 ## NCI automation
 

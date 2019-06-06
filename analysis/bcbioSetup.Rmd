@@ -25,9 +25,10 @@ library(readr)
 library(forcats)
 library(stringr)
 library(janitor)
-library(googlesheets)
+library(googledrive)
 library(here)
 library(skimr)
+library(purrr)
 ```
 
 ## Introduction
@@ -48,9 +49,9 @@ The Googlesheets framework requires authentication with oAuth. This can be done 
 An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects.
 
 ```{r project, eval=FALSE}
-PROJECT <- 'Avner'
+PROJECT <- ''
 TYPE <- 'WGS'
-SECONDARY <- ''
+SECONDARY <- 'Cori'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -59,8 +60,7 @@ This step generates a data frame from the Google spreadsheet, unifying variable 
 
 ```{r importData, message=FALSE, eval=FALSE}
 # Register UMCCR spreadsheet. Use cached authentication
-gs_auth(token = "./googlesheets_token.rds") # plain gs_auth() writes .httr-oauth to workdir, then all is good
-samples_gs <- gs_key('1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs')
+gs_auth(token = "./googlesheets_token_umccr.rds") # plain gs_auth() writes .httr-oauth to workdir, then all is good
 
 # Create a backup copy each time we access the sample info
 tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
@@ -69,17 +69,25 @@ filename <- paste(timestamp, 'backup.csv', sep = '_')
 backup_dir <- file.path(here::here('output', 'backup'))
 dir.create(backup_dir, recursive = TRUE) # mkdir -p (warns if it already exists):
 
-samples_gs %>%
-  gs_download(ws = 'Sheet1', to = file.path(backup_dir, filename))
+# Google Drive implementation
+lims_key <- drive_find('^Google LIMS$', team_drive = 'LIMS')$id
+drive_download(as_id(lims_key), path = file.path(backup_dir, filename), overwrite = TRUE)
+
+# Import downloaded spreadsheet (sheet #1) as a tibble
+samples_gs <- read_csv(file.path(backup_dir, filename))
 
 # Tweak for analysis
 samples <- samples_gs %>%
-  gs_read(ws = 'Sheet1') %>%
   clean_names() %>%
   mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis)) %>%
   remove_empty(c('rows', 'cols')) %>%
   mutate(subject_id = gsub(' ', '.', subject_id)) %>%
-  mutate(results = ifelse(is.na(results), '-', results)) 
+  mutate(results = ifelse(is.na(results), '-', results)) %>%
+  select(-matches('number_fastqs')) # Drop FASTQ count introduced with new version for now
+
+# Add unique id to each row
+samples <- samples %>%
+  mutate(row_id = rownames(samples))
 ```
 
 
@@ -295,41 +303,13 @@ Positive controls use a slightly different template (and only require germline c
 validations <- c('giab-NA12878', 'giab-NA24385', 'giab-NA24631')
 names(validations) <- c('NA12878', 'NA24385', 'NA24631')
 
-# rsync command as before
-bcbio <- samples %>%
-  filter(project == 'Positive-control' & 
-           type == 'WGS' &
-           results == '-') %>%
-  mutate(targetname = paste(illumina_id, sample_name, sep='_')) %>%
-  select(fastq, sample_id, sample_name, targetname, subject_id, phenotype)
-
-# Create a file list ready for linking
-read1 <- bcbio %>%
-  mutate(from = paste(fastq, '/', sample_id, '_R1_001.fastq.gz', sep='')) %>%
-  mutate(to = paste(targetname, '_R1_001.fastq.gz', sep='')) %>%
-  select(from, to)
-
-read2 <- bcbio %>%
-  mutate(from = paste(fastq, '/', sample_id, '_R2_001.fastq.gz', sep='')) %>%
-  mutate(to = paste(targetname, '_R2_001.fastq.gz', sep='')) %>%
-  select(from, to)
-
-link <- rbind(read1, read2)
-
-# Write the file list for linking
-write.table(paste('ln', link$from, link$to, sep=' '),
-            file=here::here('output', paste(timestamp, '_posControl_files.txt', sep='')),
-            col.names=FALSE,
-            row.names=FALSE,
-            quote=FALSE)
-
 # As before, generate bcbio CSV. Simpler process here.
 template <- bcbio %>% 
   mutate(family_id=subject_id) %>%
   mutate(individual_id=subject_id) %>%
   select(samplename=targetname, 
          batch=subject_id,
-         phenotype, family_id, individual_id)
+         family_id, individual_id)
 
 # Add timestamp to description, batch
 template <- template %>%
@@ -338,8 +318,7 @@ template <- template %>%
            remove=FALSE) %>%
   mutate(description=paste(timestamp, machine, run, batch, sep='-')) %>%
   mutate(batch=paste('batch', timestamp, machine, run, batch, sep='-')) %>%
-    select(samplename, description, batch, phenotype,
-         family_id, individual_id)
+    select(samplename, description, batch, family_id, individual_id)
 
 # Add the validation information
 template <- template %>% 
@@ -348,13 +327,14 @@ template <- template %>%
   mutate(validate_regions=paste(validations[individual_id], 
                                 'truth_regions.bed', sep='/')) %>%
   mutate(validate_batch=individual_id)
-  
+
 write.table(template,
-            file=here::here('output', paste(timestamp, '_posControl.csv', sep='')),
-            row.names=FALSE,
-            col.names=TRUE,
-            quote=FALSE,
-            sep=',')
+            file = here::here('output', paste0(timestamp, '_', PROJECT, '_', TYPE, '.csv')),
+            row.names = FALSE,
+            col.names = TRUE,
+            quote = FALSE,
+            sep = ',')
+
 ```
 
 ### WGS Negative Controls
@@ -401,8 +381,7 @@ template <- bcbio %>%
   mutate(individual_id=subject_id) %>%
   select(samplename=targetname, 
          description=sample_name,
-         batch=subject_id,
-         phenotype, family_id, individual_id)
+         genotype=run)
 
 # Since we are merging add the R1/R2 readpair information. Could probably 
 # be more elegant...

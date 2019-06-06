@@ -41,6 +41,7 @@ details:
       # Extras
       tools_on: [break-point-inspector]
       tools_off: [contamination]
+#      archive: [cram-lossless]
 upload:
   dir: ../final
 resources:

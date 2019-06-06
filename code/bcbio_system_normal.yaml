@@ -9,12 +9,12 @@ local:
 # Define resources to be used for individual programs on multicore machines.
 resources:
   machine:
-    cores: 28
-    memory: 128
+    cores: 16
+    memory: 64
   # default options, used if other items below are not present
   default:
-    memory: 4G
-    cores: 28
+    memory: 3G
+    cores: 16
     jvm_opts: ["-Xms750m", "-Xmx3000m"]
   star:
     memory: 6G

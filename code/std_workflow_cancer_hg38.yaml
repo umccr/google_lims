@@ -31,8 +31,8 @@ details:
       min_allele_fraction: 1
 
       # Exclude difficult regions
-      variant_regions: hg38_noalt.bed
-      exclude_regions: [polyx, altcontigs]
+      variant_regions: hg38_noalt_noBlacklist.bed # hg38_noalt.bed
+      exclude_regions: [altcontigs] # Removed polyx for now
 
       # Structural variation. No ensemble calling option here
       svcaller: [manta]
