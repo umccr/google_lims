@@ -5,7 +5,8 @@ details:
       aligner: star
       quality_format: standard
       trim_reads: false
-      fusion_caller: [pizzly] # oncofuse - not using oncofuse for now
+      fusion_caller: [pizzly]
       tools_off: [gemini]
 upload:
   dir: ../final
+
