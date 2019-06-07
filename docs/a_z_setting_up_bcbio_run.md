@@ -84,8 +84,12 @@ At the end of the run organise data into one place via `organize_results.sh`:
 
 `cp /g/data3/gx8/projects/std_workflow/scripts/organize_results.sh .`
 
+(Confirm the script is pointing at the correct directory).
 Reports for Trello end up in `reports`, the data for S3 in `sync`. 
-Start an interactive job (`qsub -I -P gx8 -q copyq -l walltime=12:00:00,ncpus=1,wd,mem=32G,jobfs=100GB`), authenticate (`ssoaws`), assume the `fastq-uploader` role and run:
+(Make sure you have followed the directions [in the wiki](https://github.com/umccr/wiki/blob/master/computing/cloud/aws.md)
+for setting up your AWS credentials).
+Start an interactive job (`qsub -I -P gx8 -q copyq -l walltime=12:00:00,ncpus=1,wd,mem=32G,jobfs=100GB`), authenticate (`ssoaws`).  You will need to assume the `fastq_data_uploader` role.  If you **do not** have access to this role, talk to Florian.
+Then run:
 
 `aws s3 sync --no-progress --dryrun . s3://umccr-primary-data-prod/PROJECT/`
 
