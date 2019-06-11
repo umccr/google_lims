@@ -16,7 +16,7 @@ Each of these workflows should result in two files: TIMESTAMP_PROJECT.csv and TI
 
 If this is for **testing**, follow these guidelines to run the samples on **Spartan**. Note that the versions of bcbio and umccrise may be out of date on Spartan and subsequently superseded (check with `umccrise --version` and `bcbio_nextgen.py -v`).
 
-`scp TIMESTAMP_PROJECT* yourUserName@spartan.hpc.unimelb.edu.au:/data/cephfs/punim0010/projects/PROJECTDIR`
+`scp -r TIMESTAMP_PROJECT* yourUserName@spartan.hpc.unimelb.edu.au:/data/cephfs/punim0010/projects/PROJECTDIR`
 
 `sh TIMESTAMP_PROJECT_files.txt`  
 `cp /data/cephfs/punim0010/projects/std_workflow/merge.sh .`  
@@ -40,7 +40,7 @@ Point `umccrise` at the `final` directory:
 
 ### 2b Raijin
 
-`scp TIMESTAMP_PROJECT* yourUserName@spartan.hpc.unimelb.edu.au:/data/cephfs/punim0010/data/Transfer/raijin/`
+`scp -r TIMESTAMP_PROJECT* yourUserName@spartan.hpc.unimelb.edu.au:/data/cephfs/punim0010/data/Transfer/raijin/`
 
 Log into Spartan, change to `umccr` user:
 
