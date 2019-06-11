@@ -8,11 +8,11 @@ Config files are created with [bcbioSetup_Single.Rmd](https://github.com/umccr/g
 
 On Spartan, the `umccr` user executes three steps:
 
-* executing the `ln` driver scripts that (hard)link FASTQs from `/data/cephfs/punim0010/data/Pipeline/prod/Fastq` to `/data/cephfs/punim0010/data/Transfer/raijin/`, renaming them as necessary
+* executing the "staging" driver scripts that copy FASTQs from `s3://umccr-fastq-data-prod/` to `/data/cephfs/punim0010/data/Transfer/raijin_hofmann/`, renaming them as necessary
 * sync the resulting folder structure to a Raijin project folder
 * clean up and remove the linked data
 
-This translates to:
+It is recommended to generate your own private staging folder even when using the `umccr` user to avoid overwriting concurrent transfers from other group members. The process translates to:
 
 `find /data/cephfs/punim0010/data/Transfer/raijin_hofmann/ -name *files.sh* -execdir sh {} \;`
 
