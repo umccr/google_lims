@@ -40,7 +40,9 @@ Point `umccrise` at the `final` directory:
 
 ### 2b Raijin
 
-`scp -r TIMESTAMP_PROJECT* yourUserName@spartan.hpc.unimelb.edu.au:/data/cephfs/punim0010/data/Transfer/raijin/`
+Copy the folder created after running [google_lims_script](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_WTS.Rmd) to spartan.
+
+`scp -r TIMESTAMP_PROJECT/ yourUserName@spartan.hpc.unimelb.edu.au:/data/cephfs/punim0010/data/Transfer/raijin/`
 
 Log into Spartan, change to `umccr` user:
 
