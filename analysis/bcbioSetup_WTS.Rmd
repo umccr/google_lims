@@ -171,7 +171,7 @@ summary_R2 <- template %>% mutate(samplename = paste0(samplename, '_R2_001.fastq
 summary <- rbind(summary_R1, summary_R2)
 
 write.table(summary,
-            file = here::here('output', project_name, 'data', paste(project_name, '.csv', sep='_')),
+            file = here::here('output', project_name, 'data', paste(project_name, '.csv', sep='')),
             row.names = FALSE,
             col.names = TRUE,
             quote = FALSE,
