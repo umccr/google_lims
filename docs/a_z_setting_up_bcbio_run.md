@@ -42,21 +42,21 @@ Point `umccrise` at the `final` directory:
 
 Copy the folder created after running [google_lims_script](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_WTS.Rmd) to spartan.
 
-`scp -r TIMESTAMP_PROJECT/ yourUserName@spartan.hpc.unimelb.edu.au:/data/cephfs/punim0010/data/Transfer/raijin/`
+`scp -r TIMESTAMP_PROJECT/ yourUserName@spartan.hpc.unimelb.edu.au:/data/cephfs/punim0010/data/Transfer/raijin/`  
 
 Log into Spartan, change to `umccr` user:
 
-`sudo -i -u umccr`  
-`cd /data/cephfs/punim0010/data/Transfer/raijin/`  
-`mkdir TIMESTAMP_PROJECT; cd TIMESTAMP_PROJECT; mkdir data; cd data; mv ../../TIMESTAMP_PROJECT*; sh TIMESTAMP_PROJECT.sh`  
+`sudo -i -u umccr`
+`cd /data/cephfs/punim0010/data/Transfer/raijin/`
+`mkdir TIMESTAMP_PROJECT; cd TIMESTAMP_PROJECT; mkdir data; cd data; mv ../../TIMESTAMP_PROJECT*; sh TIMESTAMP_PROJECT.sh`
 
-(Log into Raijin, create a project directory, then:)  
+(Log into Spartan to copy `TIMESTAMP_PROJECT/` to Raijin)  
 
 `rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/TIMESTAMP_PROJECT/ yourUserName@r-dm.nci.org.au:/g/data3/gx8/projects/TIMESTAMP_PROJECT`
 
 **Log into raijin.**
 
-Change into the project directory (/data/cephfs/punim0010/data/Transfer/raijin/TIMESTAMP_PROJECT/)
+Change into the new project directory created in the last step:
 
 `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio.sh .`
 
