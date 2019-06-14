@@ -8,7 +8,7 @@ If this is for single patients, follow the [bcbioSetup_Single Rmd](https://githu
 
 If this is for WTS, follow the [bcbioSetup_WTS](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_WTS.Rmd)
 
-Each of these workflows should result in two files: TIMESTAMP_PROJECT.csv and TIMESTAMP_PROJECT.sh file.
+Each of these workflows should result in two files: TIMESTAMP_PROJECT.csv and TIMESTAMP_PROJECT.sh file, per subject folder.
 
 ## 2. Running the samples
 
@@ -40,15 +40,17 @@ Point `umccrise` at the `final` directory:
 
 ### 2b Raijin
 
-Copy the folder created after running [google_lims_script](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_WTS.Rmd) to spartan.
+Copy the folders created to spartan.
 
 `scp -r TIMESTAMP_PROJECT/ yourUserName@spartan.hpc.unimelb.edu.au:/data/cephfs/punim0010/data/Transfer/raijin/`  
+
+(Note it may be preferable to upload the folders into a new directory created within that location, if multiple users are using the directory simultaneously).
 
 Log into Spartan, change to `umccr` user:
 
 `sudo -i -u umccr`
 `cd /data/cephfs/punim0010/data/Transfer/raijin/`
-`mkdir TIMESTAMP_PROJECT; cd TIMESTAMP_PROJECT; mkdir data; cd data; mv ../../TIMESTAMP_PROJECT*; sh TIMESTAMP_PROJECT.sh`
+`find /data/cephfs/punim0010/data/Transfer/raijin/ -name *files.sh* -execdir sh {} \;`
 
 (Log into Spartan to copy `TIMESTAMP_PROJECT/` to Raijin)  
 
@@ -60,9 +62,11 @@ Change into the new project directory created in the last step:
 
 `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio.sh .`
 
+For WTS samples, `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio_wts.sh .`
+
 Replace the `PROJECTNAME` placeholder in this file with the current project.
 
-`sh config_bcbio.sh`
+`sh config_bcbio.sh` or for WTS samples `sh config_bcbio_wts.sh`
 
 This will set up the folder structure, merge input files (in the case of top-ups) and create run scripts which can be submitted with:
 
@@ -81,6 +85,8 @@ change PROJECTNAME and run it, then follow the progress with:
 `watch -d -n 300 'find 2019*/ -maxdepth 5 -name *snakemake*.log -path "*/umccrised/*" 2>/dev/null | xargs tail -n 2'`
 
 ## Organise results & upload to S3
+
+Note: This script is for organizing WGS sample results.
 
 At the end of the run organise data into one place via `organize_results.sh`:
 

@@ -8,7 +8,7 @@
 #PBS -l wd
 export PATH=/g/data/gx8/local/production/bin:/g/data3/gx8/local/production/bcbio/anaconda/bin:/opt/bin:/bin:/usr/bin:/opt/pbs/default/bin
 
-# Merge samples and create new CSV summary
+# Merge samples and create new CSV summary - change "-n CORES" value to fit the analysis 
 bcbio_prepare_samples.py --out merged --csv TEMPLATE.csv -n CORES -q express -s pbspro -t ipython -r 'walltime=4:00:00;noselect' --retries 1 --timeout 900
 
 # Generate the bcbio config from a standard workflow template
