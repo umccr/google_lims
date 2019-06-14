@@ -62,9 +62,11 @@ Change into the new project directory created in the last step:
 
 `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio.sh .`
 
+For WTS samples, `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio_wts.sh .`
+
 Replace the `PROJECTNAME` placeholder in this file with the current project.
 
-`sh config_bcbio.sh`
+`sh config_bcbio.sh` or for WTS samples `sh config_bcbio_wts.sh`
 
 This will set up the folder structure, merge input files (in the case of top-ups) and create run scripts which can be submitted with:
 
@@ -83,6 +85,8 @@ change PROJECTNAME and run it, then follow the progress with:
 `watch -d -n 300 'find 2019*/ -maxdepth 5 -name *snakemake*.log -path "*/umccrised/*" 2>/dev/null | xargs tail -n 2'`
 
 ## Organise results & upload to S3
+
+Note: This script is for organizing WGS sample results.
 
 At the end of the run organise data into one place via `organize_results.sh`:
 
