@@ -14,11 +14,15 @@ On Spartan, the `umccr` user executes three steps:
 
 It is recommended to generate your own private staging folder even when using the `umccr` user to avoid overwriting concurrent transfers from other group members. The process translates to:
 
+`conda activate aws`
+
 `find /data/cephfs/punim0010/data/Transfer/raijin_hofmann/ -name *files.sh* -execdir sh {} \;`
 
 `rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin_hofmann/ omh563@r-dm.nci.org.au:/g/data3/gx8/projects/PROJECTDIR`
 
 `find /data/cephfs/punim0010/data/Transfer/raijin_hofmann/* -type d -empty -delete`
+
+**Warning:** _If_ top-up samples do not have a `_topup` suffix in their FASTQ filesnames _and_ they were run in the same sample slot (i.e., they have the same `_Sxx` suffix) they will overwrite each other when being retrieved from S3. 
 
 ## NCI automation
 

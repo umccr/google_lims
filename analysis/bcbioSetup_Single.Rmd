@@ -37,9 +37,9 @@ This currently requires specifying both project name and the type of sequencing 
 An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects. Long term, the idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
 ```{r project}
-PROJECT <- 'Blomberry-Diagnostic'
+PROJECT <- 'Avner'
 TYPE <- 'WGS'
-SECONDARY <- 'blomberry'
+SECONDARY <- ''
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -48,7 +48,7 @@ This step generates a data frame from the Google spreadsheet, unifying variable 
 
 ```{r importData, message=FALSE}
 # Register UMCCR spreadsheet. Use cached authentication
-gs_auth(token = "./googlesheets_token_umccr.rds") # plain gs_auth() writes .httr-oauth to workdir, then all is good
+#gs_auth(token = "./googlesheets_token_umccr.rds") # plain gs_auth() writes .httr-oauth to workdir, then all is good
 
 # Create a backup copy each time we access the sample info
 tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
@@ -186,7 +186,6 @@ Generate a file with pointers to the sample FASTQs and their preferred new names
 
 ```{r perBatch}
 write_subject <- function(complete, summary) {
-  
   # Create a unique project name
   subject_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_', complete)
 
@@ -222,12 +221,32 @@ write_subject <- function(complete, summary) {
   
   link <- rbind(read1, read2)
 
-  # Write the file list for linking on Spartan
-  write.table(paste('ln', link$from, link$to, sep = ' '),
+  # Adapt to S3 syntax which doesn't include wildcards; split path and filename for include/exclude statement
+  link <- link %>%
+    mutate(from_path = dirname(link$from)) %>%
+    mutate(from_file = basename(link$from))
+
+  # Write the file list for staging files. First step, `aws cp` 
+  write.table(paste('aws --profile spartan_s3_readonly s3 cp', 
+                    link$from_path,
+                    '.',
+                    '--recursive --exclude "*" --include',
+                    paste('"', link$from_file, '"', sep = '')),
               file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
               col.names = FALSE,
               row.names = FALSE,
               quote = FALSE)
+
+  # Second step, rename
+  write.table(paste('mv', 
+                    link$from_file,
+                    link$to,
+                    sep = ' '),
+              file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
+              col.names = FALSE,
+              row.names = FALSE,
+              quote = FALSE,
+              append = TRUE)
 
   # Write CSV for bcbio
   summary_R1 <- summary %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
