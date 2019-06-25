@@ -37,7 +37,7 @@ This currently requires specifying both project name and the type of sequencing 
 An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects. Long term, the idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
 ```{r project}
-PROJECT <- 'Avner'
+PROJECT <- 'Research-Buchanan'
 TYPE <- 'WGS'
 SECONDARY <- ''
 ```
