@@ -78,7 +78,7 @@ The output can be monitored with:
 
 After bcbio finishes the results are post-processed with `umccrise` which follows the same configuration approach with the `config_umccrise.sh` script. Copy it to the project directory:
 
-`cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio.sh .`
+`cp /g/data3/gx8/projects/std_workflow/scripts/config_umccrise.sh .`
 
 change PROJECTNAME and run it, then follow the progress with:
 
