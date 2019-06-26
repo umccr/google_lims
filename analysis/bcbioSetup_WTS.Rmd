@@ -37,8 +37,8 @@ This currently requires specifying the project name and will pull out all files 
 An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added. This is useful when re-processing samples for research projects. Long term, the idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
 ```{r project, eval=FALSE}
-PROJECT <- 'Patient'
-SECONDARY <- 'rna'
+PROJECT <- 'Avner'
+SECONDARY <- ''
 
 # Do not change
 TYPE <- 'WTS'
@@ -49,9 +49,6 @@ TYPE <- 'WTS'
 This step generates a data frame from the Google spreadsheet, unifying variable names and simplifying subject IDs for bcbio along the way. It replaces empty `results` cells (which indicate samples that still need processing) with a `-` to distinguish from true NAs and gets rid of whitespace in subject identifiers (although ideally there should not be any empty cells in the sheet in the first place). Otherwise standard data cleanup with `janitor`. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.
 
 ```{r importData, message=FALSE, eval=FALSE}
-# Register UMCCR spreadsheet. Use cached authentication
-gs_auth(token = "./googlesheets_token_umccr.rds")
-
 # Create a backup copy each time we access the sample info
 tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
 timestamp <- strftime(tm , "%Y-%m-%dT%H%M")
@@ -94,35 +91,17 @@ bcbio <- samples %>%
   select(illumina_id, fastq, run, project, sample_id, sample_name, subject_id, 
          phenotype, row_id) %>%
   mutate(runname = illumina_id) %>%
-  select(-illumina_id) %>%
-  mutate(targetname = paste(runname, sample_name, sep = '_')) %>%
+  select(-illumina_id)
+
+# Starting with run 108 we switched SampleID and SampleName. For naming conventions 
+# sticking to the old format when deciding what to call the FASTQs
+bcbio <- bcbio %>%
+  mutate(targetname = case_when(run < 108 ~ paste(runname, sample_name, sep = '_'),
+                                run >= 108 ~ paste(runname, sample_id, sep= '_'))) %>%
   mutate(targetname = str_replace_all(targetname, '-', '_'))
-
-# Use the same information to generate the bcbio CSV file
-# Keep the required columns and add information for peddy
-template <- bcbio %>% 
-  mutate(family_id = subject_id) %>%
-  mutate(individual_id = subject_id) %>%
-  select(samplename = targetname,
-         description = sample_name,
-         batch = subject_id,
-         phenotype, family_id, individual_id, run, row_id)
 ```
 
-### 4. Merge topup samples
-
-Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using `bcbio_prepare_samples.py`.
-
-```{r mergeTopups, eval=FALSE}
-# Remove top-up samples (samples with the exact same description)
-# before calculating batch assignments. We'll add them back in later.
-# This assumes topups are consistently flagged with a `_topup`
-# suffix
-template <- template %>%
-  mutate(description = str_replace(description, '_topup', ''))
-```
-
-### 5. Generating bcbio csv templates
+### 4. Generating bcbio csv templates
 
 This step is relatively easy for WTS samples since we do not have to worry about batches, tumor/normal etc. Generate a file with pointers to the sample FASTQs and their preferred new names as well as a sample descriptor (`.csv`) for bcbio to use as part of it's templating approach. The resulting directory structure can be copied to Spartan, e.g.:
 
@@ -151,20 +130,43 @@ read2 <- bcbio %>%
   
 link <- rbind(read1, read2)
 
-# Write the file list for linking on Spartan
-write.table(paste('ln', link$from, link$to, sep = ' '),
-            file = here::here('output', project_name, 'data', paste(project_name, 'files.sh', sep='_')),
+# Adapt to S3 syntax which doesn't include wildcards; split path and filename for include/exclude statement
+link <- link %>%
+  mutate(from_path = dirname(link$from)) %>%
+  mutate(from_file = basename(link$from))
+
+# Write the file list for staging files. First step, `aws cp` 
+write.table(paste('aws --profile spartan_s3_readonly s3 cp', 
+                  link$from_path,
+                  '.',
+                  '--recursive --exclude "*" --include',
+                  paste('"', link$from_file, '"', sep = '')),
+            file = here::here('output', project_name, 'data', paste0(project_name, '_files.sh')),
             col.names = FALSE,
             row.names = FALSE,
             quote = FALSE)
 
+# Second step, rename
+write.table(paste('mv', 
+                  link$from_file,
+                  link$to,
+                  sep = ' '),
+            file = here::here('output', project_name, 'data', paste0(project_name, '_files.sh')),
+            col.names = FALSE,
+            row.names = FALSE,
+            quote = FALSE,
+            append = TRUE)
+
+# Generating the bcbio YAML template. Again, after run 107 use the SampleName instead
+# of SampleID to label things
 template <- bcbio %>% 
-  mutate(family_id=subject_id) %>%
-  mutate(individual_id=subject_id) %>%
+  mutate(description=case_when(run < 108 ~ sample_name,
+                               run >= 108 ~ sample_id)) %>%
+  select(samplename=targetname,
+         description,
+         run) %>%
   mutate(run=paste('run', run, sep='_')) %>%
-  select(samplename=targetname, 
-         description=sample_name,
-         run=run) 
+  mutate(description = str_replace(description, '_topup', ''))
 
 summary_R1 <- template %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
 summary_R2 <- template %>% mutate(samplename = paste0(samplename, '_R2_001.fastq.gz'))
@@ -178,7 +180,7 @@ write.table(summary,
             sep = ',')
 ```
 
-### 7. Sync data from Spartan to Raijin
+### 5. Sync data from Spartan to Raijin
 
 WGS/WTS runs are being processed at Raijin. Collect the required file in one place and rsync over with:
 
@@ -186,7 +188,7 @@ WGS/WTS runs are being processed at Raijin. Collect the required file in one pla
 > `rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/ omh563@r-dm.nci.org.au:/g/data3/gx8/projects/Hofmann_Workflow`
 > `find /data/cephfs/punim0010/data/Transfer/raijin/* -type d -empty -delete`
 
-### 8. Run projects on Raijin
+### 6. Run projects on Raijin
 
 Raijin now has a `config_bcbio.sh` script in `/g/data/gx8/projects/std_workflow`. For now, the target path is hardcoded into the script, so I recommend copying it over to where data was rsync'd over from Spartan and editing the path accordingly. In brief, `config_bcbio.sh` will:
 
