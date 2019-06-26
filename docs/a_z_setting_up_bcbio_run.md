@@ -103,3 +103,13 @@ Then run:
 
 ... to upload all relevant data to the S3 results bucket.
 
+Move the information from the reports folder to Trello, by copying this data locally and then uploading.
+
+`rsync -aP --include="*/" --include '*html' --exclude '*' --append-verify -L yourUserName@r-dm.nci.org.au:/g/data3/gx8/projects/PROJECT/reports/ .`
+
+(NOTE - Only Oliver can upload files larger than 10MB to Trello).
+
+- Update the S3 locations in the Google LIMs.
+
+- Wipe the project folders from Raijin.
+
