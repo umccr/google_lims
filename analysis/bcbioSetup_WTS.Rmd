@@ -28,7 +28,7 @@ library(purrr)
 
 ## Introduction
 
-Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in. This version differs from the `bcbioSetup_Single.Rmd` in that it is meant for cohorts / groups of WTS samples only, i.e., samples where we only have tumor information.
+Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/u/1/d/1aaTvXrZSdA1ekiLEpW60OeNq2V7D_oEMBzTgC-uDJAM/edit#gid=0), aka the dreadful LIMS stand-in. This version differs from the `bcbioSetup_Single.Rmd` in that it is meant for cohorts / groups of WTS samples only, i.e., samples where we only have tumor information. This means no batch assignment which simplifies the naming conventions. 
 
 ### 1. Setting up project information
 
@@ -162,11 +162,11 @@ write.table(paste('mv',
 template <- bcbio %>% 
   mutate(description=case_when(run < 108 ~ sample_name,
                                run >= 108 ~ sample_id)) %>%
+  mutate(run=paste('run', run, sep='_')) %>%
+  mutate(description = str_replace(description, '_topup', '')) %>%
   select(samplename=targetname,
          description,
          run) %>%
-  mutate(run=paste('run', run, sep='_')) %>%
-  mutate(description = str_replace(description, '_topup', ''))
 
 summary_R1 <- template %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
 summary_R2 <- template %>% mutate(samplename = paste0(samplename, '_R2_001.fastq.gz'))
