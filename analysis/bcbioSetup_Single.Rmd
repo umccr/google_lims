@@ -37,7 +37,7 @@ This currently requires specifying both project name and the type of sequencing 
 An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects. Long term, the idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
 ```{r project}
-PROJECT <- 'Research-Buchanan'
+PROJECT <- 'Patients'
 TYPE <- 'WGS'
 SECONDARY <- ''
 ```
@@ -47,9 +47,6 @@ SECONDARY <- ''
 This step generates a data frame from the Google spreadsheet, unifying variable names and simplifying subject IDs for bcbio along the way. It replaces empty `results` cells (which indicate samples that still need processing) with a `-` to distinguish from true NAs and gets rid of whitespace in subject identifiers (although ideally there should not be any empty cells in the sheet in the first place). Otherwise standard data cleanup with `janitor`. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.
 
 ```{r importData, message=FALSE}
-# Register UMCCR spreadsheet. Use cached authentication
-#gs_auth(token = "./googlesheets_token_umccr.rds") # plain gs_auth() writes .httr-oauth to workdir, then all is good
-
 # Create a backup copy each time we access the sample info
 tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
 timestamp <- strftime(tm , "%Y-%m-%dT%H%M")
@@ -92,19 +89,14 @@ bcbio <- samples %>%
   select(illumina_id, fastq, run, project, sample_id, sample_name, subject_id, 
          phenotype, row_id) %>%
   mutate(runname = illumina_id) %>%
-  select(-illumina_id) %>%
-  mutate(targetname = paste(runname, sample_name, sep = '_')) %>%
-  mutate(targetname = str_replace_all(targetname, '-', '_'))
+  select(-illumina_id)
 
-# Use the same information to generate the bcbio CSV file
-# Keep the required columns and add information for peddy
-template <- bcbio %>% 
-  mutate(family_id = subject_id) %>%
-  mutate(individual_id = subject_id) %>%
-  select(samplename = targetname,
-         description = sample_name,
-         batch = subject_id,
-         phenotype, family_id, individual_id, row_id)
+# Starting with run 108 we switched SampleID and SampleName. For naming conventions 
+# sticking to the old format when deciding what to call the FASTQs
+bcbio <- bcbio %>%
+  mutate(targetname = case_when(run < 108 ~ paste(runname, sample_name, sep = '_'),
+                                run >= 108 ~ paste(runname, sample_id, sep= '_'))) %>%
+  mutate(targetname = str_replace_all(targetname, '-', '_'))
 ```
 
 
@@ -133,12 +125,23 @@ get_new_batch <- function(batch, phenotype) {
   return(new_batch)
 }
 
-# Remove top-up samples (samples with the exact same description)
-# before calculating batch assignments. We'll add them back in later.
-# This assumes topups are consistently flagged with a `_topup`
-# suffix
-template <- template %>%
-  mutate(description = str_replace(description, '_topup', ''))
+
+# Generating the bcbio YAML template. Again, after run 107 use the SampleName instead
+# of SampleID to label things. Keep the required columns and add information for peddy
+#
+# Remove top-up samples (samples with the exact same description) before calculating
+# batch assignments. We'll add them back in later. This assumes topups are consistently
+# flagged with a `_topup` suffix
+template <- bcbio %>% 
+  mutate(description = case_when(run < 108 ~ sample_name,
+                               run >= 108 ~ sample_id)) %>%
+  mutate(description = str_replace(description, '_topup', '')) %>%
+  mutate(family_id = subject_id) %>%
+  mutate(individual_id = subject_id) %>%
+  select(samplename = targetname,
+         description,
+         batch = subject_id,
+         phenotype, family_id, individual_id, row_id)
 
 # Only keep one sample row for samples that _do_ have topups
 unique_samples <- template %>%
@@ -155,6 +158,7 @@ complete_subjects <- template %>%
   summarise(phenotype_count = n_distinct(phenotype)) %>%
   filter(phenotype_count >= 2) %>%
   select(individual_id)
+
 complete_subjects <- as.vector(complete_subjects$individual_id)
 
 # Create batch information
