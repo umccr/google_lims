@@ -37,9 +37,9 @@ This currently requires specifying both project name and the type of sequencing 
 An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects. Long term, the idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
 ```{r project}
-PROJECT <- 'Kolling-Research'
-TYPE <- 'WGS'
-SECONDARY <- 'share'
+PROJECT <- 'Accreditation_NRC'
+TYPE <- 'WES'
+SECONDARY <- 'NRC'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -103,6 +103,8 @@ bcbio <- bcbio %>%
 ### 4. Group samples
 
 Assigning patient/family identifiers for Peddy, assigning batches based on the subject id, and pairing tumor/normals as needed. Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using `bcbio_prepare_samples.py`. Finally, remove samples for which we do not have a matched normal.
+
+**Note:** This has _not_ been tested for topups where samples information has been captured both in the old _and_ new style (pre/post run 108). 
 
 ```{r assignBatches}
 # Handle cases where a normal matches more than one tumor sample.
@@ -176,6 +178,9 @@ template <- template %>%
          family_id = family_id.x,
          individual_id = individual_id.x,
          row_id) 
+
+# Useful when we need non-paired samples
+# complete_subjects <- unique(as.vector(template$individual_id))
 
 # Only retain samples that fulfill the 'complete batch' requirement
 template <- template %>%
@@ -278,63 +283,66 @@ for (subject in complete_subjects) {
 <!-- In some cases we only need to distribute FASTQs. This will generate the link information to gather all relevant files in one place. -->
 
 
-<!-- ```{r shareData, eval=FALSE} -->
-<!-- #bcbio_subset <- bcbio %>% -->
-<!-- #  filter(row_id %in% template$row_id) -->
-<!-- project_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_Distribute') -->
+```{r shareData, eval=FALSE}
+#bcbio_subset <- bcbio %>%
+#  filter(row_id %in% template$row_id)
+project_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_Distribute')
 
-<!-- read1 <- bcbio %>% -->
-<!--   mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R1_001.fastq.gz'), -->
-<!--                           run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'), -->
-<!--                           run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>% -->
-<!--   mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>% -->
-<!--   select(from, to) -->
+# Create a unique project name
+subject_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_Distribute')
 
-<!-- read2 <- bcbio %>% -->
-<!--   mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'), -->
-<!--                           run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'), -->
-<!--                           run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>% -->
-<!--   mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>% -->
-<!--   select(from, to) -->
+read1 <- bcbio %>%
+  mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R1_001.fastq.gz'),
+                          run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
+                          run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
+  mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
+  select(from, to)
 
-<!-- link <- rbind(read1, read2) -->
+read2 <- bcbio %>%
+  mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
+                          run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
+                          run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
+  mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
+  select(from, to)
 
-<!-- # Adapt to S3 syntax which doesn't include wildcards; split path and filename for include/exclude statement -->
-<!-- link <- link %>% -->
-<!--   mutate(from_path = dirname(link$from)) %>% -->
-<!--   mutate(from_file = basename(link$from)) -->
+link <- rbind(read1, read2)
 
-<!-- # Write the file list for staging files. First step, `aws cp`  -->
-<!-- write.table(paste('aws --profile spartan_s3_readonly s3 cp',  -->
-<!--                   link$from_path, -->
-<!--                   '.', -->
-<!--                   '--recursive --exclude "*" --include', -->
-<!--                   paste('"', link$from_file, '"', sep = '')), -->
-<!--             file = here::here('output', project_name, 'data', paste0(project_name, '_files.sh')), -->
-<!--             col.names = FALSE, -->
-<!--             row.names = FALSE, -->
-<!--             quote = FALSE) -->
+# Adapt to S3 syntax which doesn't include wildcards; split path and filename for include/exclude statement
+link <- link %>%
+  mutate(from_path = dirname(link$from)) %>%
+  mutate(from_file = basename(link$from))
 
-<!--   # Second step, rename -->
-<!--   write.table(paste('mv',  -->
-<!--                     link$from_file, -->
-<!--                     link$to, -->
-<!--                     sep = ' '), -->
-<!--               file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')), -->
-<!--               col.names = FALSE, -->
-<!--               row.names = FALSE, -->
-<!--               quote = FALSE, -->
-<!--               append = TRUE) -->
+# Write the file list for staging files. First step, `aws cp`
+write.table(paste('aws --profile spartan_s3_readonly s3 cp',
+                  link$from_path,
+                  '.',
+                  '--recursive --exclude "*" --include',
+                  paste('"', link$from_file, '"', sep = '')),
+            file = here::here('output', project_name, 'data', paste0(project_name, '_files.sh')),
+            col.names = FALSE,
+            row.names = FALSE,
+            quote = FALSE)
+
+  # Second step, rename
+  write.table(paste('mv',
+                    link$from_file,
+                    link$to,
+                    sep = ' '),
+              file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
+              col.names = FALSE,
+              row.names = FALSE,
+              quote = FALSE,
+              append = TRUE)
 
 
 
-<!-- # Write the file list for linking on Spartan -->
-<!-- write.table(paste('ln', link$from, link$to, sep = ' '), -->
-<!--             file = here::here('output', paste0(timestamp, PROJECT, 'files.sh', sep='_')), -->
-<!--             col.names = FALSE, -->
-<!--             row.names = FALSE, -->
-<!--             quote = FALSE) -->
-<!-- ``` -->
+# Write the file list for linking on Spartan
+write.table(paste('ln', link$from, link$to, sep = ' '),
+            file = here::here('output', paste0(timestamp, PROJECT, 'files.sh', sep='_')),
+            col.names = FALSE,
+            row.names = FALSE,
+            quote = FALSE)
+```
 
 
 ### 7. Sync data from Spartan to Raijin
