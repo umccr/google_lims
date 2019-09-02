@@ -6,10 +6,11 @@
 #PBS -l ncpus=1
 #PBS -l software=bcbio
 #PBS -l wd
-export PATH=/g/data/gx8/local/production/bin:/g/data3/gx8/local/production/bcbio/anaconda/bin:/opt/bin:/bin:/usr/bin:/opt/pbs/default/bin
+#export PATH=/g/data/gx8/local/production/bin:/g/data3/gx8/local/production/bcbio/anaconda/bin:/opt/bin:/bin:/usr/bin:/opt/pbs/default/bin
+export PATH=/g/data3/gx8/local/development/bcbio/anaconda/bin:/g/data/gx8/local/development/bin:/opt/bin:/bin:/usr/bin:/opt/pbs/default/bin
 
-# Merge samples and create new CSV summary - change "-n CORES" value to fit the analysis 
-bcbio_prepare_samples.py --out merged --csv TEMPLATE.csv -n CORES -q express -s pbspro -t ipython -r 'walltime=4:00:00;noselect' --retries 1 --timeout 900
+# Merge samples and create new CSV summary
+bcbio_prepare_samples.py --out merged --csv TEMPLATE.csv -n 8 -q express -s pbspro -t ipython -r 'walltime=4:00:00;noselect' --retries 1 --timeout 900
 
 # Generate the bcbio config from a standard workflow template
 bcbio_vm.py template --systemconfig bcbio_system_normalbw.yaml /g/data/gx8/projects/std_workflow/std_workflow_rna.yaml BATCH-merged.csv 
@@ -18,7 +19,7 @@ bcbio_vm.py template --systemconfig bcbio_system_normalbw.yaml /g/data/gx8/proje
 bcbio_vm.py cwl --systemconfig bcbio_system_normalbw.yaml CLEAN-merged/config/CONFIG-merged.yaml
 
 # Set up run scripts
-sed "s|WORKFLOW|CONFIG-merged|" /g/data/gx8/projects/std_workflow/run.sh > CLEAN-merged/work/run.sh
+sed "s|WORKFLOW|CONFIG-merged|" /g/data/gx8/projects/std_workflow/run_wts.sh > CLEAN-merged/work/run.sh
 
 mkdir CLEAN-merged/work-cromwell
 sed "s|WORKFLOW|CONFIG-merged|" /g/data/gx8/projects/std_workflow/run_cromwell.sh > CLEAN-merged/work-cromwell/run_cromwell.sh

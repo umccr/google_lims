@@ -12,7 +12,7 @@ do
     if [ -f $RUNDIR/umccrised-cromwell/all.done ]; then
       # This means we're ready to sync the data to Spartan | S3
       # Organize by patient identifier
-      PATIENT=$(echo $BATCH | cut -d '_' -f 4)
+      PATIENT=$(echo $BATCH | cut -d '_' -f 4-)
 
       # Add a timestamp
       TIMESTAMP=$(date +%Y-%m-%d)

@@ -7,6 +7,6 @@
 #PBS -l software=umccrise
 #PBS -l wd
 
-source /g/data3/gx8/extras/umccrise_2019_Mar/load_umccrise.sh
-#source /g/data/gx8/extras/umccrise/load_umccrise.sh
+#source /g/data3/gx8/extras/umccrise_2019_Mar/load_umccrise.sh
+source /g/data/gx8/extras/umccrise/load_umccrise.sh
 umccrise . --no-igv -j 28 --cluster-auto
