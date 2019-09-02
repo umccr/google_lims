@@ -39,7 +39,7 @@ An alternative use is to set the "secondary" analysis flag to match the samples 
 ```{r project}
 PROJECT <- 'All'
 TYPE <- 'WGS'
-SECONDARY <- 'run115'
+SECONDARY <- 'debug'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -62,11 +62,15 @@ drive_download(as_id(lims_key), path = file.path(backup_dir, filename), overwrit
 samples_gs <- read_csv(file.path(backup_dir, filename))
 
 # Tweak for analysis
+#
+# Currently mapping external_subject_id to subject_id (and same for sample id)
+#
 samples <- samples_gs %>%
   clean_names() %>%
   mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis)) %>%
   remove_empty(c('rows', 'cols')) %>%
-  mutate(subject_id = gsub(' ', '.', subject_id)) %>%
+  mutate(subject_id = gsub(' ', '.', external_subject_id)) %>%
+  mutate(sample_id = external_sample_id) %>%
   mutate(results = ifelse(is.na(results), '-', results)) %>%
   select(-matches('number_fastqs')) # Drop FASTQ count introduced with new version for now
 
@@ -84,9 +88,9 @@ Find all samples that a) still need to be processed, and b) for which we have bo
 # and generate new file name for these
 bcbio <- samples %>%
   filter(type == TYPE &
-           ((project == PROJECT & results == '-') | 
+           ((project_name == PROJECT & results == '-') | 
            (secondary_analysis == SECONDARY))) %>% 
-  select(illumina_id, fastq, run, project, sample_id, sample_name, subject_id, 
+  select(illumina_id, fastq, run, project_name, subject_id, sample_id, library_id, sample_name, assay,
          phenotype, row_id) %>%
   mutate(runname = illumina_id) %>%
   select(-illumina_id)
