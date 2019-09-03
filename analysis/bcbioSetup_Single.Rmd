@@ -91,7 +91,7 @@ bcbio <- samples %>%
            ((project_name == PROJECT & results == '-') | 
            (secondary_analysis == SECONDARY))) %>% 
   select(illumina_id, fastq, run, project_name, subject_id, sample_id, library_id, sample_name, assay,
-         phenotype, row_id) %>%
+         phenotype, source, row_id) %>%
   mutate(runname = illumina_id) %>%
   select(-illumina_id)
 
@@ -181,6 +181,7 @@ template <- template %>%
          phenotype = phenotype.x,
          family_id = family_id.x,
          individual_id = individual_id.x,
+         source,
          row_id) 
 
 # Useful when we need non-paired samples
@@ -220,14 +221,14 @@ write_subject <- function(complete, summary) {
   # ```<Illumina_ID>/<Project>/<SampleName>/<SampleID>_R1_001.fastq.gz```
   read1 <- bcbio_subset %>%
     mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R1_001.fastq.gz'),
-                            run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
+                            run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
                             run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
     select(from, to)
   
   read2 <- bcbio_subset %>%
     mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
-                            run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
+                            run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
                             run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
     select(from, to)
