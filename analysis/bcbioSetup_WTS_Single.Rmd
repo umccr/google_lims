@@ -37,8 +37,8 @@ This currently requires specifying the project name and will pull out all files 
 An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added. This is useful when re-processing samples for research projects. Long term, the idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
 ```{r project, eval=FALSE}
-PROJECT <- 'Blomberry'
-SECONDARY <- 'arriba'
+PROJECT <- 'Tothill-CUP'
+SECONDARY <- ''
 
 # Do not change
 TYPE <- 'WTS'
@@ -64,11 +64,15 @@ drive_download(as_id(lims_key), path = file.path(backup_dir, filename), overwrit
 samples_gs <- read_csv(file.path(backup_dir, filename))
 
 # Tweak for analysis
+#
+# Currently mapping external_subject_id to subject_id (and same for sample id)
+#
 samples <- samples_gs %>%
   clean_names() %>%
   mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis)) %>%
   remove_empty(c('rows', 'cols')) %>%
-  mutate(subject_id = gsub(' ', '.', subject_id)) %>%
+  mutate(subject_id = gsub(' ', '.', external_subject_id)) %>%
+  mutate(sample_id = external_sample_id) %>%
   mutate(results = ifelse(is.na(results), '-', results)) %>%
   select(-matches('number_fastqs')) # Drop FASTQ count introduced with new version for now
 
@@ -86,10 +90,10 @@ Find all samples that belong to the provided project and that still need to be p
 # and generate new file name for these
 bcbio <- samples %>%
   filter(type == TYPE &
-           ((project == PROJECT & results == '-') | 
+           ((project_name == PROJECT & results == '-') | 
            (secondary_analysis == SECONDARY))) %>% 
-  select(illumina_id, fastq, run, project, sample_id, sample_name, subject_id, 
-         phenotype, row_id) %>%
+  select(illumina_id, fastq, run, project_name, sample_id, sample_name, subject_id, 
+         phenotype, source, row_id) %>%
   mutate(runname = illumina_id) %>%
   select(-illumina_id)
 
@@ -127,14 +131,14 @@ write_subject <- function(subject, summary) {
   # ```<Illumina_ID>/<Project>/<SampleName>/<SampleID>_R1_001.fastq.gz```
   read1 <- bcbio_subset %>%
     mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R1_001.fastq.gz'),
-                            run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
+                            run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
                             run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
     select(from, to)
   
   read2 <- bcbio_subset %>%
     mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
-                            run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
+                            run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
                             run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
     select(from, to)
@@ -177,7 +181,8 @@ write_subject <- function(subject, summary) {
     mutate(description = str_replace(description, '_topup', '')) %>%
     select(samplename=targetname,
            description,
-           run) 
+           run,
+           source) 
  
   summary_R1 <- template %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
   summary_R2 <- template %>% mutate(samplename = paste0(samplename, '_R2_001.fastq.gz'))
