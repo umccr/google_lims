@@ -6,10 +6,10 @@
 #PBS -l ncpus=1
 #PBS -l software=bcbio
 #PBS -l wd
-#export PATH=/g/data/gx8/local/production/bin:/g/data3/gx8/local/production/bcbio/anaconda/bin:/opt/bin:/bin:/usr/bin:/opt/pbs/default/bin
-export PATH=/g/data3/gx8/local/development/bcbio/anaconda/bin:/g/data/gx8/local/development/bin:/opt/bin:/bin:/usr/bin:/opt/pbs/default/bin
 
 # Merge samples and create new CSV summary
+#export PATH=/g/data/gx8/local/production/bin:/g/data3/gx8/local/production/bcbio/anaconda/bin:/opt/bin:/bin:/usr/bin:/opt/pbs/default/bin
+export PATH=/g/data3/gx8/local/development/bcbio/anaconda/bin:/g/data/gx8/local/development/bin:/opt/bin:/bin:/usr/bin:/opt/pbs/default/bin
 bcbio_prepare_samples.py --out merged --csv TEMPLATE.csv -n 8 -q express -s pbspro -t ipython -r 'walltime=4:00:00;noselect' --retries 1 --timeout 900
 
 # Generate the bcbio config from a standard workflow template
@@ -25,6 +25,6 @@ mkdir CLEAN-merged/work-cromwell
 sed "s|WORKFLOW|CONFIG-merged|" /g/data/gx8/projects/std_workflow/run_cromwell.sh > CLEAN-merged/work-cromwell/run_cromwell.sh
 
 # Move to parent directory to separate from input data
-cp -rv CLEAN-merged/ ..
-cp -rv CLEAN-merged-workflow/ ../CONFIG-merged/config/
-cp -rv bcbio_system_normalbw.yaml ../CONFIG-merged/config/ 
+cp -rv CLEAN-merged/* ..
+cp -rv CLEAN-merged-workflow/ ../config/
+cp -rv bcbio_system_normalbw.yaml ../config/ 

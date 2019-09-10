@@ -13,7 +13,7 @@ export PATH=/g/data/gx8/local/production/bin:/g/data3/gx8/local/production/bcbio
 bcbio_prepare_samples.py --out merged --csv TEMPLATE.csv -n 2 -q express -s pbspro -t ipython -r 'walltime=4:00:00;noselect' --retries 1 --timeout 900
 
 # Generate the bcbio config from a standard workflow template
-bcbio_vm.py template --systemconfig bcbio_system_normalbw.yaml /g/data/gx8/projects/std_workflow/std_workflow_cancer_hg38.yaml BATCH-merged.csv 
+bcbio_vm.py template --systemconfig bcbio_system_normalbw.yaml /g/data/gx8/projects/std_workflow/std_workflow_cancer.yaml BATCH-merged.csv 
 
 # Also generate CWL version
 bcbio_vm.py cwl --systemconfig bcbio_system_normalbw.yaml CLEAN-merged/config/CONFIG-merged.yaml
@@ -25,6 +25,6 @@ mkdir CLEAN-merged/work-cromwell
 sed "s|WORKFLOW|CONFIG-merged|" /g/data/gx8/projects/std_workflow/run_cromwell.sh > CLEAN-merged/work-cromwell/run_cromwell.sh
 
 # Move to parent directory to separate from input data
-cp -rv CLEAN-merged/ ..
-cp -rv CLEAN-merged-workflow/ ../CONFIG-merged/config/
-cp -rv bcbio_system_normalbw.yaml ../CONFIG-merged/config/ 
+cp -rv CLEAN-merged/* ..
+cp -rv CLEAN-merged-workflow/ ../config/
+cp -rv bcbio_system_normalbw.yaml ../config/ 

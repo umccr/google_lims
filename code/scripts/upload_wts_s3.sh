@@ -36,10 +36,10 @@ do
             echo "  Synching to $S3PATH."
             aws s3 sync --no-progress $TIMESTAMP s3://umccr-primary-data-prod/$S3PATH 1>> s3.log
           
-            # Create sentinel file for umccrise
+            # Create sentinel file for other tools to use
             echo "  Flagging completed upload."
-            touch /tmp/wts_upload_complete 
-            aws s3 cp /tmp/wts_upload_complete s3://umccr-primary-data-prod/$S3PATH
+            touch /tmp/wts_complete 
+            aws s3 cp /tmp/wts_complete s3://umccr-primary-data-prod/$S3PATH
           fi
         done
       done
