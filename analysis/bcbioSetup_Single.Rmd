@@ -39,7 +39,7 @@ An alternative use is to set the "secondary" analysis flag to match the samples 
 ```{r project}
 PROJECT <- 'All'
 TYPE <- 'WGS'
-SECONDARY <- 'debug'
+SECONDARY <- 'run118'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -69,8 +69,8 @@ samples <- samples_gs %>%
   clean_names() %>%
   mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis)) %>%
   remove_empty(c('rows', 'cols')) %>%
-  mutate(subject_id = gsub(' ', '.', external_subject_id)) %>%
-  mutate(sample_id = external_sample_id) %>%
+#  mutate(subject_id = gsub(' ', '.', external_subject_id)) %>%
+#  mutate(sample_id = external_sample_id) %>%
   mutate(results = ifelse(is.na(results), '-', results)) %>%
   select(-matches('number_fastqs')) # Drop FASTQ count introduced with new version for now
 
@@ -90,16 +90,21 @@ bcbio <- samples %>%
   filter(type == TYPE &
            ((project_name == PROJECT & results == '-') | 
            (secondary_analysis == SECONDARY))) %>% 
-  select(illumina_id, fastq, run, project_name, subject_id, sample_id, library_id, sample_name, assay,
-         phenotype, source, row_id) %>%
+  select(illumina_id, fastq, run, project_name, subject_id, sample_id, library_id, 
+         sample_name, assay,
+         phenotype, source, row_id,
+         external_subject_id, external_sample_id, sample_name) %>%
   mutate(runname = illumina_id) %>%
   select(-illumina_id)
 
 # Starting with run 108 we switched SampleID and SampleName. For naming conventions 
-# sticking to the old format when deciding what to call the FASTQs
+# sticking to the old format when deciding what to call the FASTQs. With run 118
+# we introduced internal sample IDs and these should be used going forward
 bcbio <- bcbio %>%
   mutate(targetname = case_when(run < 108 ~ paste(runname, sample_name, sep = '_'),
-                                run >= 108 ~ paste(runname, sample_id, sep= '_'))) %>%
+                                run >= 108 & run < 118 ~ paste(runname, sample_id, sep= '_'),
+                                run >= 118 ~ paste(runname, subject_id, sample_id,
+                                                   library_id, sep='_'))) %>%
   mutate(targetname = str_replace_all(targetname, '-', '_'))
 ```
 
@@ -108,7 +113,7 @@ bcbio <- bcbio %>%
 
 Assigning patient/family identifiers for Peddy, assigning batches based on the subject id, and pairing tumor/normals as needed. Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using `bcbio_prepare_samples.py`. Finally, remove samples for which we do not have a matched normal.
 
-**Note:** This has _not_ been tested for topups where samples information has been captured both in the old _and_ new style (pre/post run 108). 
+**Note:** This has _not_ been tested for topups where samples information has been captured both in the old _and_ new style (pre/post run 108/118). 
 
 ```{r assignBatches}
 # Handle cases where a normal matches more than one tumor sample.
@@ -131,7 +136,6 @@ get_new_batch <- function(batch, phenotype) {
   return(new_batch)
 }
 
-
 # Generating the bcbio YAML template. Again, after run 107 use the SampleName instead
 # of SampleID to label things. Keep the required columns and add information for peddy
 #
@@ -147,7 +151,11 @@ template <- bcbio %>%
   select(samplename = targetname,
          description,
          batch = subject_id,
-         phenotype, family_id, individual_id, row_id)
+         source,
+         phenotype, family_id, individual_id, row_id,
+         external_subject_id,
+         external_sample_id,
+         external_sample_name = sample_name)
 
 # Only keep one sample row for samples that _do_ have topups
 unique_samples <- template %>%
@@ -181,7 +189,10 @@ template <- template %>%
          phenotype = phenotype.x,
          family_id = family_id.x,
          individual_id = individual_id.x,
-         source,
+         source = source.x,
+         external_subject_id = external_subject_id.x,
+         external_sample_id = external_sample_id.x,
+         sample_name = sample_name.x,
          row_id) 
 
 # Useful when we need non-paired samples
@@ -200,6 +211,7 @@ Generate a file with pointers to the sample FASTQs and their preferred new names
 
 ```{r perBatch}
 write_subject <- function(complete, summary) {
+  
   # Create a unique project name
   subject_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_', complete)
 

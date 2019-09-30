@@ -37,8 +37,8 @@ This currently requires specifying the project name and will pull out all files 
 An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added. This is useful when re-processing samples for research projects. Long term, the idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
 
 ```{r project, eval=FALSE}
-PROJECT <- 'Tothill-CUP'
-SECONDARY <- ''
+PROJECT <- 'All'
+SECONDARY <- 'run118'
 
 # Do not change
 TYPE <- 'WTS'
@@ -71,8 +71,8 @@ samples <- samples_gs %>%
   clean_names() %>%
   mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis)) %>%
   remove_empty(c('rows', 'cols')) %>%
-  mutate(subject_id = gsub(' ', '.', external_subject_id)) %>%
-  mutate(sample_id = external_sample_id) %>%
+#  mutate(subject_id = gsub(' ', '.', external_subject_id)) %>%
+#  mutate(sample_id = external_sample_id) %>%
   mutate(results = ifelse(is.na(results), '-', results)) %>%
   select(-matches('number_fastqs')) # Drop FASTQ count introduced with new version for now
 
@@ -92,8 +92,10 @@ bcbio <- samples %>%
   filter(type == TYPE &
            ((project_name == PROJECT & results == '-') | 
            (secondary_analysis == SECONDARY))) %>% 
-  select(illumina_id, fastq, run, project_name, sample_id, sample_name, subject_id, 
-         phenotype, source, row_id) %>%
+  select(illumina_id, fastq, run, project_name, subject_id, sample_id, library_id, 
+         sample_name, assay,
+         phenotype, source, row_id,
+         external_subject_id, external_sample_id, sample_name) %>%
   mutate(runname = illumina_id) %>%
   select(-illumina_id)
 
@@ -101,7 +103,9 @@ bcbio <- samples %>%
 # sticking to the old format when deciding what to call the FASTQs
 bcbio <- bcbio %>%
   mutate(targetname = case_when(run < 108 ~ paste(runname, sample_name, sep = '_'),
-                                run >= 108 ~ paste(runname, sample_id, sep= '_'))) %>%
+                                run >= 108 ~ paste(runname, sample_id, sep= '_'),
+                                run >= 118 ~ paste(runname, subject_id, sample_id,
+                                                   library_id, sep='_'))) %>%
   mutate(targetname = str_replace_all(targetname, '-', '_'))
 ```
 
