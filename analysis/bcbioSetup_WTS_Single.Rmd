@@ -157,7 +157,8 @@ write_subject <- function(subject, summary) {
   # Write the file list for staging files. First step, `aws cp` 
   write.table(paste('aws --profile spartan_s3_readonly s3 cp', 
                     link$from_path,
-                    '.',
+                    link$to,
+#                    '.',
                     '--recursive --exclude "*" --include',
                     paste('"', link$from_file, '"', sep = '')),
               file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
@@ -166,15 +167,18 @@ write_subject <- function(subject, summary) {
               quote = FALSE)
 
   # Second step, rename
-  write.table(paste('mv', 
-                    link$from_file,
-                    link$to,
-                    sep = ' '),
-              file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
-              col.names = FALSE,
-              row.names = FALSE,
-              quote = FALSE,
-              append = TRUE)
+  #
+  # Should no longer be needed, now renaming files on the fly
+  #
+#  write.table(paste('mv', 
+#                    link$from_file,
+#                    link$to,
+#                    sep = ' '),
+#              file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
+#              col.names = FALSE,
+#              row.names = FALSE,
+#              quote = FALSE,
+#              append = TRUE)
 
   # Generating the bcbio YAML template. Again, after run 107 use the SampleName instead
   # of SampleID to label things
