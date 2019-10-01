@@ -115,10 +115,12 @@ This step is relatively easy for WTS samples since we do not have to worry about
 
 > `scp -r BATCHFILES spartan:/data/cephfs/punim0010/data/Transfer/raijin/`
 
+Note that this will **fail** for samples with topups within the _same_ Illumina run identifier. One to fix in the future. 
+
 ```{r configbcbio}
 write_subject <- function(subject, summary) {
 
-  # Create a unique project name
+    # Create a unique project name
   subject_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_', subject)
 
   # Set up the project directory
@@ -138,14 +140,14 @@ write_subject <- function(subject, summary) {
                             run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
                             run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
-    select(from, to)
+    select(from, to, runname)
   
   read2 <- bcbio_subset %>%
     mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
                             run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
                             run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
-    select(from, to)
+    select(from, to, runname)
   
   link <- rbind(read1, read2)
 
@@ -157,8 +159,7 @@ write_subject <- function(subject, summary) {
   # Write the file list for staging files. First step, `aws cp` 
   write.table(paste('aws --profile spartan_s3_readonly s3 cp', 
                     link$from_path,
-                    link$to,
-#                    '.',
+                    link$runname,
                     '--recursive --exclude "*" --include',
                     paste('"', link$from_file, '"', sep = '')),
               file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
@@ -170,15 +171,15 @@ write_subject <- function(subject, summary) {
   #
   # Should no longer be needed, now renaming files on the fly
   #
-#  write.table(paste('mv', 
-#                    link$from_file,
-#                    link$to,
-#                    sep = ' '),
-#              file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
-#              col.names = FALSE,
-#              row.names = FALSE,
-#              quote = FALSE,
-#              append = TRUE)
+  write.table(paste('mv', 
+                    paste(link$runname, link$from_file, sep='/'),
+                    link$to,
+                    sep = ' '),
+              file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
+              col.names = FALSE,
+              row.names = FALSE,
+              quote = FALSE,
+              append = TRUE)
 
   # Generating the bcbio YAML template. Again, after run 107 use the SampleName instead
   # of SampleID to label things
