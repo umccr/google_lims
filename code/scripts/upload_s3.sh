@@ -6,7 +6,7 @@
 #
 # in a `s3` folder ready to be archived on AWS in the relevant
 # `project` folder.
-for DIRECTORY in /g/data/gx8/projects/PROJECT/s3/* ;
+for DIRECTORY in /g/data/gx8/projects/PROJECTS/s3/* ;
 do
   PROJECT=$(basename $DIRECTORY)
   echo $PROJECT
@@ -35,6 +35,11 @@ do
             # Start sync and capture stdout in a log file
             echo "  Synching to $S3PATH"
             aws s3 sync --no-progress $TIMESTAMP s3://umccr-primary-data-prod/$S3PATH/ 1>> s3.log
+
+            # Create sentinel file to flag upload has completed
+            echo "  Upload complete"
+            touch /tmp/upload_complete 
+            aws s3 cp /tmp/upload_complete s3://umccr-primary-data-prod/$S3PATH/upload_complete
           fi
 
           # Test for umccrise flag that signals post-processing was done
@@ -43,10 +48,9 @@ do
           if [[ $? -eq 0 ]]; then
             echo '  Post-processing has finished for subject.'
           else
-            # Create sentinel file for umccrise
+            # API call to start umccrise for uploaded sample
             echo "  Starting umccrise"
-            touch /tmp/upload_complete 
-            aws s3 cp /tmp/upload_complete s3://umccr-primary-data-prod/$S3PATH/upload_complete
+            aws lambda invoke --function-name umccrise_lambda_prod --payload '{ "resultDir": "'$S3PATH'"}' /tmp/lambda.output
           fi
         done
       echo "* Synced $SUBJECT to s3://umccr-primary-data-prod/$S3PATH/"

@@ -3,7 +3,7 @@ for DIRECTORY in /g/data/gx8/projects/PROJECT/2019*/ ;
 do
   BATCH=$(basename $DIRECTORY)
   CLEANBATCH=${BATCH//./_}
-  RUNDIR="$DIRECTORY"$CLEANBATCH-merged
+  RUNDIR="$DIRECTORY"
 
   if [ -n "$(ls -A $RUNDIR/final)" ]; then
     # This means we're ready to sync the data to Spartan | S3

@@ -12,7 +12,7 @@ for DIRECTORY in /g/data/gx8/projects/PROJECT/2019*/ ;
 do
   BATCH=$(basename $DIRECTORY)
   CLEANBATCH=${BATCH//./_}
-  RUNDIR="$DIRECTORY"$CLEANBATCH-merged
+  RUNDIR="$DIRECTORY"
 
   # Test if umccrise was started
   if [ -d $RUNDIR/umccrised ]; then

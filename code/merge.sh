@@ -13,7 +13,7 @@ export PATH=/g/data/gx8/local/production/bin:/g/data3/gx8/local/production/bcbio
 bcbio_prepare_samples.py --out merged --csv TEMPLATE.csv -n 2 -q express -s pbspro -t ipython -r 'walltime=4:00:00;noselect' --retries 1 --timeout 900
 
 # Generate the bcbio config from a standard workflow template
-bcbio_vm.py template --systemconfig bcbio_system_normalbw.yaml /g/data/gx8/projects/std_workflow/std_workflow_cancer.yaml BATCH-merged.csv 
+bcbio_vm.py template --systemconfig bcbio_system_normalbw.yaml /g/data/gx8/projects/std_workflow/std_workflow_cancer_hg38.yaml BATCH-merged.csv 
 
 # Also generate CWL version
 bcbio_vm.py cwl --systemconfig bcbio_system_normalbw.yaml CLEAN-merged/config/CONFIG-merged.yaml

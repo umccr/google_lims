@@ -4,7 +4,7 @@ do
   BATCH=$(basename $DIRECTORY)
   CLEANBATCH=${BATCH//./_}
 
-  cd $DIRECTORY$CLEANBATCH-merged/work/
+  cd $DIRECTORY/work/
   rm -v bcbio-*
   rm -vr bcbiotx/
   rm -v pbspro_*

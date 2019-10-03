@@ -15,26 +15,25 @@ details:
 
       # ad hoc downsampling. Set to 100 for challenging samples
       maxcov_downsample: false
-      variant_regions: /g/data/gx8/extras/GRCh37_noalt.bed
 
       # QC and coverage assessent
-      coverage: /g/data3/gx8/extras/cancer_genes/umccr_cancer_genes.GRCh37.transcript.bed
-
-      # Disabling qSignature due to sambamba errors
-#      mixup_check: qsignature
+      coverage: umccr_cancer_genes.GRCh37.transcript.bed
 
       # Variant calling, 2-out-of-3. All callers handle InDels
       variantcaller: [vardict, strelka2, gatk-haplotype]
       ensemble:
         numpass: 2
 
+      # Exclude difficult regions
+      variant_regions: GRCh37_noalt.bed
+      exclude_regions: [altcontigs]
+
       # Structural variation. No ensemble calling option here
       svcaller: [cnvkit, manta]
 
       # Extras
-      tools_on: [gatk4, break-point-inspector, noalt_calling] 
-      tools_off: [gemini]
-      vcfanno: [gemini]
+      tools_on: [break-point-inspector] 
+      tools_off: []
 upload:
   dir: ../final
 resources:
