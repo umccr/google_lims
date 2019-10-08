@@ -8,11 +8,13 @@ Config files are created with [bcbioSetup_Single.Rmd](https://github.com/umccr/g
 
 On Spartan, the `umccr` user executes three steps:
 
-* executing the "staging" driver scripts that copy FASTQs from `s3://umccr-fastq-data-prod/` to `/data/cephfs/punim0010/data/Transfer/raijin_hofmann/`, renaming them as necessary
+* executing the "staging" driver scripts that copy FASTQs from a local S3 object store, `s3://umccr-fastq-data-prod/`, to `/data/cephfs/punim0010/data/Transfer/raijin_hofmann/`, renaming them as necessary
 * sync the resulting folder structure to a Raijin project folder
 * clean up and remove the linked data
 
-It is recommended to generate your own private staging folder even when using the `umccr` user to avoid overwriting concurrent transfers from other group members. The process translates to:
+It is recommended to generate your own private staging folder even when using the `umccr` user to avoid overwriting concurrent transfers from other group members. The process translates to 
+
+`sudo -i -u umccr`
 
 `conda activate aws`
 
@@ -22,15 +24,18 @@ It is recommended to generate your own private staging folder even when using th
 
 `find /data/cephfs/punim0010/data/Transfer/raijin_hofmann/* -type d -empty -delete`
 
-**Warning:** _If_ top-up samples do not have a `_topup` suffix in their FASTQ filesnames _and_ they were run in the same sample slot (i.e., they have the same `_Sxx` suffix) they will overwrite each other when being retrieved from S3. 
+As a general precaution it makes sense to check the FASTQs being transferred, particularly for top-up samples. The LIMS is in flux, and name changes could result in samples being overwritten.
+
 
 ## NCI automation
 
-On Raijin driver script templates are found in `/g/data3/gx8/projects/std_workflow/scripts`. Copy the relevant scripts to the current working directory and replace the `PROJECTNAME` placeholder in the script with the current project. Start with:
+On Raijin driver script templates are found in `/g/data3/gx8/projects/std_workflow/scripts`. Copy the relevant scripts to the current working directory and replace the `PROJECTNAME` placeholder in the script with the current project. For WGS tumor/normal start with:
 
 `sh config_bcbio.sh`
 
-This will set up the folder structure, merge input files (in the case of top-ups) and create run scripts which can be submitted with:
+This will set up the folder structure, merge input files (in the case of top-ups) and create run scripts. It makes use of `/g/data3/gx8/projects/std_workflow/merge.sh` which is were changes to to the workflow YAML could be implemented (e.g., switching from `std_workflow_cancer.yaml` to `std_workflow_cancer_ffpe.yaml`).
+
+The resulting run scropts can be submitted with:
 
 `find ./2019* -name run.sh -and -not -path "*/data/*" -execdir qsub {} \;`
 
@@ -46,9 +51,16 @@ Cromwell logs can be monitored with:
 
 `watch -d -n 300 'find 2019*/ -maxdepth 4 -name *-cromwell.log -and -not -path "*/data/*" -and -not -path "*/bcbiotx/*" 2>/dev/null | xargs tail -n 2'`
 
-After bcbio finishes the results are post-processed with `umccrise` which follows the same configuration approach with the `config_umccrise.sh` script. Copy it to the project directory, change PROJECTNAME and run it, then follow the progress with:
+After bcbio finishes the results _can_ be post-processed with `umccrise` which follows the same configuration approach with the `config_umccrise.sh` script. Copy it to the project directory, change PROJECTNAME and run it, then follow the progress with:
 
 `watch -d -n 300 'find 2019*/ -maxdepth 5 -name *snakemake*.log -path "*/umccrised/*" 2>/dev/null | xargs tail -n 2'`
+
+This should only be done for debugging purposes, though; for the production pipeline follow the steps below to organize data and upload to AWS S3.
+
+---
+
+**Steps below not current yet.**
+
 
 ## Organise results & upload to S3
 
@@ -57,5 +69,15 @@ At the end of the run organise data into one place via `organize_results.sh`; re
 `aws s3 sync --no-progress --dryrun . s3://umccr-primary-data-prod/PROJECT/`
 
 ... to upload all relevant data to the S3 results bucket.
+
+**Note:** To test what umccrise version is active on AWS run
+
+```
+$ aws batch describe-job-definitions --job-definition-name umccrise_job_prod --status ACTIVE --query "jobDefinitions[*].containerProperties.image"
+[
+    "umccr/umccrise:0.15.12"
+]
+```
+
 
 

@@ -28,18 +28,20 @@ library(purrr)
 
 ## Introduction
 
-Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in. This version differs from the `bcbioSetup.Rmd` in that it is meant for _single_ patient samples only, i.e., samples are only batched for individual patients not across a whole project.
+Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in. This version differs from the `bcbioSetup.Rmd` in that it is meant for _single_ patient samples only, i.e., samples are only batched for individual patients not across a whole project. This should be the default approach.
 
 ### 1. Setting up project information
 
-This currently requires specifying both project name and the type of sequencing data (`WGS`, `WTS`, `10X-WGS`, etc.) and will pull out all files of that type and project which do not have results associated with them yet. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID. The exact names can be copied from the `Project` and `Type` columns of the [Google-LIMS sheet](https://docs.google.com/spreadsheets/u/1/d/1aaTvXrZSdA1ekiLEpW60OeNq2V7D_oEMBzTgC-uDJAM/edit#gid=0). The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
+This currently requires specifying either the project name or a 'secondary use' field. The exact names can be copied from the `Project` column of the Google-LIMS. An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE` (WGS for this script). This is useful when re-processing samples for research projects, or when wanting to process a new NovaSeq run with samples from multiple different projects. 
 
-An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE`. This is useful when re-processing samples for research projects. Long term, the idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
+The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
 
 ```{r project}
 PROJECT <- 'All'
+SECONDARY <- 'run119'
+
+# Do not change
 TYPE <- 'WGS'
-SECONDARY <- 'run118'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -69,8 +71,6 @@ samples <- samples_gs %>%
   clean_names() %>%
   mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis)) %>%
   remove_empty(c('rows', 'cols')) %>%
-#  mutate(subject_id = gsub(' ', '.', external_subject_id)) %>%
-#  mutate(sample_id = external_sample_id) %>%
   mutate(results = ifelse(is.na(results), '-', results)) %>%
   select(-matches('number_fastqs')) # Drop FASTQ count introduced with new version for now
 
@@ -81,7 +81,7 @@ samples <- samples %>%
 
 ### 3. Find files ready for processing
 
-Find all samples that a) still need to be processed, and b) for which we have both tumor and normal sample ready to go. 
+Find all samples that either are part of the listed project and still need to be processed, or for which the `secondary flag` matches:
 
 ```{r subsetSamples}
 # Keep rows matching project and type requested; extract path to FASTQ
@@ -193,6 +193,7 @@ template <- template %>%
          external_subject_id = external_subject_id.x,
          external_sample_id = external_sample_id.x,
          sample_name = sample_name.x,
+         project_name = project_name.x,
          row_id) 
 
 # Useful when we need non-paired samples
@@ -291,100 +292,6 @@ for (subject in complete_subjects) {
   write_subject(subject, template)
 }
 ```
-
-
-<!-- Removing this section for now. Partial to sharing data with the standard per-sample approach instead. -->
-
-<!-- ### 6. Sharing data only -->
-
-<!-- In some cases we only need to distribute FASTQs. This will generate the link information to gather all relevant files in one place. -->
-
-
-```{r shareData, eval=FALSE}
-#bcbio_subset <- bcbio %>%
-#  filter(row_id %in% template$row_id)
-project_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_Distribute')
-
-# Create a unique project name
-subject_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_Distribute')
-
-read1 <- bcbio %>%
-  mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R1_001.fastq.gz'),
-                          run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
-                          run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
-  mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
-  select(from, to)
-
-read2 <- bcbio %>%
-  mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
-                          run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
-                          run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
-  mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
-  select(from, to)
-
-link <- rbind(read1, read2)
-
-# Adapt to S3 syntax which doesn't include wildcards; split path and filename for include/exclude statement
-link <- link %>%
-  mutate(from_path = dirname(link$from)) %>%
-  mutate(from_file = basename(link$from))
-
-# Write the file list for staging files. First step, `aws cp`
-write.table(paste('aws --profile spartan_s3_readonly s3 cp',
-                  link$from_path,
-                  '.',
-                  '--recursive --exclude "*" --include',
-                  paste('"', link$from_file, '"', sep = '')),
-            file = here::here('output', project_name, 'data', paste0(project_name, '_files.sh')),
-            col.names = FALSE,
-            row.names = FALSE,
-            quote = FALSE)
-
-  # Second step, rename
-  write.table(paste('mv',
-                    link$from_file,
-                    link$to,
-                    sep = ' '),
-              file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
-              col.names = FALSE,
-              row.names = FALSE,
-              quote = FALSE,
-              append = TRUE)
-
-
-
-# Write the file list for linking on Spartan
-write.table(paste('ln', link$from, link$to, sep = ' '),
-            file = here::here('output', paste0(timestamp, PROJECT, 'files.sh', sep='_')),
-            col.names = FALSE,
-            row.names = FALSE,
-            quote = FALSE)
-```
-
-
-### 7. Sync data from Spartan to Raijin
-
-WGS/WTS runs are being processed at Raijin. Collect the required file in one place and rsync over with:
-
-> `find /data/cephfs/punim0010/data/Transfer/raijin/ -name *files.sh* -execdir sh {} \;`
-> `rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/ omh563@r-dm.nci.org.au:/g/data3/gx8/projects/Hofmann_Workflow`
-> `find /data/cephfs/punim0010/data/Transfer/raijin/* -type d -empty -delete`
-
-### 8. Run projects on Raijin
-
-Raijin now has a `config_bcbio.sh` script in `/g/data/gx8/projects/std_workflow`. For now, the target path is hardcoded into the script, so I recommend copying it over to where data was rsync'd over from Spartan and editing the path accordingly. In brief, `config_bcbio.sh` will:
-
-* find all sample directories in the configured parent directory
-* copy the `merge.sh` script from `std_workflow` over and adjust it for each batch
-* trigger the sample merging and generate the revised sample sheet
-* configure a bcbio run using the revised (merged) sample sheet 
-
-All that's left is then to kick off the actual runs:
-
-> `find /g/data/gx8/projects/Hofmann_Test/ -name run.sh -execdir qsub {} \;`
-
-
-
 
 
 
