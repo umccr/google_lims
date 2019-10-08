@@ -155,7 +155,8 @@ template <- bcbio %>%
          phenotype, family_id, individual_id, row_id,
          external_subject_id,
          external_sample_id,
-         external_sample_name = sample_name)
+         external_sample_name = sample_name,
+         project_name)
 
 # Only keep one sample row for samples that _do_ have topups
 unique_samples <- template %>%
@@ -192,7 +193,7 @@ template <- template %>%
          source = source.x,
          external_subject_id = external_subject_id.x,
          external_sample_id = external_sample_id.x,
-         sample_name = sample_name.x,
+         external_sample_name = external_sample_name.x,
          project_name = project_name.x,
          row_id) 
 
