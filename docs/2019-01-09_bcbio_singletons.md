@@ -57,20 +57,27 @@ After bcbio finishes the results _can_ be post-processed with `umccrise` which f
 
 This should only be done for debugging purposes, though; for the production pipeline follow the steps below to organize data and upload to AWS S3.
 
----
-
-**Steps below not current yet.**
-
-
 ## Organise results & upload to S3
 
-At the end of the run organise data into one place via `organize_results.sh`; reports for Trello end up in `reports`, the data for S3 in `sync`. Start an interactive job (`qsub -I -P gx8 -q copyq -l walltime=12:00:00,ncpus=1,wd,mem=32G,jobfs=100GB`), authenticate (`ssoaws`), assume the `fastq-uploader` role and run:
+At the end of the run organise data into one place via `organize_s3.sh`. At this stage things get a bit manual, unfortunately - data in the newly created `s3` folder need to be organized by their project using the `ProjectName` column from Google-LIMS, or the `project_name` column in the sample CSV:
 
-`aws s3 sync --no-progress --dryrun . s3://umccr-primary-data-prod/PROJECT/`
+```
+./s3
+    /Patients
+             /SBJ00162
+             /SBJ00177
+    /Avner
+             /...
+```
 
-... to upload all relevant data to the S3 results bucket.
+In practice this just means creating the matching folder and `mv`ing the sample directories already present in `s3` into the right, newly-created folders.
 
-**Note:** To test what umccrise version is active on AWS run
+After this start an interactive job (`qsub -I -P gx8 -q copyq -l walltime=12:00:00,ncpus=1,wd,mem=32G,jobfs=100GB`), authenticate (`ssoaws`), assume the `prod_operator` role and run `upload_s3.sh` to upload all relevant data to the S3 results bucket and trigger umccrise on AWS Batch. Progress there can be monitored with [awsbw](https://github.com/jgolob/awsbw). 
+
+
+## Notes
+
+To test what umccrise version is active on AWS run
 
 ```
 $ aws batch describe-job-definitions --job-definition-name umccrise_job_prod --status ACTIVE --query "jobDefinitions[*].containerProperties.image"
