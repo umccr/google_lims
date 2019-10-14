@@ -28,17 +28,18 @@ library(purrr)
 
 ## Introduction
 
-Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/u/1/d/1aaTvXrZSdA1ekiLEpW60OeNq2V7D_oEMBzTgC-uDJAM/edit#gid=0), aka the dreadful LIMS stand-in. This version differs from the `bcbioSetup_Single.Rmd` in that it is meant for cohorts / groups of WTS samples only, i.e., samples where we only have tumor information. This means no batch assignment which simplifies the naming conventions. 
+Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in. This version is meant for _single_ patient WTS samples only, i.e., samples are only batched for individual patients not across a whole project. This should be the default approach.
 
 ### 1. Setting up project information
 
-This currently requires specifying the project name and will pull out all files of that type and project which do not have results associated with them yet. This should be generalized at some point to support sample extraction by Illumina RunID or by patient ID. The exact names can be copied from the `Project` column of the [Google-LIMS sheet](https://docs.google.com/spreadsheets/u/1/d/1aaTvXrZSdA1ekiLEpW60OeNq2V7D_oEMBzTgC-uDJAM/edit#gid=0). The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
+This currently requires specifying either the project name or a 'secondary use' field. The exact names can be copied from the `Project` column of the Google-LIMS. An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE` (WTS for this script). This is useful when re-processing samples for research projects, or when wanting to process a new NovaSeq run with samples from multiple different projects. 
 
-An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added. This is useful when re-processing samples for research projects. Long term, the idea is that we get rid of this filtering step completely and just generate sync lists and templates for all samples that still need to be processed, then mark the processing stage in Google-LIMS to avoid duplication.
+The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
+
 
 ```{r project, eval=FALSE}
 PROJECT <- 'All'
-SECONDARY <- 'run118'
+SECONDARY <- '119wts'
 
 # Do not change
 TYPE <- 'WTS'
@@ -48,7 +49,7 @@ TYPE <- 'WTS'
 
 This step generates a data frame from the Google spreadsheet, unifying variable names and simplifying subject IDs for bcbio along the way. It replaces empty `results` cells (which indicate samples that still need processing) with a `-` to distinguish from true NAs and gets rid of whitespace in subject identifiers (although ideally there should not be any empty cells in the sheet in the first place). Otherwise standard data cleanup with `janitor`. We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.
 
-```{r importData, message=FALSE, eval=FALSE}
+```{r importData, message=FALSE}
 # Create a backup copy each time we access the sample info
 tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
 timestamp <- strftime(tm , "%Y-%m-%dT%H%M")
@@ -71,8 +72,6 @@ samples <- samples_gs %>%
   clean_names() %>%
   mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis)) %>%
   remove_empty(c('rows', 'cols')) %>%
-#  mutate(subject_id = gsub(' ', '.', external_subject_id)) %>%
-#  mutate(sample_id = external_sample_id) %>%
   mutate(results = ifelse(is.na(results), '-', results)) %>%
   select(-matches('number_fastqs')) # Drop FASTQ count introduced with new version for now
 
@@ -83,9 +82,9 @@ samples <- samples %>%
 
 ### 3. Find files ready for processing
 
-Find all samples that belong to the provided project and that still need to be processed:
+Find all samples that either are part of the listed project and still need to be processed, or for which the `secondary flag` matches:
 
-```{r subsetSamples, eval=FALSE}
+```{r subsetSamples}
 # Keep rows matching project and type requested; extract path to FASTQ
 # and generate new file name for these
 bcbio <- samples %>%
@@ -103,10 +102,27 @@ bcbio <- samples %>%
 # sticking to the old format when deciding what to call the FASTQs
 bcbio <- bcbio %>%
   mutate(targetname = case_when(run < 108 ~ paste(runname, sample_name, sep = '_'),
-                                run >= 108 ~ paste(runname, sample_id, sep= '_'),
+                                run >= 108 & run < 118 ~ paste(runname, sample_id, sep= '_'),
                                 run >= 118 ~ paste(runname, subject_id, sample_id,
                                                    library_id, sep='_'))) %>%
   mutate(targetname = str_replace_all(targetname, '-', '_'))
+
+# Rename columns for the YAML and FASTQ naming
+template <- bcbio %>% 
+  mutate(description = case_when(run < 108 ~ sample_name,
+                               run >= 108 ~ sample_id)) %>%
+  mutate(description = str_replace(description, '_topup', '')) %>%
+  mutate(family_id = subject_id) %>%
+  mutate(individual_id = subject_id) %>%
+  select(samplename = targetname,
+         description,
+         batch = subject_id,
+         source,
+         phenotype, family_id, individual_id, row_id,
+         external_subject_id,
+         external_sample_id,
+         external_sample_name = sample_name,
+         project_name)
 ```
 
 ### 4. Generating bcbio csv templates
@@ -120,16 +136,23 @@ Note that this will **fail** for samples with topups within the _same_ Illumina 
 ```{r configbcbio}
 write_subject <- function(subject, summary) {
 
-    # Create a unique project name
+ # summary <- template
+#  subject <- 'SBJ00029'
+  
+  # Create a unique project name
   subject_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_', subject)
 
   # Set up the project directory
   dir.create(here::here('output', subject_name, 'data'), showWarnings=FALSE, recursive=TRUE)
      
   # Subset to one individual
-  bcbio_subset <- summary %>%
-    filter(subject_id == subject)
+  summary <- summary %>%
+    filter(individual_id == subject)
 
+  # Find corresponding entries in the Google-Lims
+  bcbio_subset <- bcbio %>%
+     filter(row_id %in% summary$row_id)
+  
   # Create a file list ready for linking
   #
   # With Run 81 the file structure from `bcl2fastq` changed. FASTQs are no
@@ -140,14 +163,14 @@ write_subject <- function(subject, summary) {
                             run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
                             run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
-    select(from, to, runname)
+    select(from, to, runname, row_id)
   
   read2 <- bcbio_subset %>%
     mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
                             run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
                             run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
-    select(from, to, runname)
+    select(from, to, runname, row_id)
   
   link <- rbind(read1, read2)
 
@@ -159,7 +182,7 @@ write_subject <- function(subject, summary) {
   # Write the file list for staging files. First step, `aws cp` 
   write.table(paste('aws --profile spartan_s3_readonly s3 cp', 
                     link$from_path,
-                    link$runname,
+                    link$row_id,
                     '--recursive --exclude "*" --include',
                     paste('"', link$from_file, '"', sep = '')),
               file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
@@ -168,11 +191,8 @@ write_subject <- function(subject, summary) {
               quote = FALSE)
 
   # Second step, rename
-  #
-  # Should no longer be needed, now renaming files on the fly
-  #
   write.table(paste('mv', 
-                    paste(link$runname, link$from_file, sep='/'),
+                    paste(link$row_id, link$from_file, sep='/'),
                     link$to,
                     sep = ' '),
               file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
@@ -181,6 +201,7 @@ write_subject <- function(subject, summary) {
               quote = FALSE,
               append = TRUE)
 
+    
   # Generating the bcbio YAML template. Again, after run 107 use the SampleName instead
   # of SampleID to label things
   template <- bcbio_subset %>% 
@@ -206,10 +227,10 @@ write_subject <- function(subject, summary) {
 }
 
 # Group by subject
-unique_subjects <- as.vector(unique(bcbio$subject_id))
+unique_subjects <- as.vector(unique(template$individual_id))
 
 for (subject in unique_subjects) {
-  write_subject(subject, bcbio)
+  write_subject(subject, template)
 }
 ```
 
