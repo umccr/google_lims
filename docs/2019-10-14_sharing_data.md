@@ -1,4 +1,7 @@
 ## Data sharing
+
+**Note:** Generating pre-signed URLs requires specific credentials. Contact Roman or Florian for details.
+
 Send out a request for a Keybase account:
 
 > Dear XYTZ, you have recently requested data from UMCCR. The (presigned) URLs we will share with you are ideally only known to you and therefore we will generate them encrypted since anyone with those URLs can download the soon-to-be-shared files. For that we are using KeyBase in our infrastructure setup. Please create an account at https://keybase.io/ and share your user name with me.
@@ -9,25 +12,31 @@ Send out a request for a Keybase account:
 
 With the Keybase user name in hand:
 
-1. Find files and write to a file list. Example:
+### 1. Find files and write to a file list
+
+This requires the usual admin (or operator) roles for the production bucket. Example:
 
 `aws s3 ls --recursive s3://umccr-fastq-data-prod/171220_A00130_0036_BH32JNDSXX/171220_A00130_0036_BH32JNDSXX/WTS/171220_A00130_0036_BH32JNDSXX/ | grep 'V-PH' | grep gz | cut -f 4 -d ' ' > files.txt`
 
 I usually do this by filtering the Google-LIMS to just the samples I want to include, then cutting/pasting the FASTQ links as a starting point. You want to end up with `files.txt` containing the files you'd like to distribute.
 
-2. Restore from Glacier, if needed. Default to 14 days, can shorten depending on how responsive the other party is:
+### 2. Restore from Glacier, if needed
+
+Default to 14 days, can shorten depending on how responsive the other party is:
 
 ```
 for FILE in `cat files.txt`; do aws s3api restore-object --bucket umccr-fastq-data-prod --key $FILE --restore-request '{"Days":14,"GlacierJobParameters":{"Tier":"Standard"}}'; done;
 ```
 
-3. Wait ~48h until the restore process finishes. Can check on the console or command line, see [wiki](https://github.com/umccr/wiki/blob/98a6e3bfedadbf06052a6b14b4ee4cda6b6247f6/computing/cloud/glacier_restore.md) for details. Once restored, use the `presigned_urls` credentials provided by Roman to generate pre-signed URLs:
+### 3. Wait ~48h until the restore process finishes
+
+Can check on the console or command line, see [wiki](https://github.com/umccr/wiki/blob/98a6e3bfedadbf06052a6b14b4ee4cda6b6247f6/computing/cloud/glacier_restore.md) for details. Once restored, use the `presigned_urls` credentials provided by Roman to generate pre-signed URLs:
 
 ```
 for FILE in `cat files.txt`; do aws s3 presign --profile presigned_urls --expires-in 604800 s3://umccr-fastq-data-prod/$FILE >> presigned.txt; done;
 ```
 
-4. Ensure the pre-signed URLs point at the right files.
+### 4. Ensure the pre-signed URLs point at the right files
 
 One way to do this is via a basic script:
 
@@ -42,7 +51,7 @@ done
 
 Run with `sh check.sh presigned.txt`.  You can pipe the output into `sort | uniq -c` and confirm the total number of files match the provided file list.
 
-5. Distribute encrypted file of pre-signed URLs.
+### 5. Distribute encrypted file of pre-signed URLs
 
 Encrypt either using the KeyBase application:
 
@@ -51,7 +60,7 @@ Encrypt either using the KeyBase application:
 or via https://keybase.io/encrypt, entering the recipients username. 
 Copy and paste the encrypted content (with header) into an email.
 
-6. Use `wget` to iterate over generated pre-signed URLs
+### 6. Use `wget` to iterate over generated pre-signed URLs
 
 ```
 for FILE in `cat presigned.txt`; do wget $FILE; done;
