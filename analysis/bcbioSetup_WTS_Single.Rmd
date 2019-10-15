@@ -105,24 +105,37 @@ bcbio <- bcbio %>%
                                 run >= 108 & run < 118 ~ paste(runname, sample_id, sep= '_'),
                                 run >= 118 ~ paste(runname, subject_id, sample_id,
                                                    library_id, sep='_'))) %>%
-  mutate(targetname = str_replace_all(targetname, '-', '_'))
+  mutate(targetname = str_replace_all(targetname, '-', '_')) 
 
-# Rename columns for the YAML and FASTQ naming
-template <- bcbio %>% 
+# Adding a sample 'description' column used to name the sample within bcbio.
+# The description is now a tuple of (subject, sample, library) which should ensure topups
+# are handled properly. This used to be:
+#
+#  mutate(description = case_when(run < 108 ~ sample_name,
+#                               run >= 108 ~ sample_id)) %>%
+#
+bcbio <- bcbio %>%
   mutate(description = case_when(run < 108 ~ sample_name,
                                run >= 108 ~ sample_id)) %>%
   mutate(description = str_replace(description, '_topup', '')) %>%
+  mutate(description = paste(subject_id, description, library_id, sep='_')) 
+
+# Create a bcbio template and rename columns for the YAML 
+template <- bcbio %>% 
   mutate(family_id = subject_id) %>%
   mutate(individual_id = subject_id) %>%
+  mutate(run=paste('run', run, sep='_')) %>%
   select(samplename = targetname,
          description,
          batch = subject_id,
          source,
-         phenotype, family_id, individual_id, row_id,
+         external_phenotype = phenotype, 
+         family_id, individual_id, row_id,
          external_subject_id,
          external_sample_id,
          external_sample_name = sample_name,
-         project_name)
+         project_name,
+         run)
 ```
 
 ### 4. Generating bcbio csv templates
@@ -136,10 +149,7 @@ Note that this will **fail** for samples with topups within the _same_ Illumina 
 ```{r configbcbio}
 write_subject <- function(subject, summary) {
 
- # summary <- template
-#  subject <- 'SBJ00029'
-  
-  # Create a unique project name
+    # Create a unique project name
   subject_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_', subject)
 
   # Set up the project directory
@@ -202,20 +212,9 @@ write_subject <- function(subject, summary) {
               append = TRUE)
 
     
-  # Generating the bcbio YAML template. Again, after run 107 use the SampleName instead
-  # of SampleID to label things
-  template <- bcbio_subset %>% 
-    mutate(description=case_when(run < 108 ~ sample_name,
-                                 run >= 108 ~ sample_id)) %>%
-    mutate(run=paste('run', run, sep='_')) %>%
-    mutate(description = str_replace(description, '_topup', '')) %>%
-    select(samplename=targetname,
-           description,
-           run,
-           source) 
- 
-  summary_R1 <- template %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
-  summary_R2 <- template %>% mutate(samplename = paste0(samplename, '_R2_001.fastq.gz'))
+  # Generating the bcbio YAML template
+  summary_R1 <- summary %>% mutate(samplename = paste0(samplename, '_R1_001.fastq.gz'))
+  summary_R2 <- summary %>% mutate(samplename = paste0(samplename, '_R2_001.fastq.gz'))
   summary <- rbind(summary_R1, summary_R2)
  
   write.table(summary,
