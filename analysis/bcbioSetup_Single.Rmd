@@ -81,7 +81,7 @@ samples <- samples %>%
 
 ### 3. Find files ready for processing
 
-Find all samples that either are part of the listed project and still need to be processed, or for which the `secondary flag` matches:
+Find all samples that either are part of the listed project and still need to be processed, or for which the `secondary flag` matches. Convert different sample naming conventions used throughout into a unified representation.
 
 ```{r subsetSamples}
 # Keep rows matching project and type requested; extract path to FASTQ
@@ -106,6 +106,18 @@ bcbio <- bcbio %>%
                                 run >= 118 ~ paste(runname, subject_id, sample_id,
                                                    library_id, sep='_'))) %>%
   mutate(targetname = str_replace_all(targetname, '-', '_'))
+
+# Changing description to a tuple of (subject, sample, library) which should ensure 
+# topups are handled properly. This used to be:
+#
+#  mutate(description = case_when(run < 108 ~ sample_name,
+#                               run >= 108 ~ sample_id)) %>%
+#
+bcbio <- bcbio %>%
+  mutate(description = case_when(run < 108 ~ sample_name,
+                               run >= 108 ~ sample_id)) %>%
+  mutate(description = str_replace(description, '_topup', '')) %>%
+  mutate(description = paste(subject_id, description, library_id, sep='_'))
 ```
 
 
@@ -114,6 +126,8 @@ bcbio <- bcbio %>%
 Assigning patient/family identifiers for Peddy, assigning batches based on the subject id, and pairing tumor/normals as needed. Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using `bcbio_prepare_samples.py`. Finally, remove samples for which we do not have a matched normal.
 
 **Note:** This has _not_ been tested for topups where samples information has been captured both in the old _and_ new style (pre/post run 108/118). 
+
+**Note:** Still needs to be tested with topup samples
 
 ```{r assignBatches}
 # Handle cases where a normal matches more than one tumor sample.
@@ -142,10 +156,8 @@ get_new_batch <- function(batch, phenotype) {
 # Remove top-up samples (samples with the exact same description) before calculating
 # batch assignments. We'll add them back in later. This assumes topups are consistently
 # flagged with a `_topup` suffix
+#
 template <- bcbio %>% 
-  mutate(description = case_when(run < 108 ~ sample_name,
-                               run >= 108 ~ sample_id)) %>%
-  mutate(description = str_replace(description, '_topup', '')) %>%
   mutate(family_id = subject_id) %>%
   mutate(individual_id = subject_id) %>%
   select(samplename = targetname,
@@ -257,7 +269,7 @@ write_subject <- function(complete, summary) {
   # Write the file list for staging files. First step, `aws cp` 
   write.table(paste('aws --profile spartan_s3_readonly s3 cp', 
                     link$from_path,
-                    '.',
+                    link$row_id,
                     '--recursive --exclude "*" --include',
                     paste('"', link$from_file, '"', sep = '')),
               file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
@@ -267,7 +279,7 @@ write_subject <- function(complete, summary) {
 
   # Second step, rename
   write.table(paste('mv', 
-                    link$from_file,
+                    paste(link$row_id, link$from_file, sep='/'),
                     link$to,
                     sep = ' '),
               file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
