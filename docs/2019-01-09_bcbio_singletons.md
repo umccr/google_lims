@@ -14,7 +14,9 @@ On Spartan, the `umccr` user executes three steps:
 * sync the resulting folder structure to a Raijin project folder
 * clean up and remove the linked data
 
-It is recommended to generate your own private staging folder even when using the `umccr` user to avoid overwriting concurrent transfers from other group members. The process translates to 
+It is recommended to generate your own private staging folder even when using the `umccr` user to avoid overwriting concurrent transfers from other group members. For me this process translates to:
+
+`chmod -R g+rwX /data/cephfs/punim0010/data/Transfer/raijin_hofmann/`
 
 `sudo -i -u umccr`
 
