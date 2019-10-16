@@ -82,7 +82,7 @@ samples <- samples %>%
 
 ### 3. Find files ready for processing
 
-Find all samples that either are part of the listed project and still need to be processed, or for which the `secondary flag` matches:
+Find all samples that either are part of the listed project and still need to be processed, or for which the `secondary flag` matches. Convert different sample naming conventions used throughout into a unified representation.
 
 ```{r subsetSamples}
 # Keep rows matching project and type requested; extract path to FASTQ
