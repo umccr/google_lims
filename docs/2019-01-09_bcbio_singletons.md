@@ -31,7 +31,7 @@ As a general precaution it makes sense to check the FASTQs being transferred, pa
 
 ## NCI automation
 
-On Raijin driver script templates are found in `/g/data3/gx8/projects/std_workflow/scripts`. Copy the relevant scripts to the current working directory and replace the `PROJEC` placeholder at the top of the script with the current project. For WGS tumor/normal start with:
+On Raijin driver script templates are found in `/g/data3/gx8/projects/std_workflow/scripts`. Copy the relevant scripts to the current working directory and replace the `PROJECT` placeholder at the top of the script with the current project. For WGS tumor/normal start with:
 
 `sh config_bcbio.sh` { _`config_bcbio_wts`_ }
 
