@@ -77,7 +77,7 @@ At the end of the run organise data into one place via `organize_s3.sh`. At this
 
 In practice this just means creating the matching folder and `mv`ing the sample directories already present in `s3` into the right, newly-created folders. 
 
-Note: this assumes a matching project folder already exists on S3. If that's not the case set one up prior to running the upload script, e.g.:
+**Note:** this assumes a matching project folder already exists on S3. If that's not the case set one up prior to running the upload script, e.g.:
 
 ```
 touch new_project
