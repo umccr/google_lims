@@ -250,14 +250,14 @@ write_subject <- function(complete, summary) {
                             run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
                             run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
-    select(from, to)
+    select(from, to, row_id)
   
   read2 <- bcbio_subset %>%
     mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
                             run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
                             run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
-    select(from, to)
+    select(from, to, row_id)
   
   link <- rbind(read1, read2)
 
