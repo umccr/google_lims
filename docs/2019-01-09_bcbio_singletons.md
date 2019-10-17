@@ -47,14 +47,6 @@ The output can be monitored with:
 
 `watch -d -n 300 'find 2019*/ -maxdepth 4 -name bcbio-nextgen-debug.log -path "*/log/*" -and -not -path "*/data/*" -and -not -path "*/bcbiotx/*" 2>/dev/null | xargs tail -n 2'`
 
-Cromwell configs get written at the same time and can be run instead of the native bcbio backend with:
-
-`find ./2019* -name run_cromwell.sh -and -not -path "*/data/*" -execdir qsub {} \;`
-
-Cromwell logs can be monitored with:
-
-`watch -d -n 300 'find 2019*/ -maxdepth 4 -name *-cromwell.log -and -not -path "*/data/*" -and -not -path "*/bcbiotx/*" 2>/dev/null | xargs tail -n 2'`
-
 After bcbio finishes the results _can_ be post-processed with `umccrise` which follows the same configuration approach with the `config_umccrise.sh` script. Copy it to the project directory, change PROJECTNAME and run it, then follow the progress with:
 
 `watch -d -n 300 'find 2019*/ -maxdepth 5 -name *snakemake*.log -path "*/umccrised/*" 2>/dev/null | xargs tail -n 2'`
