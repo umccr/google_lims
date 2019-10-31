@@ -38,7 +38,7 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 ```{r project}
 PROJECT <- 'All'
-SECONDARY <- 'run119'
+SECONDARY <- 'oho'
 
 # Do not change
 TYPE <- 'WGS'
@@ -83,6 +83,8 @@ samples <- samples %>%
 
 Find all samples that either are part of the listed project and still need to be processed, or for which the `secondary flag` matches. Convert different sample naming conventions used throughout into a unified representation.
 
+**Note:** This script relies on internal identifiers (a tuple of `subject_id`, `sample_id` and `library_id`). Where those are missing the script tries to replace them with the equivalent external identifier, or `missing` in the case of `library_id`. This works except for top-ups or where tumor/normal pairings do not share the same internal identifiers. Please make sure older samples have the appropriate internal identifiers set in the LIMS for these use cases. 
+
 ```{r subsetSamples}
 # Keep rows matching project and type requested; extract path to FASTQ
 # and generate new file name for these
@@ -90,22 +92,37 @@ bcbio <- samples %>%
   filter(type == TYPE &
            ((project_name == PROJECT & results == '-') | 
            (secondary_analysis == SECONDARY))) %>% 
-  select(illumina_id, fastq, run, project_name, subject_id, sample_id, library_id, 
-         sample_name, assay,
-         phenotype, source, row_id,
-         external_subject_id, external_sample_id, sample_name) %>%
+  select(illumina_id, fastq, run, project_name, 
+         subject_id, sample_id, library_id, 
+         external_subject_id, external_sample_id, sample_name, 
+         assay, phenotype, source, row_id) %>%
+  mutate(subject_id = if_else(subject_id == '-', external_subject_id, subject_id)) %>%
+  mutate(sample_id = if_else(sample_id == '-', external_sample_id, sample_id)) %>%
+  mutate(library_id = if_else(library_id == '-', 'Missing', library_id)) %>%
   mutate(runname = illumina_id) %>%
   select(-illumina_id)
 
 # Starting with run 108 we switched SampleID and SampleName. For naming conventions 
 # sticking to the old format when deciding what to call the FASTQs. With run 118
 # we introduced internal sample IDs and these should be used going forward
+#bcbio <- bcbio %>%
+#  mutate(targetname = case_when(run < 108 ~ paste(runname, sample_name, sep = '_'),
+#                                run >= 108 & run < 118 ~ paste(runname, sample_id, sep= '_'),
+#                                run >= 118 ~ paste(runname, subject_id, sample_id,
+#                                                   library_id, sep='_'))) %>%
+#  mutate(targetname = str_replace_all(targetname, '-', '_'))
+
+# Add a 'target' name: what FASTQs are to be called after retrieval from S3
 bcbio <- bcbio %>%
-  mutate(targetname = case_when(run < 108 ~ paste(runname, sample_name, sep = '_'),
-                                run >= 108 & run < 118 ~ paste(runname, sample_id, sep= '_'),
-                                run >= 118 ~ paste(runname, subject_id, sample_id,
-                                                   library_id, sep='_'))) %>%
-  mutate(targetname = str_replace_all(targetname, '-', '_'))
+  mutate(targetname = paste(runname, subject_id, sample_id, library_id, sep='_')) %>%
+  mutate(targetname = str_replace_all(targetname, '-', '_')) 
+
+# Adding a sample 'description' column used to name the sample within bcbio.
+# The description is now a tuple of (subject, sample, library) which should ensure topups
+# are handled properly. 
+bcbio <- bcbio %>%
+  mutate(description = paste(subject_id, sample_id, library_id, sep='_')) %>%
+  mutate(description = str_replace(description, '_topup', '')) 
 
 # Changing description to a tuple of (subject, sample, library) which should ensure 
 # topups are handled properly. This used to be:
@@ -113,11 +130,11 @@ bcbio <- bcbio %>%
 #  mutate(description = case_when(run < 108 ~ sample_name,
 #                               run >= 108 ~ sample_id)) %>%
 #
-bcbio <- bcbio %>%
-  mutate(description = case_when(run < 108 ~ sample_name,
-                               run >= 108 ~ sample_id)) %>%
-  mutate(description = str_replace(description, '_topup', '')) %>%
-  mutate(description = paste(subject_id, description, library_id, sep='_'))
+#bcbio <- bcbio %>%
+#  mutate(description = case_when(run < 108 ~ sample_name,
+#                               run >= 108 ~ sample_id)) %>%
+#  mutate(description = str_replace(description, '_topup', '')) %>%
+#  mutate(description = paste(subject_id, description, library_id, sep='_'))
 ```
 
 
@@ -125,9 +142,7 @@ bcbio <- bcbio %>%
 
 Assigning patient/family identifiers for Peddy, assigning batches based on the subject id, and pairing tumor/normals as needed. Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using `bcbio_prepare_samples.py`. Finally, remove samples for which we do not have a matched normal.
 
-**Note:** This has _not_ been tested for topups where samples information has been captured both in the old _and_ new style (pre/post run 108/118). 
-
-**Note:** Still needs to be tested with topup samples
+**Note:** This will likely fail for patients where we have multiple normals that are _not_ top-ups. Might have to handle these cases manually or pick one representative normal.
 
 ```{r assignBatches}
 # Handle cases where a normal matches more than one tumor sample.
@@ -246,14 +261,14 @@ write_subject <- function(complete, summary) {
   # longer round in the top level run folder, but in
   # ```<Illumina_ID>/<Project>/<SampleName>/<SampleID>_R1_001.fastq.gz```
   read1 <- bcbio_subset %>%
-    mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R1_001.fastq.gz'),
+    mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', external_sample_id, '_R1_001.fastq.gz'),
                             run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
                             run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
     select(from, to, row_id)
   
   read2 <- bcbio_subset %>%
-    mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
+    mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', external_sample_id, '_R2_001.fastq.gz'),
                             run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
                             run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
