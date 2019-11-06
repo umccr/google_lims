@@ -38,7 +38,7 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 ```{r project}
 PROJECT <- 'All'
-SECONDARY <- 'oho'
+SECONDARY <- 'peter121'
 
 # Do not change
 TYPE <- 'WGS'
@@ -61,7 +61,7 @@ lims_key <- drive_find('^Google LIMS$', team_drive = 'LIMS')$id
 drive_download(as_id(lims_key), path = file.path(backup_dir, filename), overwrite = TRUE)
 
 # Import downloaded spreadsheet (sheet #1) as a tibble
-samples_gs <- read_csv(file.path(backup_dir, filename))
+samples_gs <- read_csv(file.path(backup_dir, filename), col_types = cols(.default = "c", Run = "d"))
 
 # Tweak for analysis
 #
