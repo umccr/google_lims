@@ -6,7 +6,7 @@ Send out a request for a Keybase account:
 
 > Dear XYTZ, you have recently requested data from UMCCR. The (presigned) URLs we will share with you are ideally only known to you and therefore we will generate them encrypted since anyone with those URLs can download the soon-to-be-shared files. For that we are using KeyBase in our infrastructure setup. Please create an account at https://keybase.io/ and share your user name with me.
 
-> We will send your a file with a list of URLs which you can use to download the data you have requested. Please keep in mind that those URLs will expire in less that 7 days after they have been generated, so please, download the data as soon as you receive that list.
+> We will send you a file with a list of URLs which you can use to download the data you have requested. Please keep in mind that those URLs will expire in less than 7 days after they have been generated, so please, download the data as soon as you receive that list.
 
 > We ask you to have this prepared in advance to avoid unnecessary delays with this data sharing transaction.
 
@@ -25,7 +25,7 @@ I usually do this by filtering the Google-LIMS to just the samples I want to inc
 Default to 14 days, can shorten depending on how responsive the other party is:
 
 ```
-for FILE in `cat files.txt`; do aws s3api restore-object --bucket umccr-fastq-data-prod --key $FILE --restore-request '{"Days":14,"GlacierJobParameters":{"Tier":"Standard"}}'; done;
+for FILE in `cat files.txt`; do aws s3api restore-object --bucket umccr-fastq-data-prod --key $FILE --restore-request '{"Days":14,"GlacierJobParameters":{"Tier":"Bulk"}}'; done;
 ```
 
 ### 3. Wait ~48h until the restore process finishes

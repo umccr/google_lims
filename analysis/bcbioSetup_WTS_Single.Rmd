@@ -38,8 +38,8 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 
 ```{r project}
-PROJECT <- 'WTS122'
-SECONDARY <- 'run122'
+PROJECT <- 'All'
+SECONDARY <- 'peter121'
 
 # Do not change
 TYPE <- 'WTS'
@@ -62,7 +62,7 @@ lims_key <- drive_find('^Google LIMS$', team_drive = 'LIMS')$id
 drive_download(as_id(lims_key), path = file.path(backup_dir, filename), overwrite = TRUE)
 
 # Import downloaded spreadsheet (sheet #1) as a tibble
-samples_gs <- read_csv(file.path(backup_dir, filename))
+samples_gs <- read_csv(file.path(backup_dir, filename), col_types = cols(.default = "c", Run = "d"))
 
 # Tweak for analysis
 #
@@ -108,21 +108,21 @@ bcbio <- samples %>%
 
 # Add a 'target' name: what FASTQs are to be called after retrieval from S3
 bcbio <- bcbio %>%
-  mutate(targetname = paste(runname, subject_id, sample_id, library_id, sep='_')) %>%
+  mutate(targetname = paste(runname, subject_id, sample_id, library_id, sep = '_')) %>%
   mutate(targetname = str_replace_all(targetname, '-', '_')) 
 
 # Adding a sample 'description' column used to name the sample within bcbio.
 # The description is now a tuple of (subject, sample, library) which should ensure topups
 # are handled properly. 
 bcbio <- bcbio %>%
-  mutate(description = paste(subject_id, sample_id, library_id, sep='_')) %>%
+  mutate(description = paste(subject_id, sample_id, library_id, sep = '_')) %>%
   mutate(description = str_replace(description, '_topup', '')) 
 
 # Create a bcbio template and rename columns for the YAML 
-template <- bcbio %>% 
+template <- bcbio %>%
   mutate(family_id = subject_id) %>%
   mutate(individual_id = subject_id) %>%
-  mutate(run=paste('run', run, sep='_')) %>%
+  mutate(run = paste('run', run, sep = '_')) %>%
   select(samplename = targetname,
          description,
          batch = subject_id,
@@ -151,7 +151,7 @@ write_subject <- function(subject, summary) {
   subject_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_', subject)
 
   # Set up the project directory
-  dir.create(here::here('output', subject_name, 'data'), showWarnings=FALSE, recursive=TRUE)
+  dir.create(here::here('output', subject_name, 'data'), showWarnings = FALSE, recursive = TRUE)
      
   # Subset to one individual
   summary <- summary %>%
@@ -200,7 +200,7 @@ write_subject <- function(subject, summary) {
 
   # Second step, rename
   write.table(paste('mv', 
-                    paste(link$row_id, link$from_file, sep='/'),
+                    paste(link$row_id, link$from_file, sep = '/'),
                     link$to,
                     sep = ' '),
               file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
@@ -216,7 +216,7 @@ write_subject <- function(subject, summary) {
   summary <- rbind(summary_R1, summary_R2)
  
   write.table(summary,
-              file = here::here('output', subject_name, 'data', paste(subject_name, '.csv', sep='')),
+              file = here::here('output', subject_name, 'data', paste(subject_name, '.csv', sep = '')),
               row.names = FALSE,
               col.names = TRUE,
               quote = FALSE,
