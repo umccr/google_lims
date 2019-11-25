@@ -38,7 +38,7 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 ```{r project}
 PROJECT <- 'All'
-SECONDARY <- 'oho'
+SECONDARY <- 'run123'
 
 # Do not change
 TYPE <- 'WGS'
@@ -89,6 +89,9 @@ Find all samples that either are part of the listed project and still need to be
 # Keep rows matching project and type requested; extract path to FASTQ
 # and generate new file name for these
 bcbio <- samples %>%
+  mutate(project_name = if_else(project_owner == '-', 
+                                project_name,
+                                paste(project_owner, project_name, sep='-'))) %>%
   filter(type == TYPE &
            ((project_name == PROJECT & results == '-') | 
            (secondary_analysis == SECONDARY))) %>% 
