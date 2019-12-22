@@ -39,7 +39,7 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 ```{r project}
 PROJECT <- 'All'
-SECONDARY <- 'run123_wts'
+SECONDARY <- 'wts'
 
 # Do not change
 TYPE <- 'WTS'
@@ -116,6 +116,7 @@ bcbio <- bcbio %>%
 # are handled properly. 
 bcbio <- bcbio %>%
   mutate(description = paste(subject_id, sample_id, library_id, sep = '_')) %>%
+  mutate(description = str_replace(description, '_topup.', '')) %>%
   mutate(description = str_replace(description, '_topup', '')) 
 
 # Create a bcbio template and rename columns for the YAML 

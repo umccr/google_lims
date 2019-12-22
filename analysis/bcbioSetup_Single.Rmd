@@ -38,7 +38,7 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 ```{r project}
 PROJECT <- 'All'
-SECONDARY <- 'hg38-debug'
+SECONDARY <- 'run127'
 
 # Do not change
 TYPE <- 'WGS'
@@ -125,6 +125,7 @@ bcbio <- bcbio %>%
 # are handled properly. 
 bcbio <- bcbio %>%
   mutate(description = paste(subject_id, sample_id, library_id, sep='_')) %>%
+  mutate(description = str_replace(description, '_topup.', '')) %>%
   mutate(description = str_replace(description, '_topup', '')) 
 
 # Changing description to a tuple of (subject, sample, library) which should ensure 
