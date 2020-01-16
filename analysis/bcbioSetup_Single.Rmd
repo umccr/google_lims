@@ -38,7 +38,7 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 ```{r project}
 PROJECT <- 'All'
-SECONDARY <- 'run127'
+SECONDARY <- 'run128'
 
 # Do not change
 TYPE <- 'WGS'
@@ -105,16 +105,6 @@ bcbio <- samples %>%
   mutate(runname = illumina_id) %>%
   select(-illumina_id)
 
-# Starting with run 108 we switched SampleID and SampleName. For naming conventions 
-# sticking to the old format when deciding what to call the FASTQs. With run 118
-# we introduced internal sample IDs and these should be used going forward
-#bcbio <- bcbio %>%
-#  mutate(targetname = case_when(run < 108 ~ paste(runname, sample_name, sep = '_'),
-#                                run >= 108 & run < 118 ~ paste(runname, sample_id, sep= '_'),
-#                                run >= 118 ~ paste(runname, subject_id, sample_id,
-#                                                   library_id, sep='_'))) %>%
-#  mutate(targetname = str_replace_all(targetname, '-', '_'))
-
 # Add a 'target' name: what FASTQs are to be called after retrieval from S3
 bcbio <- bcbio %>%
   mutate(targetname = paste(runname, subject_id, sample_id, library_id, sep='_')) %>%
@@ -127,18 +117,6 @@ bcbio <- bcbio %>%
   mutate(description = paste(subject_id, sample_id, library_id, sep='_')) %>%
   mutate(description = str_replace(description, '_topup.', '')) %>%
   mutate(description = str_replace(description, '_topup', '')) 
-
-# Changing description to a tuple of (subject, sample, library) which should ensure 
-# topups are handled properly. This used to be:
-#
-#  mutate(description = case_when(run < 108 ~ sample_name,
-#                               run >= 108 ~ sample_id)) %>%
-#
-#bcbio <- bcbio %>%
-#  mutate(description = case_when(run < 108 ~ sample_name,
-#                               run >= 108 ~ sample_id)) %>%
-#  mutate(description = str_replace(description, '_topup', '')) %>%
-#  mutate(description = paste(subject_id, description, library_id, sep='_'))
 ```
 
 

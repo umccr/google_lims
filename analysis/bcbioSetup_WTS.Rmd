@@ -116,14 +116,14 @@ dir.create(here::here('output', project_name, 'data'), showWarnings=FALSE, recur
 
 read1 <- bcbio %>%
   mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R1_001.fastq.gz'),
-                          run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
+                          run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', external_sample_id, '_R1_001.fastq.gz'),
                           run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
   mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
   select(from, to)
   
 read2 <- bcbio %>%
   mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
-                          run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
+                          run > 80 & run <= 93 ~ paste0(fastq, '/', project, '/', sample_name, '/', external_sample_id, '_R2_001.fastq.gz'),
                           run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
   mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
   select(from, to)

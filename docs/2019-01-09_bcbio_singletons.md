@@ -41,15 +41,15 @@ This will set up the folder structure, merge input files (in the case of top-ups
 
 The resulting run scripts can be submitted with:
 
-`find ./2019* -name run.sh -and -not -path "*/data/*" -execdir qsub {} \;`
+`find ./2020* -name run.sh -and -not -path "*/data/*" -execdir qsub {} \;`
 
 The output can be monitored with:
 
-`watch -d -n 300 'find 2019*/ -maxdepth 4 -name bcbio-nextgen-debug.log -path "*/log/*" -and -not -path "*/data/*" -and -not -path "*/bcbiotx/*" 2>/dev/null | xargs tail -n 2'`
+`watch -d -n 300 'find 2020*/ -maxdepth 4 -name bcbio-nextgen-debug.log -path "*/log/*" -and -not -path "*/data/*" -and -not -path "*/bcbiotx/*" 2>/dev/null | xargs tail -n 2'`
 
 After bcbio finishes the results _can_ be post-processed with `umccrise` which follows the same configuration approach with the `config_umccrise.sh` script. Copy it to the project directory, change PROJECTNAME and run it, then follow the progress with:
 
-`watch -d -n 300 'find 2019*/ -maxdepth 5 -name *snakemake*.log -path "*/umccrised/*" 2>/dev/null | xargs tail -n 2'`
+`watch -d -n 300 'find 2020*/ -maxdepth 5 -name *snakemake*.log -path "*/umccrised/*" 2>/dev/null | xargs tail -n 2'`
 
 This should only be done for debugging purposes, though; for the production pipeline follow the steps below to organize data and upload to AWS S3.
 
