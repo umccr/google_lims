@@ -38,7 +38,7 @@ Point `umccrise` at the `final` directory:
 `export AWS_PROFILE=umccr`  
 `umccrise . -j 16 --cluster-auto`  
 
-### 2b Raijin
+### 2b Gadi
 
 Copy the folders created to spartan and update group read permissions.
 
@@ -55,11 +55,11 @@ Log into Spartan, change to `umccr` user and activate aws conda environment:
 `conda activate aws`
 `find /data/cephfs/punim0010/data/Transfer/raijin/ -name *files.sh* -execdir sh {} \;`
 
-(Log into Spartan to copy `TIMESTAMP_PROJECT/` to Raijin)  
+Copy `TIMESTAMP_PROJECT/` to Gadi
 
-`rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/TIMESTAMP_PROJECT/ yourUserName@r-dm.nci.org.au:/g/data3/gx8/projects/TIMESTAMP_PROJECT`
+`rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/TIMESTAMP_PROJECT/ yourUserName@gadi-login-04.nci.org.au:/g/data3/gx8/projects/TIMESTAMP_PROJECT`
 
-**Log into raijin.**
+**Log into Gadi.**
 
 Change into the new project directory created in the last step:
 
