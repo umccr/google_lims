@@ -57,7 +57,7 @@ Log into Spartan, change to `umccr` user and activate aws conda environment:
 
 Copy `TIMESTAMP_PROJECT/` to Gadi
 
-`rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/TIMESTAMP_PROJECT/ yourUserName@gadi-login-04.nci.org.au:/g/data3/gx8/projects/TIMESTAMP_PROJECT`
+`rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/TIMESTAMP_PROJECT/ yourUserName@gadi-dm.nci.org.au:/g/data3/gx8/projects/TIMESTAMP_PROJECT`
 
 **Log into Gadi.**
 
