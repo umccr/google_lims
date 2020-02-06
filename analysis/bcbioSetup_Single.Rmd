@@ -38,7 +38,7 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 ```{r project}
 PROJECT <- 'All'
-SECONDARY <- 'run128'
+SECONDARY <- 'po'
 
 # Do not change
 TYPE <- 'WGS'
@@ -103,6 +103,7 @@ bcbio <- samples %>%
   mutate(sample_id = if_else(sample_id == '-', external_sample_id, sample_id)) %>%
   mutate(library_id = if_else(library_id == '-', 'Missing', library_id)) %>%
   mutate(runname = illumina_id) %>%
+  mutate(machine = str_split(illumina_id, '_')[[1]][[2]]) %>%
   select(-illumina_id)
 
 # Add a 'target' name: what FASTQs are to be called after retrieval from S3
@@ -243,16 +244,24 @@ write_subject <- function(complete, summary) {
   # longer round in the top level run folder, but in
   # ```<Illumina_ID>/<Project>/<SampleName>/<SampleID>_R1_001.fastq.gz```
   read1 <- bcbio_subset %>%
-    mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', external_sample_id, '_R1_001.fastq.gz'),
-                            run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', external_sample_id, '_R1_001.fastq.gz'),
-                            run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
+    mutate(from = case_when(run <= 80 & machine == 'A00130' ~ 
+                              paste0(fastq, '/', external_sample_id, '_R1_001.fastq.gz'),
+                            run > 80 & run <= 93 & machine == 'A00130' ~ 
+                              paste0(fastq, '/', project_name, '/', sample_name, '/', 
+                                     external_sample_id, '_R1_001.fastq.gz'),
+                            run > 93 | machine == 'A01052' ~ 
+                              str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
     select(from, to, row_id)
   
   read2 <- bcbio_subset %>%
-    mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', external_sample_id, '_R2_001.fastq.gz'),
-                            run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', external_sample_id, '_R2_001.fastq.gz'),
-                            run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
+    mutate(from = case_when(run <= 80 & machine == 'A00130' ~ 
+                              paste0(fastq, '/', external_sample_id, '_R2_001.fastq.gz'),
+                            run > 80 & run <= 93 & machine == 'A00130' ~ 
+                              paste0(fastq, '/', project_name, '/', sample_name, '/',
+                                     external_sample_id, '_R2_001.fastq.gz'),
+                            run > 93 | machine == 'A01052' ~ 
+                              str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
     select(from, to, row_id)
   

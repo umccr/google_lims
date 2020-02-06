@@ -104,6 +104,7 @@ bcbio <- samples %>%
   mutate(sample_id = if_else(sample_id == '-', external_sample_id, sample_id)) %>%
   mutate(library_id = if_else(library_id == '-', 'Missing', library_id)) %>%
   mutate(runname = illumina_id) %>%
+  mutate(machine = str_split(illumina_id, '_')[[1]][[2]]) %>%
   select(-illumina_id)
 
 # Add a 'target' name: what FASTQs are to be called after retrieval from S3
@@ -118,23 +119,6 @@ bcbio <- bcbio %>%
   mutate(description = paste(subject_id, sample_id, library_id, sep = '_')) %>%
   mutate(description = str_replace(description, '_topup.', '')) %>%
   mutate(description = str_replace(description, '_topup', '')) 
-
-# Create a bcbio template and rename columns for the YAML 
-template <- bcbio %>%
-  mutate(family_id = subject_id) %>%
-  mutate(individual_id = subject_id) %>%
-  mutate(run = paste('run', run, sep = '_')) %>%
-  select(samplename = targetname,
-         description,
-         batch = subject_id,
-         source,
-         external_phenotype = phenotype, 
-         family_id, individual_id, row_id,
-         external_subject_id,
-         external_sample_id,
-         external_sample_name = sample_name,
-         project_name,
-         run)
 ```
 
 ### 4. Generating bcbio csv templates
@@ -168,16 +152,24 @@ write_subject <- function(subject, summary) {
   # longer round in the top level run folder, but in
   # ```<Illumina_ID>/<Project>/<SampleName>/<SampleID>_R1_001.fastq.gz```
   read1 <- bcbio_subset %>%
-    mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', external_sample_id, '_R1_001.fastq.gz'),
-                            run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', external_sample_id, '_R1_001.fastq.gz'),
-                            run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
+    mutate(from = case_when(run <= 80 & machine == 'A00130' ~ 
+                              paste0(fastq, '/', external_sample_id, '_R1_001.fastq.gz'),
+                            run > 80 & run <= 93 & machine == 'A00130' ~ 
+                              paste0(fastq, '/', project_name, '/', sample_name, '/', 
+                                     external_sample_id, '_R1_001.fastq.gz'),
+                            run > 93 | machine == 'A01052' ~ 
+                              str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
     select(from, to, runname, row_id)
   
   read2 <- bcbio_subset %>%
-    mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', external_sample_id, '_R2_001.fastq.gz'),
-                            run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', external_sample_id, '_R2_001.fastq.gz'),
-                            run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
+    mutate(from = case_when(run <= 80 & machine == 'A00130' ~ 
+                              paste0(fastq, '/', external_sample_id, '_R2_001.fastq.gz'),
+                            run > 80 & run <= 93 & machine == 'A00130' ~
+                              paste0(fastq, '/', project_name, '/', sample_name, '/', 
+                                     external_sample_id, '_R2_001.fastq.gz'),
+                            run > 93 | machine == 'A01052' ~ 
+                              str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
     select(from, to, runname, row_id)
   
@@ -223,6 +215,23 @@ write_subject <- function(subject, summary) {
               quote = FALSE,
               sep = ',')
 }
+
+# Create a bcbio template and rename columns for the YAML 
+template <- bcbio %>%
+  mutate(family_id = subject_id) %>%
+  mutate(individual_id = subject_id) %>%
+  mutate(run = paste('run', run, sep = '_')) %>%
+  select(samplename = targetname,
+         description,
+         batch = subject_id,
+         source,
+         external_phenotype = phenotype, 
+         family_id, individual_id, row_id,
+         external_subject_id,
+         external_sample_id,
+         external_sample_name = sample_name,
+         project_name,
+         run)
 
 # Group by subject
 unique_subjects <- as.vector(unique(template$individual_id))
