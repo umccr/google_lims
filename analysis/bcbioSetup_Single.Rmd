@@ -104,9 +104,6 @@ bcbio <- samples %>%
   mutate(library_id = if_else(library_id == '-', 'Missing', library_id)) %>%
   mutate(runname = illumina_id) %>%
   separate(illumina_id, c(NA, 'machine', NA, NA), sep='_')
-#    mutate(machine = str_split(illumina_id, '_')[[1]][[2]])
-#%>%
-#  select(-illumina_id)
 
 # Add a 'target' name: what FASTQs are to be called after retrieval from S3
 bcbio <- bcbio %>%

@@ -37,8 +37,8 @@ This currently requires specifying either the project name or a 'secondary use' 
 The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
 
 ```{r project}
-PROJECT <- 'All'
-SECONDARY <- 'run119'
+PROJECT <- ''
+SECONDARY <- 'po_control'
 
 # Do not change
 TYPE <- 'WGS'
@@ -89,25 +89,35 @@ Find all samples that either are part of the listed project and still need to be
 # Keep rows matching project and type requested; extract path to FASTQ
 # and generate new file name for these
 bcbio <- samples %>%
+  mutate(project_name = if_else(project_owner == '-', 
+                                project_name,
+                                paste(project_owner, project_name, sep='-'))) %>%
   filter(type == TYPE &
            ((project_name == PROJECT & results == '-') | 
            (secondary_analysis == SECONDARY))) %>% 
-  select(illumina_id, fastq, run, project_name, subject_id, sample_id, library_id, 
-         sample_name, assay,
-         phenotype, source, row_id,
-         external_subject_id, external_sample_id, sample_name) %>%
+  select(illumina_id, fastq, run, project_name, 
+         subject_id, sample_id, library_id, 
+         external_subject_id, external_sample_id, sample_name, 
+         assay, phenotype, source, row_id) %>%
+  mutate(subject_id = if_else(subject_id == '-', external_subject_id, subject_id)) %>%
+  mutate(sample_id = if_else(sample_id == '-', external_sample_id, sample_id)) %>%
+  mutate(library_id = if_else(library_id == '-', 'Missing', library_id)) %>%
   mutate(runname = illumina_id) %>%
+  mutate(machine = str_split(illumina_id, '_')[[1]][[2]]) %>%
   select(-illumina_id)
 
-# Starting with run 108 we switched SampleID and SampleName. For naming conventions 
-# sticking to the old format when deciding what to call the FASTQs. With run 118
-# we introduced internal sample IDs and these should be used going forward
+# Add a 'target' name: what FASTQs are to be called after retrieval from S3
 bcbio <- bcbio %>%
-  mutate(targetname = case_when(run < 108 ~ paste(runname, sample_name, sep = '_'),
-                                run >= 108 & run < 118 ~ paste(runname, sample_id, sep= '_'),
-                                run >= 118 ~ paste(runname, subject_id, sample_id,
-                                                   library_id, sep='_'))) %>%
-  mutate(targetname = str_replace_all(targetname, '-', '_'))
+  mutate(targetname = paste(runname, subject_id, sample_id, library_id, sep='_')) %>%
+  mutate(targetname = str_replace_all(targetname, '-', '_')) 
+
+# Adding a sample 'description' column used to name the sample within bcbio.
+# The description is now a tuple of (subject, sample, library) which should ensure topups
+# are handled properly. 
+bcbio <- bcbio %>%
+  mutate(description = paste(subject_id, sample_id, library_id, sep='_')) %>%
+  mutate(description = str_replace(description, '_topup.', '')) %>%
+  mutate(description = str_replace(description, '_topup', '')) 
 ```
 
 
