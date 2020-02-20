@@ -229,9 +229,6 @@ write_subject <- function(complete, summary) {
   # Set up the project directory
   dir.create(here::here('output', subject_name, 'data'), showWarnings=FALSE, recursive=TRUE)
 
-  complete <- 'SBJ00135'
-  summary <- template
-  
   # Subset to one individual
   summary <- summary %>%
     filter(individual_id == complete)
