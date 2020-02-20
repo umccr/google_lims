@@ -173,18 +173,26 @@ write_subject <- function(complete, summary) {
   # longer round in the top level run folder, but in
   # ```<Illumina_ID>/<Project>/<SampleName>/<SampleID>_R1_001.fastq.gz```
   read1 <- bcbio_subset %>%
-    mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R1_001.fastq.gz'),
-                            run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R1_001.fastq.gz'),
-                            run > 93 ~ str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
+    mutate(from = case_when(run <= 80 & machine == 'A00130' ~ 
+                              paste0(fastq, '/', external_sample_id, '_R1_001.fastq.gz'),
+                            run > 80 & run <= 93 & machine == 'A00130' ~ 
+                              paste0(fastq, '/', project_name, '/', sample_name, '/', 
+                                     external_sample_id, '_R1_001.fastq.gz'),
+                            run > 93 | machine == 'A01052' ~ 
+                              str_replace(fastq, '.fastq.gz', '_R1_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R1_001.fastq.gz')) %>%
-    select(from, to)
+    select(from, to, row_id)
   
   read2 <- bcbio_subset %>%
-    mutate(from = case_when(run <= 80 ~ paste0(fastq, '/', sample_id, '_R2_001.fastq.gz'),
-                            run > 80 & run <= 93 ~ paste0(fastq, '/', project_name, '/', sample_name, '/', sample_id, '_R2_001.fastq.gz'),
-                            run > 93 ~ str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
+    mutate(from = case_when(run <= 80 & machine == 'A00130' ~ 
+                              paste0(fastq, '/', external_sample_id, '_R2_001.fastq.gz'),
+                            run > 80 & run <= 93 & machine == 'A00130' ~ 
+                              paste0(fastq, '/', project_name, '/', sample_name, '/',
+                                     external_sample_id, '_R2_001.fastq.gz'),
+                            run > 93 | machine == 'A01052' ~ 
+                              str_replace(fastq, '.fastq.gz', '_R2_001.fastq.gz'))) %>%
     mutate(to = paste0(targetname, '_R2_001.fastq.gz')) %>%
-    select(from, to)
+    select(from, to, row_id)
   
   link <- rbind(read1, read2)
 
@@ -196,7 +204,7 @@ write_subject <- function(complete, summary) {
   # Write the file list for staging files. First step, `aws cp` 
   write.table(paste('aws --profile spartan_s3_readonly s3 cp', 
                     link$from_path,
-                    '.',
+                    link$row_id,
                     '--recursive --exclude "*" --include',
                     paste('"', link$from_file, '"', sep = '')),
               file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
@@ -206,7 +214,7 @@ write_subject <- function(complete, summary) {
 
   # Second step, rename
   write.table(paste('mv', 
-                    link$from_file,
+                    paste(link$row_id, link$from_file, sep='/'),
                     link$to,
                     sep = ' '),
               file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
