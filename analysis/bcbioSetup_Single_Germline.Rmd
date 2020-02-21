@@ -142,7 +142,29 @@ template <- bcbio %>%
          project_name)
 ```
 
-### 5. Generating bcbio csv templates on a per-subject basis:
+### 5. Add control information
+
+Frequently germline-only samples are control cases for which we want to create validaton results. Assign the right benchmark set based on the subject information.
+
+```{r assignControl}
+# Define what validation data to use; all of these are shipped with bcbio so we don't have to prep standards
+validations <- c('giab-NA12878', 'giab-NA24385', 'giab-NA24631')
+names(validations) <- c('NA12878', 'NA24385', 'NA24631')
+
+# Not the most elegant solution. Help appreciated to clean this up
+template <- template %>% 
+  mutate(validate=ifelse(external_subject_id %in% names(validations), 
+                         paste(validations[external_subject_id], 'truth_small_variants.vcf.gz', sep='/'),
+                         '')) %>%
+  mutate(validate_regions=ifelse(external_subject_id %in% names(validations), 
+                         paste(validations[external_subject_id], 'truth_regions.bed', sep='/'),
+                         '')) %>%
+  mutate(validate_batch=ifelse(external_subject_id %in% names(validations), 
+                         external_subject_id,
+                         ''))
+```
+
+### 6. Generating bcbio csv templates on a per-subject basis:
 
 Generate a file with pointers to the sample FASTQs and their preferred new names as well as a sample descriptor (`.csv`) for bcbio to use as part of it's templating approach. The resulting directory structure can be copied to Spartan, e.g.:
 
