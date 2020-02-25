@@ -38,7 +38,7 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 ```{r project}
 PROJECT <- 'All'
-SECONDARY <- 'po6'
+SECONDARY <- ''
 
 # Do not change
 TYPE <- 'WGS'
