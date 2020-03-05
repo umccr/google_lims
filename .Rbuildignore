@@ -1,0 +1,8 @@
+^bump\.sh$
+^deploy$
+^LICENSE\.md$
+^nogit$
+^README\.Rmd$
+^\.Rproj\.user$
+^\.travis\.yml$
+^google_lims\.Rproj$
