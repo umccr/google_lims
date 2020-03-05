@@ -1,13 +1,21 @@
-.Rproj.user
-.Rhistory
-.RData
+.DS_Store
+.httr-oauth
 .Ruserdata
 .Rapp.history
-.DS_Store
-analysis/figure
-analysis/*png
-analysis/*html
-analysis/*_cache
-analysis/site_libs
-googlesheets_token.rds
-output/*
+.Rhistory
+.RData
+.Rproj.user
+.Rprofile
+
+# produced vignettes
+vignettes/*.html
+vignettes/*.pdf
+
+# Output files from R CMD build
+/*.tar.gz
+
+# Example code in package build process
+*-Ex.R
+
+# stuff that you don't want to track
+nogit/
