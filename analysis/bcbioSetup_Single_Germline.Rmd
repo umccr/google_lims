@@ -38,7 +38,7 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 ```{r project}
 PROJECT <- 'All'
-SECONDARY <- ''
+SECONDARY <- 'foo'
 
 # Do not change
 TYPE <- 'WGS'
@@ -103,12 +103,8 @@ bcbio <- samples %>%
   mutate(sample_id = if_else(sample_id == '-', external_sample_id, sample_id)) %>%
   mutate(library_id = if_else(library_id == '-', 'Missing', library_id)) %>%
   mutate(runname = illumina_id) %>%
-<<<<<<< HEAD
   mutate(machine = str_split(illumina_id, '_')[[1]][[2]]) %>%
   select(-illumina_id)
-=======
-  separate(illumina_id, c(NA, 'machine', NA, NA), sep='_')
->>>>>>> 68f7615766327953a0ef22852a869f07edd266c3
 
 # Add a 'target' name: what FASTQs are to be called after retrieval from S3
 bcbio <- bcbio %>%
@@ -178,8 +174,7 @@ Generate a file with pointers to the sample FASTQs and their preferred new names
 ```{r perBatch}
 write_subject <- function(complete, summary) {
   summary <- template
-  complete <- 'SBJ00027'
-  
+
   # Create a unique project name
   subject_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_', complete)
 
