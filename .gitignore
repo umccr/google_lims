@@ -19,3 +19,5 @@ vignettes/*.pdf
 
 # stuff that you don't want to track
 nogit/
+docs
+inst/doc

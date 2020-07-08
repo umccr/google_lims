@@ -6,3 +6,6 @@
 ^\.Rproj\.user$
 ^\.travis\.yml$
 ^google_lims\.Rproj$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

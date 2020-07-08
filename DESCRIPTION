@@ -3,7 +3,7 @@ Title: Interacting with UMCCR LIMS googlesheet
 Version: 0.0.1
 Description: Functionality for generating lists of FASTQs, metadata and scripts for bcbio and DRAGEN.
 Authors@R: c(
-    person(given = "Oliver", family = "Hofmann", role = c("aut"), email = "ohofmann72@gmail.com", comment = c(ORCID = "XXX")),
+    person(given = "Oliver", family = "Hofmann", role = c("aut"), email = "ohofmann72@gmail.com", comment = c(ORCID = "0000-0002-7738-1513")),
     person(given = "Peter", family = "Diakumis", role = c("aut", "cre"), email = "peterdiakumis@gmail.com", comment = c(ORCID = "0000-0002-7502-7545")))
 URL: https://github.com/umccr/google_lims
 BugReports: https://github.com/umccr/google_lims/issues
