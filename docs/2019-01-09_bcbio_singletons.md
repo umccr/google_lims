@@ -45,7 +45,7 @@ The resulting run scripts can be submitted with:
 
 The output can be monitored with:
 
-`watch -d -n 300 'find 2020*/ -maxdepth 4 -name bcbio-nextgen-debug.log -path "*/log/*" -and -not -path "*/data/*" -and -not -path "*/bcbiotx/*" 2>/dev/null | xargs tail -n 2'`
+`watch -d -n 300 'find 2020*/ -maxdepth 4 -name bcbio-nextgen-debug.log -path "*/log/*" -and -not -path "*/data/*" -and -not -path "*/bcbiotx/*" 2>/dev/null | xargs tail -n 3'`
 
 After bcbio finishes the results _can_ be post-processed with `umccrise` which follows the same configuration approach with the `config_umccrise.sh` script. Copy it to the project directory, change PROJECTNAME and run it, then follow the progress with:
 
