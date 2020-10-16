@@ -37,11 +37,11 @@ This currently requires specifying either the project name or a 'secondary use' 
 The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
 
 ```{r project}
-PROJECT <- 'All'
-SECONDARY <- 'wgs_12'
+SECONDARY <- 'wgs_142'
 
 # Do not change
 TYPE <- 'WGS'
+PROJECT <- 'All'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -268,7 +268,8 @@ write_subject <- function(complete, summary) {
   
   link <- rbind(read1, read2)
 
-  # Adapt to S3 syntax which doesn't include wildcards; split path and filename for include/exclude statement
+  # Adapt to S3 syntax which doesn't include wildcards; split path and
+  # filename for include/exclude statement
   link <- link %>%
     mutate(from_path = dirname(link$from)) %>%
     mutate(from_file = basename(link$from))
@@ -306,6 +307,12 @@ write_subject <- function(complete, summary) {
               col.names = TRUE,
               quote = FALSE,
               sep = ',')
+  
+  # Add project information for re-use on Gadi
+  project_name <- unique(summary$project_name)
+  write_file(project_name,
+             here::here('output', subject_name, 'data', 'project_name.txt'))
+  
 }
 
 for (subject in complete_subjects) {

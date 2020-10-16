@@ -40,10 +40,10 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 ```{r project}
 PROJECT <- 'All'
-SECONDARY <- 'exome_12'
+SECONDARY <- 'wgs_23'
 
 # Do not change
-TYPE <- 'exome'
+TYPE <- 'WGS'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -222,8 +222,7 @@ template <- template %>%
 #
 bcbio <- bcbio %>%
   mutate(fastq = str_replace(fastq,
-                             's3://umccr-fastq-data-prod/200508_A01052_0012_BH5LY7DSXY/', 
-                             '/data/cephfs/punim0010/projects/Hofmann_Exomes/Fastq_Exome/'))
+                             's3://umccr-fastq-data-prod/200702_A00130_0137_AH5KMHDSXY/',                       '/data/cephfs/punim0010/projects/Hofmann_Demultiplexing/200702_A00130_0137_AH5KMHDSXY/Fastq_Exome_200702_A00130_0137_AH5KMHDSXY/'))
 ```
 
 ### 5. Generating bcbio csv templates on a per-subject basis:
@@ -295,39 +294,61 @@ write_subject <- function(complete, summary) {
     mutate(from_path = dirname(link$from)) %>%
     mutate(from_file = basename(link$from))
 
-  # Write the file list for staging files. 
-  write.table(paste('mkdir',
-                    link$row_id),
-              file = here::here('output', 
-                                subject_name, 'data', 
-                                paste0(subject_name, '_files.sh')),
+  # Write the file list for staging files. First step, `aws cp` 
+  write.table(paste('aws --profile spartan_s3_readonly s3 cp', 
+                    link$from_path,
+                    link$row_id,
+                    '--recursive --exclude "*" --include',
+                    paste('"', link$from_file, '"', sep = '')),
+              file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
               col.names = FALSE,
               row.names = FALSE,
               quote = FALSE)
-  
-  write.table(paste('cp -al', 
-                     paste0(link$from_path, '/', link$from_file),
-                     paste0(link$row_id, '/')),
-              file = here::here('output', 
-                                subject_name, 'data', 
-                                paste0(subject_name, '_files.sh')),
-              col.names = FALSE,
-              row.names = FALSE,
-              quote = FALSE,
-              append = TRUE)
 
-  # Rename to unify sample names
+  # Second step, rename
   write.table(paste('mv', 
                     paste(link$row_id, link$from_file, sep='/'),
                     link$to,
                     sep = ' '),
-              file = here::here('output', 
-                                subject_name, 'data', 
-                                paste0(subject_name, '_files.sh')),
+              file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
               col.names = FALSE,
               row.names = FALSE,
               quote = FALSE,
               append = TRUE)
+   
+  # # Write the file list for staging files. 
+  # write.table(paste('mkdir',
+  #                   link$row_id),
+  #             file = here::here('output', 
+  #                               subject_name, 'data', 
+  #                               paste0(subject_name, '_files.sh')),
+  #             col.names = FALSE,
+  #             row.names = FALSE,
+  #             quote = FALSE)
+  # 
+  # write.table(paste('cp -al', 
+  #                    paste0(link$from_path, '/', link$from_file),
+  #                    paste0(link$row_id, '/')),
+  #             file = here::here('output', 
+  #                               subject_name, 'data', 
+  #                               paste0(subject_name, '_files.sh')),
+  #             col.names = FALSE,
+  #             row.names = FALSE,
+  #             quote = FALSE,
+  #             append = TRUE)
+  # 
+  # # Rename to unify sample names
+  # write.table(paste('mv', 
+  #                   paste(link$row_id, link$from_file, sep='/'),
+  #                   link$to,
+  #                   sep = ' '),
+  #             file = here::here('output', 
+  #                               subject_name, 'data', 
+  #                               paste0(subject_name, '_files.sh')),
+  #             col.names = FALSE,
+  #             row.names = FALSE,
+  #             quote = FALSE,
+  #             append = TRUE)
 
   # Write CSV for bcbio.
   # Don't need an R3 FASTQ for bcbio; the UMI pre-processing will
@@ -344,6 +365,12 @@ write_subject <- function(complete, summary) {
               col.names = TRUE,
               quote = FALSE,
               sep = ',')
+
+  # Add project information for re-use on Gadi
+  project_name <- unique(summary$project_name)
+  write_file(project_name,
+             here::here('output', subject_name, 'data', 'project_name.txt'))
+
 }
 
 for (subject in complete_subjects) {

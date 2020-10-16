@@ -39,7 +39,7 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 ```{r project}
 PROJECT <- 'All'
-SECONDARY <- 'wts_12'
+SECONDARY <- 'wts_142'
 
 # Do not change
 TYPE <- 'WTS'
@@ -216,6 +216,12 @@ write_subject <- function(subject, summary) {
               col.names = TRUE,
               quote = FALSE,
               sep = ',')
+
+  # Add project information for re-use on Gadi
+  project_name <- unique(summary$project_name)
+  write_file(project_name,
+             here::here('output', subject_name, 'data', 'project_name.txt'))
+
 }
 
 # Create a bcbio template and rename columns for the YAML 
