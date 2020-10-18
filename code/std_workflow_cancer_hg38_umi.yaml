@@ -9,6 +9,9 @@ details:
       mark_duplicates: true
       remove_lcr: false
 
+      # UMI support
+      umi_type: fastq_name
+
       # Poly-G filtering
       trim_reads: atropos
       adapters: polyx
@@ -32,7 +35,6 @@ details:
 
       # Structural variation. No ensemble calling option here
       svcaller: [manta]
-#      svprioritize: umccr_cancer_genes.latest.genes
 
       # Add HLA
 #      hlacaller: optitype
