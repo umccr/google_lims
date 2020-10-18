@@ -38,11 +38,11 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 
 ```{r project}
-PROJECT <- 'All'
-SECONDARY <- 'wts_142'
+SECONDARY <- 'wts_143'
 
 # Do not change
 TYPE <- 'WTS'
+PROJECT <- 'All'
 ```
 
 ### 2. Import data from Google spreadsheet

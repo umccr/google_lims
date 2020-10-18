@@ -37,7 +37,7 @@ This currently requires specifying either the project name or a 'secondary use' 
 The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
 
 ```{r project}
-SECONDARY <- 'wgs_142'
+SECONDARY <- 'wgs_143'
 
 # Do not change
 TYPE <- 'WGS'

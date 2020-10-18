@@ -2,17 +2,20 @@
 
 ## 1. Create config files for the samples to be run
 
-If this is for batches, follow the [bcbio Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup.Rmd).
+We are using two standard approaches to set up bcbio on Gadi:
 
-If this is for single patients, follow the [bcbioSetup_Single Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_Single.Rmd)
+* If this is for single patients, follow the [bcbioSetup_Single Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_Single.Rmd)
+* If this is for WTS, follow the [bcbioSetup_WTS](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_WTS.Rmd)
 
-If this is for WTS, follow the [bcbioSetup_WTS](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_WTS.Rmd)
+For batch runs (e.g., research cohorts) there is also a generic [bcbio Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup.Rmd) which likely needs revisions at this point as it has not been used for a while. We also have an experimental [bcbio UMI Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_Single_UMI.Rmd) which is not meant for production use until we have standardized how UMI FASTQs are generated on NovaStore or IAP. 
 
-Each of these workflows should result in two files: TIMESTAMP_PROJECT.csv and TIMESTAMP_PROJECT.sh file, per subject folder.
+Each of these workflows should result in three files: `TIMESTAMP_PROJECT.csv`, `TIMESTAMP_PROJECT.sh` file and a `project_name.txt` per subject folder.
 
 ## 2. Running the samples
 
 ### 2a. Using Spartan
+
+**Note:** Spartan use has not been tested for a while. Limit to Gadi where possible.
 
 If this is for **testing**, follow these guidelines to run the samples on **Spartan**. Note that the versions of bcbio and umccrise may be out of date on Spartan and subsequently superseded (check with `umccrise --version` and `bcbio_nextgen.py -v`).
 
@@ -61,58 +64,42 @@ Copy `TIMESTAMP_PROJECT/` to Gadi
 
 **Log into Gadi.**
 
-Change into the new project directory created in the last step:
+Change into the new project directory created in the last step and copy over the relevant configuration file:
 
-`cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio.sh .`
+* for WGS `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio.sh .`
+* for WTS `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio_wts.sh .`
 
-For WTS samples, `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio_wts.sh .`
-
-Replace the `PROJECTNAME` placeholder in this file with the current project.
+The `scripts` folder has additional drivers that can be used as needed, e.g., for exome or UMI runs. Replace the `PROJECTNAME` placeholder in the copied config script with the current project, then run it.
 
 `sh config_bcbio.sh` or for WTS samples `sh config_bcbio_wts.sh`
 
 This will set up the folder structure, merge input files (in the case of top-ups) and create run scripts which can be submitted with:
 
-`find ./2019* -name run.sh -and -not -path "*/data/*" -execdir qsub {} \;`
+`find ./2020* -name run.sh -and -not -path "*/data/*" -execdir qsub {} \;`
 
 The output can be monitored with:
 
-`watch -d -n 300 'find 2019*/ -maxdepth 4 -name bcbio-nextgen-debug.log -path "*/log/*" -and -not -path "*/data/*" -and -not -path "*/bcbiotx/*" 2>/dev/null | xargs tail -n 2'`
-
-After bcbio finishes the results are post-processed with `umccrise` which follows the same configuration approach with the `config_umccrise.sh` script. Copy it to the project directory:
-
-`cp /g/data3/gx8/projects/std_workflow/scripts/config_umccrise.sh .`
-
-change PROJECTNAME and run it, then follow the progress with:
-
-`watch -d -n 300 'find 2019*/ -maxdepth 5 -name *snakemake*.log -path "*/umccrised/*" 2>/dev/null | xargs tail -n 2'`
+`watch -d -n 300 'find 2020*/ -maxdepth 4 -name bcbio-nextgen-debug.log -path "*/log/*" -and -not -path "*/data/*" -and -not -path "*/bcbiotx/*" 2>/dev/null | xargs tail -n 2'`
 
 ## Organise results & upload to S3
 
-Note: This script is for organizing WGS sample results.
+After the runs finish successfully (a few hours for WTS, about 24-30h for WGS) data can be moved to AWS S3. Start by organizing results into the required folder structure by copying a helper script into the project directory:
 
-At the end of the run organise data into one place via `organize_results.sh`:
+`cp /g/data3/gx8/projects/std_workflow/scripts/organize_s3.sh .`
 
-`cp /g/data3/gx8/projects/std_workflow/scripts/organize_results.sh .`
+Again, adjust `PROJECT` in the first line of the script and run it; results should end up in an `s3` directory. Now data can be moved to S3. Start an interactive job (`qsub -I -P gx8 -q copyq -l walltime=12:00:00,ncpus=1,wd,mem=32G,jobfs=100GB`) and authenticate (`aws sso login --profile prod`). Add another helper script to the project folder:
 
-(Confirm the script is pointing at the correct directory).
-Reports for Trello end up in `reports`, the data for S3 in `sync`. 
-(Make sure you have followed the directions [in the wiki](https://github.com/umccr/wiki/blob/master/computing/cloud/aws.md)
-for setting up your AWS credentials).
-Start an interactive job (`qsub -I -P gx8 -q copyq -l walltime=12:00:00,ncpus=1,wd,mem=32G,jobfs=100GB`), authenticate (`ssoaws`).  You will need to assume the `fastq_data_uploader` role.  If you **do not** have access to this role, talk to Florian.
-Then run:
+* for WGS `cp /g/data3/gx8/projects/std_workflow/scripts/upload_s3.sh .`
+* for WTS `cp /g/data3/gx8/projects/std_workflow/scripts/upload_s3_wts.sh .`
 
-`aws s3 sync --no-progress --dryrun . s3://umccr-primary-data-prod/PROJECT/`
 
-... to upload all relevant data to the S3 results bucket.
+As per usual change the `PROJECT` name in the first script line, then run the script. It should iterate over project folders and samples in S3, upload them to AWS, then kick off `umccrise` in the case of WGS samples. The `#biobots` channel on Slack tracks the `umccrise` progress. 
 
-Move the information from the reports folder to Trello, by copying this data locally and then uploading.
+After all of this completes successfully there's some housekeeping to do:
 
-`rsync -aP --include="*/" --include '*html' --exclude '*' --append-verify -L yourUserName@r-dm.nci.org.au:/g/data3/gx8/projects/PROJECT/reports/ .`
+* Update the S3 `Results` locations in the Google LIMs.
+* Wipe the project folders from Gadi
+* Let Wing-Yee know that the run completed (e.g., in Slack's `#medical-genomics` channel)
 
-(NOTE - Only Oliver can upload files larger than 10MB to Trello).
 
-- Update the S3 locations in the Google LIMs.
-
-- Wipe the project folders from Raijin.
 
