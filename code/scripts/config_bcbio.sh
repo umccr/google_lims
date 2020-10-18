@@ -1,5 +1,5 @@
 # Hard-coded project directory for now; don't want this to go off the rails
-for DIRECTORY in /g/data/gx8/projects/PROJECT/2019*/ ;
+for DIRECTORY in /g/data/gx8/projects/PROJECT/2020*/ ;
 do
   BATCH=$(basename $DIRECTORY)
   DATADIR="$DIRECTORY"data  
@@ -7,7 +7,7 @@ do
 
   # Copy and replace-in-place (rather than one step replace) for more flexibility
   cp -v /g/data/gx8/projects/std_workflow/merge.sh $DATADIR
-  cp -v /g/data/gx8/projects/std_workflow/bcbio_system_normalbw.yaml $DATADIR
+  cp -v /g/data/gx8/projects/std_workflow/bcbio_system_normalgadi.yaml $DATADIR
 
   sed -i "s|TEMPLATE|$SAMPLES|g" $DATADIR/merge.sh
 
@@ -20,7 +20,7 @@ do
   sed -i "s|CONFIG|$CLEANBATCH|g" $DATADIR/merge.sh
 
   # Have the systemconfig point at the sample directory
-  sed -i "s|INPUTDIR|$DATADIR/merged/|g" $DATADIR/bcbio_system_normalbw.yaml
+  sed -i "s|INPUTDIR|$DATADIR/merged/|g" $DATADIR/bcbio_system_normalgadi.yaml
 
   cd $DATADIR
   qsub merge.sh
