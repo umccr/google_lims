@@ -46,6 +46,7 @@ Point `umccrise` at the `final` directory:
 Copy the folders created to spartan and update group read permissions.
 
 `scp -r TIMESTAMP_PROJECT/ yourUserName@spartan.hpc.unimelb.edu.au:/data/cephfs/punim0010/data/Transfer/raijin/`
+
 `chmod g+w -R TIMESTAMP_PROJECT/`
 
 (Note it may be preferable to upload the folders into a new directory created within that location, if multiple users are using the directory simultaneously).
