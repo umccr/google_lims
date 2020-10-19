@@ -77,6 +77,8 @@ Change into the new project directory created in the last step and copy over the
 * for WGS `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio.sh .`
 * for WTS `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio_wts.sh .`
 
+If a WGS run includes **FFPE* samples it's usually best to move these to a separate project directory and use `config_bcbio_ffpe.sh` to configure these. This results in a reduced workflow set that ensures FFPE samples do not stall and cause delays. 
+
 The `scripts` folder has additional drivers that can be used as needed, e.g., for exome or UMI runs. Replace the `PROJECTNAME` placeholder in the copied config script with the current project, then run it.
 
 `sh config_bcbio.sh` or for WTS samples `sh config_bcbio_wts.sh`
