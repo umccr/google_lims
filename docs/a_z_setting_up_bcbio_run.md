@@ -5,7 +5,7 @@
 We are using two standard approaches to set up bcbio on Gadi:
 
 * If this is for single patients, follow the [bcbioSetup_Single Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_Single.Rmd)
-* If this is for WTS, follow the [bcbioSetup_WTS](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_WTS.Rmd)
+* If this is for WTS, follow the [bcbioSetup_WTS_Single Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_WTS_Single.Rmd)
 
 For batch runs (e.g., research cohorts) there is also a generic [bcbio Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup.Rmd) which likely needs revisions at this point as it has not been used for a while. We also have an experimental [bcbio UMI Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_Single_UMI.Rmd) which is not meant for production use until we have standardized how UMI FASTQs are generated on NovaStore or IAP. 
 
