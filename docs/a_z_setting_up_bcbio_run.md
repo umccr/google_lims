@@ -95,6 +95,15 @@ The output can be monitored with:
 $ watch -d -n 300 'find 2020*/ -maxdepth 4 -name bcbio-nextgen-debug.log -path "*/log/*" -and -not -path "*/data/*" -and -not -path "*/bcbiotx/*" 2>/dev/null | xargs tail -n 2'
 ```
 
+## Post-processing WTS
+
+All WGS post-processing happens on AWS but for WTS we need to generate Arriba fusion plots outside of bcbio. This step is quite manual and should probably be added to the WTS workflow itself but for now:
+
+* `cp /g/data3/gx8/projects/std_workflow/scripts/draw_fusions_hg38.sh .`
+* adjust `PROJECT` name at the top of the script as per usual
+* start an interactive instance (`qsub -I -P gx8 -q normal -l walltime=12:00:00,ncpus=24,wd,mem=128G,jobfs=100GB,storage=scratch/gx8+gdata/gx8`) and run the `draw_fusions_hg38.sh` script
+
+
 ## Organise results & upload to S3
 
 After the runs finish successfully (a few hours for WTS, about 24-30h for WGS) data can be moved to AWS S3. Start by organizing results into the required folder structure by copying a helper script into the project directory:
