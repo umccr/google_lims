@@ -32,16 +32,16 @@ Code snippets to generate file summaries (for rsync'ing around) and bcbio sample
 
 ### 1. Setting up project information
 
-This currently requires specifying either the project name or a 'secondary use' field. The exact names can be copied from the `Project` column of the Google-LIMS. An alternative use is to set the "secondary" analysis flag to match the samples that need to be processed, regardless of processing status. The `PROJECT` name will be used to name config and sample files, but any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE` (WGS for this script). This is useful when re-processing samples for research projects, or when wanting to process a new NovaSeq run with samples from multiple different projects. 
+This currently requires specifying a 'secondary use' field in the LIMS. Set the "secondary" analysis flag in the code snippet below to match the `secondary use` LIMS field used to highlight samples that need to be processed, regardless of processing status. Any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE` (WGS for this script). 
 
 The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
 
 ```{r project}
-PROJECT <- 'All'
-SECONDARY <- 'control'
+SECONDARY <- 'qap_germline'
 
 # Do not change
 TYPE <- 'WGS'
+PROJECT <- 'All'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -61,7 +61,7 @@ lims_key <- drive_find('^Google LIMS$', team_drive = 'LIMS')$id
 drive_download(as_id(lims_key), path = file.path(backup_dir, filename), overwrite = TRUE)
 
 # Import downloaded spreadsheet (sheet #1) as a tibble
-samples_gs <- read_csv(file.path(backup_dir, filename))
+samples_gs <- read_csv(file.path(backup_dir, filename), col_types = cols(.default = "c", Run = "d"))
 
 # Tweak for analysis
 #
@@ -258,6 +258,11 @@ write_subject <- function(complete, summary) {
               col.names = TRUE,
               quote = FALSE,
               sep = ',')
+
+  # Add project information for re-use on Gadi
+  project_name <- unique(summary$project_name)
+  write_file(project_name,
+             here::here('output', subject_name, 'data', 'project_name.txt'))
 }
 
 for (subject in unique(template$batch)) {
