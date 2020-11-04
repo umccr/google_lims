@@ -112,7 +112,7 @@ After the runs finish successfully (a few hours for WTS, about 24-30h for WGS) d
 $ cp /g/data3/gx8/projects/std_workflow/scripts/organize_s3.sh .
 ```
 
-Again, adjust `PROJECT` in the first line of the script and run it; results should end up in an `s3` directory. Now data can be moved to S3. Start an interactive job (`qsub -I -P gx8 -q copyq -l walltime=12:00:00,ncpus=1,wd,mem=32G,jobfs=100GB`) and authenticate (`aws sso login --profile prod`). Add another helper script to the project folder:
+Again, adjust `PROJECT` in the first line of the script and run it; results should end up in an `s3` directory. Now data can be moved to S3. Start an interactive job (`qsub -I -P gx8 -q copyq -l walltime=12:00:00,ncpus=1,wd,mem=32G,jobfs=100GB,storage=scratch/gx8+gdata/gx8`) and authenticate (`aws sso login --profile prod`). Add another helper script to the project folder:
 
 * for WGS `cp /g/data3/gx8/projects/std_workflow/scripts/upload_s3.sh .`
 * for WTS `cp /g/data3/gx8/projects/std_workflow/scripts/upload_s3_wts.sh .`
