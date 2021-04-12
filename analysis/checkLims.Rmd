@@ -1,5 +1,5 @@
 ---
-title: "UMCCR LIMS Sanity Checks"
+title: "UMCCR LIMS consistency Checks"
 output:
   html_document:
     theme: readable
@@ -22,6 +22,8 @@ library(janitor)
 library(googlesheets)
 library(parsedate)
 ```
+
+Deprecated. Checks to be merged into `check_google_lims.Rmd`. 
 
 ```{r dataPrep}
 # Register UMCCR spreadsheet. Use cached authentication

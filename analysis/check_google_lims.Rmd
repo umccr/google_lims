@@ -1,0 +1,173 @@
+---
+title: "UMCCR Google-LIMS validation"
+author: "Oliver Hofmann"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: readable
+    toc: false
+    toc_float: false
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r custom, echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+library(tidyr)
+library(rmarkdown)
+library(dplyr)
+library(DT)
+library(readr)
+library(forcats)
+library(stringr)
+library(janitor)
+library(googledrive)
+library(here)
+library(skimr)
+library(purrr)
+library(pointblank)
+```
+
+## Introduction
+
+Test framework based on [pointblank](https://github.com/rich-iannone/pointblank
+) to replace a number of existing scripts to check data completeness and consistency:
+
+1. [UMCCR Sample Summary](bcbioSetup.html)
+1. [UMCCR LIMS Consistency Checks](checkLims.html)
+1. [UMCCR Backup Check](verifyBackup.html)
+
+
+
+
+### 1. Import data from Google spreadsheet
+
+This step generates a data frame from the Google spreadsheet, unifying variable names and simplifying subject IDs for bcbio along the way. It replaces empty `results` cells (which indicate samples that still need processing) with a `-` to distinguish from true NAs and gets rid of whitespace in subject identifiers (although ideally there should not be any empty cells in the sheet in the first place - these will be enforced after an initial cleanup). Otherwise standard data cleanup with `janitor`. 
+
+We are also creating a timestamped backup of the Google Doc each time it is accessed, just in case.
+
+```{r importData, message=FALSE}
+# Create a backup copy each time we access the sample info
+tm <- as.POSIXlt(Sys.time(), "UTC", "%Y-%m-%dT%H:%M:%S")
+timestamp <- strftime(tm , "%Y-%m-%dT%H%M")
+filename <- paste(timestamp, 'backup.csv', sep = '_')
+backup_dir <- file.path(here::here('output', 'backup'))
+dir.create(backup_dir, recursive = TRUE) # mkdir -p (warns if it already exists):
+
+# Google Drive implementation
+lims_key <- drive_find('^Google LIMS$', team_drive = 'LIMS')$id
+drive_download(as_id(lims_key), path = file.path(backup_dir, filename), overwrite = TRUE)
+
+# Import downloaded spreadsheet (sheet #1) as a tibble
+samples_gs <- read_csv(file.path(backup_dir, filename), col_types = cols(.default = "c", Run = "d"))
+
+# Tweak for analysis
+#
+# Currently mapping external_subject_id to subject_id (and same for sample id)
+#
+samples <- samples_gs %>%
+  clean_names() %>%
+  mutate(secondary_analysis = ifelse(is.na(secondary_analysis), '-', secondary_analysis)) %>%
+  remove_empty(c('rows', 'cols')) %>%
+  mutate(results = ifelse(is.na(results), '-', results))
+
+# Add unique id to each row
+samples <- samples %>%
+  mutate(row_id = rownames(samples))
+```
+
+### 2. Filter data
+
+For the first iteration I am limiting the consistency checks to samples from 2019 onwards; older samples were generated under a variety of schemas and can (should) be backported eventually.
+
+```{r subset, message=FALSE}
+samples <- samples %>% 
+  filter(timestamp >= as.Date('2021-01-01'))
+```
+
+### 3. Initial data exploration
+
+Testing the general support structure for the `pointblank` module:
+
+```{r basic_checks, message=FALSE}
+agent <-
+  create_agent(
+    tbl = samples,
+    tbl_name = "Google-LIMS",
+    label = "Initial consistency check"
+  ) %>%
+  col_is_character(vars(row_id)) %>%
+  rows_distinct(columns = vars(row_id)) %>%
+  col_vals_expr(expr(str_starts(subject_id, 'SBJ')),
+                preconditions = ~ . %>% dplyr::mutate(subject_id = paste('T', subject_id, sep='')),
+                label = 'Subject identifiers start with `SBJ`') %>%
+  col_vals_regex(vars(subject_id), regex = 'SBJ\\d{5}') %>%
+  interrogate()
+
+agent
+```
+
+Note for preconditions:
+
+> An optional expression for mutating the input table before proceeding with the validation. This is ideally as a one-sided R formula using a leading ~. In the formula representation, the . serves as the input data table to be transformed (e.g., ~ . %>% dplyr::mutate(col = col + 10).
+
+
+## Testing ideas
+
+**Basic tests:**
+
+* Overview of NA / completeness of fields
+* Confirm OverrideCycles is set
+* Enumerate source, quality, phenotype, assay, type
+* Identifier RegEx work
+* SubjectID is unique to a given ExternalSubjectID
+* Negative-control samples have an NTC SampleID
+* Control-samples have a PTC SampleID
+* All clinical samples have a subjectID
+* All samples have a subjectID
+* S3 storage location
+* S3 path matches components
+* ToDo matches S3 storage string
+* FASTQ storage is an S3 pointer
+
+**Identifier consistency check:**
+
+* Clinical samples start with MDX, TGX or CCP followed by 6 digits (1,2 == last two digits of the current year, 3,4,5,6 == running number)
+* Research samples start with PRJ followed by 6 digits (1,2 == last two digits of the current year, 3,4,5,6 == running number)
+* Positive/Negative controls start with PTC/NTC followed by an underscore followed by a not further defined word/string with minimal length 1
+
+Library ID format:
+
+* Internal libraries (created by the lab) start with the letter L followed by 7 digits (1,2 == last two digits of the current year, 3,4,5,6,7 == running number reset to 1 at the beginning of each year)
+* External libraries (provided to the lab) start with the letter L followed by the internal sample ID associated with the library on receipt
+* Library IDs may be followed by an extension _topup/_rerun followed by a single digit 
+
+Sample RegEx:
+
+```
+library_id = '(?:' + library_id_int + '|' + library_id_ext + ')(?:' + topup_exp + '|' + rerun_exp + ')?'
+topup_exp = '(?:_topup\d?)'
+rerun_exp = '(?:_rerun\d?)'
+library_id_int = 'L\d{7}'
+library_id_ext = 'L' + sample_int
+```
+
+Sample ID format:
+
+* Clinical samples start with MDX, TGX or CCP followed by 6 digits (1,2 == last two digits of the current year, 3,4,5,6 == running number)
+* Research samples start with PRJ followed by 6 digits (1,2 == last two digits of the current year, 3,4,5,6 == running number)
+* Positive/Negative controls start with PTC/NTC followed by an underscore followed by a not further defined word/string with minimal length 1
+
+Sample RegEx:
+
+```
+sample_id = '(?:' + sample_int + '|' + sample_control + ')
+sample_int = '(?:PRJ|CCR|MDX|TGX)\d{6}'
+sample_control = '(?:NTC|PTC)_\w+'
+```
+
+Compound queries:
+
+* Each library_id only associated with a single sample_id, subject_id, assay, phenotype
+* Each sample_id only associated with a single subject_id
