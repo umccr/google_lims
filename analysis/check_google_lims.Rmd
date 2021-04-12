@@ -39,8 +39,6 @@ Test framework based on [pointblank](https://github.com/rich-iannone/pointblank
 1. [UMCCR Backup Check](verifyBackup.html)
 
 
-
-
 ### 1. Import data from Google spreadsheet
 
 This step generates a data frame from the Google spreadsheet, unifying variable names and simplifying subject IDs for bcbio along the way. It replaces empty `results` cells (which indicate samples that still need processing) with a `-` to distinguish from true NAs and gets rid of whitespace in subject identifiers (although ideally there should not be any empty cells in the sheet in the first place - these will be enforced after an initial cleanup). Otherwise standard data cleanup with `janitor`. 
