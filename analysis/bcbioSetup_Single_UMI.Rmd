@@ -1,5 +1,5 @@
 ---
-title: "UMCCR bcbio single patient config for samples with UMIs"
+title: "UMCCR bcbio single patient config for UMI-associated data stored on Spartan S3"
 author: "Oliver Hofmann"
 date: "`r Sys.Date()`"
 output:
@@ -26,6 +26,9 @@ library(skimr)
 library(purrr)
 ```
 
+**DEPRECATED:** Please use the GDS versions (`*_Single_GDS.Rmd`) which will automatically retrieve additional FASTA files (`R3/R4`) as needed. If UMI data needs to retrieved fron Spartan give this script a try. It expects data to sit on a local file system (see lines 223 onwards).
+
+
 ## Introduction
 
 Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in. This version differs from the `bcbioSetup.Rmd` in that it is meant for _single_ patient samples only, i.e., samples are only batched for individual patients not across a whole project. 
@@ -40,10 +43,10 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 ```{r project}
 PROJECT <- 'All'
-SECONDARY <- 'wgs_23'
+SECONDARY <- 'lg_exome'
 
 # Do not change
-TYPE <- 'WGS'
+TYPE <- 'exome'
 ```
 
 ### 2. Import data from Google spreadsheet
@@ -222,7 +225,7 @@ template <- template %>%
 #
 bcbio <- bcbio %>%
   mutate(fastq = str_replace(fastq,
-                             's3://umccr-fastq-data-prod/200702_A00130_0137_AH5KMHDSXY/',                       '/data/cephfs/punim0010/projects/Hofmann_Demultiplexing/200702_A00130_0137_AH5KMHDSXY/Fastq_Exome_200702_A00130_0137_AH5KMHDSXY/'))
+                             's3://umccr-fastq-data-prod/200508_A01052_0012_BH5LY7DSXY/',                       '/data/gpfs/projects/punim0010/projects/Hofmann_Demultiplexing/200508_A01052_0012_BH5LY7DSXY/'))
 ```
 
 ### 5. Generating bcbio csv templates on a per-subject basis:
@@ -288,67 +291,45 @@ write_subject <- function(complete, summary) {
   
   link <- rbind(read1, read2, read3)
 
-  # Adapt to S3 syntax which doesn't include wildcards; split path and 
+  # Adapt to S3 syntax which doesn't include wildcards; split path and
   # filename for include/exclude statement
   link <- link %>%
     mutate(from_path = dirname(link$from)) %>%
     mutate(from_file = basename(link$from))
 
-  # Write the file list for staging files. First step, `aws cp` 
-  write.table(paste('aws --profile spartan_s3_readonly s3 cp', 
-                    link$from_path,
-                    link$row_id,
-                    '--recursive --exclude "*" --include',
-                    paste('"', link$from_file, '"', sep = '')),
-              file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
+  # Write the file list for staging files.
+  write.table(paste('mkdir',
+                    link$row_id),
+              file = here::here('output',
+                                subject_name, 'data',
+                                paste0(subject_name, '_files.sh')),
               col.names = FALSE,
               row.names = FALSE,
               quote = FALSE)
 
-  # Second step, rename
-  write.table(paste('mv', 
-                    paste(link$row_id, link$from_file, sep='/'),
-                    link$to,
-                    sep = ' '),
-              file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
+  write.table(paste('cp -al',
+                     paste0(link$from_path, '/', link$from_file),
+                     paste0(link$row_id, '/')),
+              file = here::here('output',
+                                subject_name, 'data',
+                                paste0(subject_name, '_files.sh')),
               col.names = FALSE,
               row.names = FALSE,
               quote = FALSE,
               append = TRUE)
-   
-  # # Write the file list for staging files. 
-  # write.table(paste('mkdir',
-  #                   link$row_id),
-  #             file = here::here('output', 
-  #                               subject_name, 'data', 
-  #                               paste0(subject_name, '_files.sh')),
-  #             col.names = FALSE,
-  #             row.names = FALSE,
-  #             quote = FALSE)
-  # 
-  # write.table(paste('cp -al', 
-  #                    paste0(link$from_path, '/', link$from_file),
-  #                    paste0(link$row_id, '/')),
-  #             file = here::here('output', 
-  #                               subject_name, 'data', 
-  #                               paste0(subject_name, '_files.sh')),
-  #             col.names = FALSE,
-  #             row.names = FALSE,
-  #             quote = FALSE,
-  #             append = TRUE)
-  # 
-  # # Rename to unify sample names
-  # write.table(paste('mv', 
-  #                   paste(link$row_id, link$from_file, sep='/'),
-  #                   link$to,
-  #                   sep = ' '),
-  #             file = here::here('output', 
-  #                               subject_name, 'data', 
-  #                               paste0(subject_name, '_files.sh')),
-  #             col.names = FALSE,
-  #             row.names = FALSE,
-  #             quote = FALSE,
-  #             append = TRUE)
+
+  # Rename to unify sample names
+  write.table(paste('mv',
+                    paste(link$row_id, link$from_file, sep='/'),
+                    link$to,
+                    sep = ' '),
+              file = here::here('output',
+                                subject_name, 'data',
+                                paste0(subject_name, '_files.sh')),
+              col.names = FALSE,
+              row.names = FALSE,
+              quote = FALSE,
+              append = TRUE)
 
   # Write CSV for bcbio.
   # Don't need an R3 FASTQ for bcbio; the UMI pre-processing will
