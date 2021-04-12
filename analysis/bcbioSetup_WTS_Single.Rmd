@@ -1,5 +1,5 @@
 ---
-title: "UMCCR bcbio WTS batch config"
+title: "UMCCR bcbio single patient WTS config for data stored on Spartan S3"
 author: "Oliver Hofmann"
 date: "`r Sys.Date()`"
 output:
@@ -39,7 +39,7 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 
 ```{r project}
-SECONDARY <- 'wts_143'
+SECONDARY <- 'wts_32'
 
 # Do not change
 TYPE <- 'WTS'
@@ -131,6 +131,17 @@ This step is relatively easy for WTS samples since we do not have to worry about
 > `scp -r BATCHFILES spartan:/data/cephfs/punim0010/data/Transfer/raijin/`
 
 Note that this will **fail** for samples with topups within the _same_ Illumina run identifier. One to fix in the future. 
+
+They can then be used to retrieve FASTQs:
+
+> `sudo -i -u umccr`
+> `conda activate aws`
+> `find . -name *files.sh* -execdir sh {} \;`
+
+The resulting folder structure can be synched to Gadi:
+
+> `rsync -aPL --append-verify --remove-source-files ./ USER@gadi-dm.nci.org.au:/g/data3/gx8/projects/PROJECT/
+
 
 ```{r configbcbio}
 write_subject <- function(subject, summary) {
@@ -250,20 +261,12 @@ for (subject in unique_subjects) {
 }
 ```
 
-### 5. Sync data from Spartan to Raijin
+### 5. Run projects on Raijin
 
-WGS/WTS runs are being processed at Raijin. Collect the required file in one place and rsync over with:
-
-> `find /data/cephfs/punim0010/data/Transfer/raijin/ -name *files.sh* -execdir sh {} \;`
-> `rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/ omh563@r-dm.nci.org.au:/g/data3/gx8/projects/Hofmann_Workflow`
-> `find /data/cephfs/punim0010/data/Transfer/raijin/* -type d -empty -delete`
-
-### 6. Run projects on Raijin
-
-Raijin now has a `config_bcbio.sh` script in `/g/data/gx8/projects/std_workflow`. For now, the target path is hardcoded into the script, so I recommend copying it over to where data was rsync'd over from Spartan and editing the path accordingly. In brief, `config_bcbio.sh` will:
+Raijin now has a `config_bcbio_wts.sh` script in `/g/data/gx8/projects/std_workflow/scripts`. For now, the target path is hardcoded into the script, so I recommend copying it over to where data was rsync'd over from Spartan and editing the path accordingly. In brief, `config_bcbio_wts.sh` will:
 
 * find all sample directories in the configured parent directory
-* copy the `merge.sh` script from `std_workflow` over and adjust it for each batch
+* copy the `merge_wts.sh` script from `std_workflow` over and adjust it for each batch
 * trigger the sample merging and generate the revised sample sheet
 * configure a bcbio run using the revised (merged) sample sheet 
 

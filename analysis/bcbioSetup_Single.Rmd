@@ -1,5 +1,5 @@
 ---
-title: "UMCCR bcbio single patient config"
+title: "UMCCR bcbio single patient WGS config for data stored on Spartan S3"
 author: "Oliver Hofmann"
 date: "`r Sys.Date()`"
 output:
@@ -37,7 +37,7 @@ This currently requires specifying a 'secondary use' field in the LIMS. Set the 
 The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
 
 ```{r project}
-SECONDARY <- 'wgs_143'
+SECONDARY <- 'chord'
 
 # Do not change
 TYPE <- 'WGS'
@@ -222,6 +222,17 @@ Generate a file with pointers to the sample FASTQs and their preferred new names
 
 > `scp -r BATCHFILES spartan:/data/cephfs/punim0010/data/Transfer/raijin/`
 
+They can then be used to retrieve FASTQs:
+
+> `sudo -i -u umccr`
+> `conda activate aws`
+> `find . -name *files.sh* -execdir sh {} \;`
+
+The resulting folder structure can be synched to Gadi:
+
+> `rsync -aPL --append-verify --remove-source-files ./ USER@gadi-dm.nci.org.au:/g/data3/gx8/projects/PROJECT/
+
+
 ```{r perBatch}
 write_subject <- function(complete, summary) {
   
@@ -321,5 +332,18 @@ for (subject in complete_subjects) {
 ```
 
 
+### 6. Run projects on Raijin
 
+Raijin now has a `config_bcbio.sh` script in `/g/data/gx8/projects/std_workflow/scripts`. For now, the target path is hardcoded into the script, so I recommend copying it over to where data was rsync'd over from Spartan and editing the path accordingly. In brief, `config_bcbio.sh` will:
+
+* find all sample directories in the configured parent directory
+* copy the `merge.sh` script from `std_workflow` over and adjust it for each batch
+* trigger the sample merging and generate the revised sample sheet
+* configure a bcbio run using the revised (merged) sample sheet 
+
+All that's left is then to kick off the actual runs:
+
+> `find /g/data/gx8/projects/Hofmann_Test/ -name run.sh -execdir qsub {} \;`
+
+For FFPE sample use the `config_bcbio_ffpe.sh` script in the same folder. 
 
