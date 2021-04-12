@@ -30,19 +30,21 @@ library(purrr)
 
 ## Introduction
 
-Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in. This version differs from the `bcbioSetup.Rmd` in that it is meant for _single_ patient samples only, i.e., samples are only batched for individual patients not across a whole project. This should be the default approach.
+Code snippets to generate file summaries (for rsync'ing around) and bcbio sample summaries based on a [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1DwvyfVrgr5TIcYtGVXZeIWWRbld-nuX-4o4z2kZHNWs/edit#gid=0), aka the dreadful LIMS stand-in. This version is meant for _single_ patient WTS samples only, i.e., samples are only batched for individual patients not across a whole project. This should be the default approach.
 
 ### 1. Setting up project information
 
-This currently requires specifying a 'secondary use' field in the LIMS. Set the "secondary" analysis flag in the code snippet below to match the `secondary use` LIMS field used to highlight samples that need to be processed, regardless of processing status. Any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE` (WGS for this script). 
+This currently requires specifying a 'secondary use' field in the LIMS. Set the "secondary" analysis flag in the code snippet below to match the `secondary use` LIMS field used to highlight samples that need to be processed, regardless of processing status. Any sample with the matching `SECONDARY` entry in the `secondary analysis` column of the spreadsheet will be added as long as it is of the right `TYPE` (WTS for this script). 
 
 The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
 
+
+
 ```{r project}
-SECONDARY <- 'wgs_40'
+SECONDARY <- 'wts_40'
 
 # Do not change
-TYPE <- 'WGS'
+TYPE <- 'WTS'
 PROJECT <- 'All'
 ```
 
@@ -85,7 +87,7 @@ samples <- samples %>%
 
 Find all samples that either are part of the listed project and still need to be processed, or for which the `secondary flag` matches. Convert different sample naming conventions used throughout into a unified representation.
 
-**Note:** This script relies on internal identifiers (a tuple of `subject_id`, `sample_id` and `library_id`). Where those are missing the script tries to replace them with the equivalent external identifier, or `missing` in the case of `library_id`. This works except for top-ups or where tumor/normal pairings do not share the same internal identifiers. Please make sure older samples have the appropriate internal identifiers set in the LIMS for these use cases. 
+**Note:** This script relies on internal identifiers (a tuple of `subject_id`, `sample_id` and `library_id`). Where those are missing the script tries to replace them with the equivalent external identifier, or `missing` in the case of `library_id`. This works except for top-ups. If you need top-up samples to be merged make sure older samples have the appropriate internal identifiers set in the LIMS. 
 
 ```{r subsetSamples}
 # Keep rows matching project and type requested; extract path to FASTQ
@@ -109,15 +111,12 @@ bcbio <- samples %>%
   separate(illumina_id, c('tmpA', 'machine', 'tmpB', 'tmpC'), sep='_') %>%
   select(-tmpA, -tmpB, -tmpC)
 
+
 # Add a 'target' name: what FASTQs are to be called after retrieval from S3
 bcbio <- bcbio %>%
-  mutate(targetname = paste(runname, subject_id, sample_id, library_id, sep='_')) %>%
+  mutate(targetname = paste(runname, subject_id, sample_id, library_id, sep = '_')) %>%
   mutate(targetname = str_replace_all(targetname, '-', '_')) 
 
-# Adding a sample 'description' column used to name the sample within bcbio.
-# The description is now a tuple of (subject, sample, library) which should ensure topups
-# are handled properly. 
-#
 # Also look up gds key
 bcbio <- bcbio %>%
   mutate(description = paste(subject_id, sample_id, library_id, sep='_')) %>%
@@ -126,107 +125,9 @@ bcbio <- bcbio %>%
   mutate(gds_key = paste(sample_id, library_id, sep='_'))
 ```
 
+### 4. Generating bcbio csv templates
 
-### 4. Group samples
-
-Assigning patient/family identifiers for Peddy, assigning batches based on the subject id, and pairing tumor/normals as needed. Samples with the exact same name (but from different runs) are expected to be top-ups and will subsequently be merged using `bcbio_prepare_samples.py`. Finally, remove samples for which we do not have a matched normal.
-
-**Note:** This will likely fail for patients where we have multiple normals that are _not_ top-ups. Might have to handle these cases manually or pick one representative normal.
-
-```{r assignBatches}
-# Handle cases where a normal matches more than one tumor sample.
-# Courtesy of [Peter Diakumis](https://github.com/pdiakumis)
-get_new_batch <- function(batch, phenotype) {
-  stopifnot(length(batch) == length(phenotype))
-  n <- length(batch)
-
-  new_batch <- vector(mode = "character", length = n)
-  x <- table(phenotype)
-
-  if (n > 2) {
-    tum_ns <- seq_len(x["tumor"])
-    new_batch[phenotype == "tumor"] <- paste0(batch[phenotype == "tumor"], '_', tum_ns)
-    # assume only one normal for now
-    new_batch[phenotype == "normal"] <- paste0(batch[phenotype == "tumor"], '_', tum_ns, collapse = ";")
-  } else {
-    new_batch <- batch
-  }
-  return(new_batch)
-}
-
-# Generating the bcbio YAML template. Again, after run 107 use the SampleName instead
-# of SampleID to label things. Keep the required columns and add information for peddy
-#
-# Remove top-up samples (samples with the exact same description) before calculating
-# batch assignments. We'll add them back in later. This assumes topups are consistently
-# flagged with a `_topup` suffix
-#
-template <- bcbio %>% 
-  mutate(family_id = subject_id) %>%
-  mutate(individual_id = subject_id) %>%
-  select(samplename = targetname,
-         description,
-         batch = subject_id,
-         source,
-         phenotype, family_id, individual_id, row_id,
-         external_subject_id,
-         external_sample_id,
-         external_sample_name = sample_name,
-         gds_key,
-         project_name,
-         )
-
-# Only keep one sample row for samples that _do_ have topups
-unique_samples <- template %>%
-  select(-row_id) %>%
-  group_by(description) %>%
-  filter(row_number(description) == 1)
-
-# Identify batches for which we have both tumor and tumor samples
-# Well. Technically just testing that we have two distinct phenotypes.
-# Could be made more specific (e.g., by ensuring that 'normal' is
-# present).
-complete_subjects <- template %>%
-  group_by(individual_id, batch) %>%
-  summarise(phenotype_count = n_distinct(phenotype)) %>%
-  filter(phenotype_count >= 2) %>%
-  select(individual_id)
-
-complete_subjects <- as.vector(complete_subjects$individual_id)
-
-# Create batch information
-batches <- unique_samples %>%
-  group_by(batch) %>%
-  mutate(new_batch = get_new_batch(batch, phenotype)) 
-
-# Bring back the batch information to the main template
-template <- template %>%
-  left_join(batches, by = c('description')) %>%
-  select(samplename = samplename.x,
-         description,
-         batch = new_batch,
-         phenotype = phenotype.x,
-         family_id = family_id.x,
-         individual_id = individual_id.x,
-         source = source.x,
-         external_subject_id = external_subject_id.x,
-         external_sample_id = external_sample_id.x,
-         external_sample_name = external_sample_name.x,
-         gds_key = gds_key.x,
-         project_name = project_name.x,
-         row_id) 
-
-# Useful when we need non-paired samples
-# complete_subjects <- unique(as.vector(template$individual_id))
-
-# Only retain samples that fulfill the 'complete batch' requirement
-template <- template %>%
-  filter(individual_id %in% complete_subjects)
-```
-
-### 5. Generating bcbio csv templates on a per-subject basis:
-
-Generate a file with pointers to the sample FASTQs and their preferred new names as well as a sample descriptor (`.csv`) for bcbio to use as part of it's templating approach. The resulting directory structure can be copied to Gadi, e.g.:
+This step is relatively easy for WTS samples since we do not have to worry about batches, tumor/normal etc. Generate a file with pointers to the sample FASTQs and their preferred new names as well as a sample descriptor (`.csv`) for bcbio to use as part of it's templating approach. The resulting directory structure can be copied to Gadi, e.g.:
 
 > `scp -r BATCHFILES USER@gadi-dm.nci.org.au:/g/data3/gx8/projects/PROJECT/`
 
@@ -265,18 +166,20 @@ illumina_ids <- unique(bcbio$runname)
 gds_info <- bind_rows(lapply(illumina_ids, get_GDS_Path))
 ```
 
-```{r perBatch, eval=TRUE}
-write_subject <- function(complete, summary) {
 
-  # Create a unique project name
-  subject_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_', complete)
+```{r configbcbio}
+write_subject <- function(subject, summary) {
+
+    # Create a unique project name
+  subject_name <- paste0(timestamp, '_', PROJECT, '_', TYPE, '_', subject)
 
   # Set up the project directory
-  dir.create(here::here('output', subject_name, 'data'), showWarnings=FALSE, recursive=TRUE)
-
+  dir.create(here::here('output', subject_name, 'data'), 
+             showWarnings = FALSE, recursive = TRUE)
+     
   # Subset to one individual
   summary <- summary %>%
-    filter(individual_id == complete)
+    filter(individual_id == subject)
 
   # Find samples in GDS summary
   gds_subset <- gds_info %>%
@@ -284,7 +187,7 @@ write_subject <- function(complete, summary) {
   
   # Find corresponding entries in the Google-Lims
   bcbio_subset <- bcbio %>%
-    filter(row_id %in% summary$row_id)
+     filter(row_id %in% summary$row_id)
 
   # Create a file list ready for linking
   gds_link <- bcbio_subset %>%
@@ -311,15 +214,6 @@ write_subject <- function(complete, summary) {
                 '# Adjust path to include ICA',
                 'export PATH=/g/data/gx8/local/production/bin:/g/data3/gx8/local/production/bcbio/anaconda/bin:/opt/bin:/bin:/usr/bin:/opt/pbs/default/bin:/g/data/gx8/extras/iap/'),
               file_handle)
-
-  # ICA download requires files to be present - `touch` will do
-#  write.table(paste('touch', gds_link$to),
-#              file = here::here('output', subject_name, 'data', 
-#                                paste0(subject_name, '_files.sh')),
-##              col.names = FALSE,
-#              row.names = FALSE,
-#              quote = FALSE,
-#              append = TRUE)
 
   # The actual file download
   write.table(paste('ica files download', gds_link$from, 
@@ -351,19 +245,38 @@ write_subject <- function(complete, summary) {
   
 }
 
-for (subject in complete_subjects) {
+# Create a bcbio template and rename columns for the YAML 
+template <- bcbio %>%
+  mutate(family_id = subject_id) %>%
+  mutate(individual_id = subject_id) %>%
+  mutate(run = paste('run', run, sep = '_')) %>%
+  select(samplename = targetname,
+         description,
+         batch = subject_id,
+         source,
+         external_phenotype = phenotype, 
+         family_id, individual_id, row_id,
+         external_subject_id,
+         external_sample_id,
+         external_sample_name = sample_name,
+         project_name,
+         gds_key,
+         run)
+
+# Group by subject
+unique_subjects <- as.vector(unique(template$individual_id))
+
+for (subject in unique_subjects) {
   write_subject(subject, template)
 }
 ```
 
+### 5. Run projects on Raijin
 
-
-### 6. Run projects on Raijin
-
-Raijin now has a `config_bcbio.sh` script in `/g/data/gx8/projects/std_workflow/scripts`. For now, the target path is hardcoded into the script, so I recommend copying it over to where data was rsync'd over from Spartan and editing the path accordingly. In brief, `config_bcbio.sh` will:
+Raijin now has a `config_bcbio_wts.sh` script in `/g/data/gx8/projects/std_workflow/scripts`. For now, the target path is hardcoded into the script, so I recommend copying it over to where data was rsync'd over from Spartan and editing the path accordingly. In brief, `config_bcbio_wts.sh` will:
 
 * find all sample directories in the configured parent directory
-* copy the `merge.sh` script from `std_workflow` over and adjust it for each batch
+* copy the `merge_wts.sh` script from `std_workflow` over and adjust it for each batch
 * trigger the sample merging and generate the revised sample sheet
 * configure a bcbio run using the revised (merged) sample sheet 
 
@@ -371,6 +284,9 @@ All that's left is then to kick off the actual runs:
 
 > `find /g/data/gx8/projects/Hofmann_Test/ -name run.sh -execdir qsub {} \;`
 
-For FFPE sample use the `config_bcbio_ffpe.sh` script in the same folder. 
+
+
+
+
 
 
