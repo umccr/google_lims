@@ -39,7 +39,7 @@ This currently requires specifying a 'secondary use' field in the LIMS. Set the 
 The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
 
 ```{r project}
-SECONDARY <- 'wgs_40'
+SECONDARY <- 'wgs_42'
 
 # Do not change
 TYPE <- 'WGS'
@@ -323,7 +323,7 @@ write_subject <- function(complete, summary) {
 
   # The actual file download
   write.table(paste('ica files download', gds_link$from, 
-                    paste('./', gds_link$to, sep='')),
+                    paste('./', gds_link$to, ' 2>&1 > /dev/null', sep='')),
               file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
               col.names = FALSE,
               row.names = FALSE,

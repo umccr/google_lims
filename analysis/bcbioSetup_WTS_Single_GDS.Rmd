@@ -41,7 +41,7 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 
 ```{r project}
-SECONDARY <- 'wts_40'
+SECONDARY <- 'wts_42'
 
 # Do not change
 TYPE <- 'WTS'
@@ -217,7 +217,7 @@ write_subject <- function(subject, summary) {
 
   # The actual file download
   write.table(paste('ica files download', gds_link$from, 
-                    paste('./', gds_link$to, sep='')),
+                    paste('./', gds_link$to, ' 2>&1 > /dev/null', sep='')),
               file = here::here('output', subject_name, 'data', paste0(subject_name, '_files.sh')),
               col.names = FALSE,
               row.names = FALSE,
