@@ -2,77 +2,35 @@
 
 ## 1. Create config files for the samples to be run
 
-We are using two standard approaches to set up bcbio on Gadi:
+We are using two standard approaches to fetch data from ICA's GDS store and set up `bcbio` runs on Gadi:
 
-* If this is for single patients, follow the [bcbioSetup_Single Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_Single.Rmd)
-* If this is for WTS, follow the [bcbioSetup_WTS_Single Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_WTS_Single.Rmd)
+* If this is for single patients, follow the [bcbioSetup_Single_GDS.Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_Single_GDS.Rmd)
+* If this is for WTS, follow the [bcbioSetup_WTS_Single_GDS.Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_WTS_Single_GDS.Rmd)
 
-For batch runs (e.g., research cohorts) there is also a generic [bcbio Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup.Rmd) which likely needs revisions at this point as it has not been used for a while. We also have an experimental [bcbio UMI Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_Single_UMI.Rmd) which is not meant for production use until we have standardized how UMI FASTQs are generated on NovaStore or IAP. 
+The repository contains additional driver scripts that fetch data from Spartan S3, run batches (e.g., research cohorts) or support UMIs but these are not meant for production. 
 
-Each of these workflows should result in three files: `TIMESTAMP_PROJECT.csv`, `TIMESTAMP_PROJECT.sh` file and a `project_name.txt` per subject folder.
+The scripts themselves have documentation and should be self-explanatory. They are best run in RStudio after installing the required packages and confirming access to our portal (i.e., working AWS production credentials). Running one of these these workflows should result in a subject folder per subject processed with three files in a `data` folder: `TIMESTAMP_PROJECT.csv`, `TIMESTAMP_PROJECT.sh` file and a `project_name.txt`.
 
-## 2. Running the samples
 
-### 2a. Using Spartan
-
-**Note:** Spartan use has not been tested for a while. Limit to Gadi where possible.
-
-If this is for **testing**, follow these guidelines to run the samples on **Spartan**. Note that the versions of bcbio and umccrise may be out of date on Spartan and subsequently superseded (check with `umccrise --version` and `bcbio_nextgen.py -v`).
+## 2. Copying config files to Gadi
 
 ```
-$ scp -r TIMESTAMP_PROJECT* yourUserName@spartan.hpc.unimelb.edu.au:/data/cephfs/punim0010/projects/PROJECTDIR
-$ sh TIMESTAMP_PROJECT_files.txt
-$ cp /data/cephfs/punim0010/projects/std_workflow/merge.sh .  
-$ vi merge.sh
-$ sbatch merge.sh  
-$ mv *-merged.csv ..; cd ..  
-$ export PATH=/data/projects/punim0010/local/stable/bin:$PATH  
-$ bcbio_nextgen.py -w template ../../std_workflow/std_workflow_cancer.yaml 2019-05-15T0319_Avner_WGS-merged.csv data/merged/*.gz  
-$ cp ../../std_workflow/run.sh 2019-05-15T0319_Avner_WGS-merged/work; cd 2019-05-15T0319_Avner_WGS-merged/work  
-$ vi run.sh  
-$ sbatch run.sh  
-$ less +F log/bcbio-nextgen-debug.log  
-$ export PATH=/data/projects/punim0010/local/stable/bin:$PATH  
-$ sbatch run.sh 
+scp -r ./TIMESTAMP* yourUserName@gadi-dm.nci.org.au:/g/data3/gx8/projects/LASTNAME_PROJECT/
 ```
 
-Point `umccrise` at the `final` directory: 
+You may have to create the `LASTNAME_PROJECT` folder on Gadi first.
 
-``` 
-$ source /data/cephfs/punim0010/extras/umccrise/load_umccrise.sh  
-$ export AWS_PROFILE=umccr  
-$ umccrise . -j 16 --cluster-auto  
-```
+## 3. Staging the input files
 
-### 2b Gadi
-
-Copy the folders created to spartan and update group read permissions.
+Log into Gadi and `cd` into the new project directory. Make sure you have active ICA credentials, e.g., via `ica login && ica projects enter production` and submit the driver scripts that will download the FASTQs from GDS:
 
 ```
-$ scp -r TIMESTAMP_PROJECT/ yourUserName@spartan.hpc.unimelb.edu.au:/data/cephfs/punim0010/data/Transfer/raijin/
-$ chmod g+w -R TIMESTAMP_PROJECT/
+find ./TIMESTAMP* -name "*_files.sh" -execdir qsub {} \;
 ```
 
-(Note it may be preferable to upload the folders into a new directory created within that location, if multiple users are using the directory simultaneously).
+## 4. Configuring the run 
 
-Log into Spartan, change to `umccr` user and activate aws conda environment:
-
-```
-$ sudo -i -u umccr
-$ cd /data/cephfs/punim0010/data/Transfer/raijin/
-$ conda activate aws
-$ find /data/cephfs/punim0010/data/Transfer/raijin/ -name *files.sh* -execdir sh {} \;
-```
-
-Copy `TIMESTAMP_PROJECT/` to Gadi
-
-```
-$ rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/TIMESTAMP_PROJECT/ yourUserName@gadi-dm.nci.org.au:/g/data3/gx8/projects/TIMESTAMP_PROJECT
-```
-
-**Log into Gadi.**
-
-Change into the new project directory created in the last step and copy over the relevant configuration file:
+Once data has finished downloading copy over the relevant configuration file:
 
 * for WGS `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio.sh .`
 * for WTS `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio_wts.sh .`
@@ -86,16 +44,16 @@ The `scripts` folder has additional drivers that can be used as needed, e.g., fo
 This will set up the folder structure, merge input files (in the case of top-ups) and create run scripts which can be submitted with:
 
 ```
-$ find ./2020* -name run.sh -and -not -path "*/data/*" -execdir qsub {} \;
+$ find ./TIMESTAMP* -name run.sh -and -not -path "*/data/*" -execdir qsub {} \;
 ```
 
 The output can be monitored with:
 
 ```
-$ watch -d -n 300 'find 2020*/ -maxdepth 4 -name bcbio-nextgen-debug.log -path "*/log/*" -and -not -path "*/data/*" -and -not -path "*/bcbiotx/*" 2>/dev/null | xargs tail -n 2'
+$ watch -d -n 300 'find TIMESTAMP*/ -maxdepth 4 -name bcbio-nextgen-debug.log -path "*/log/*" -and -not -path "*/data/*" -and -not -path "*/bcbiotx/*" 2>/dev/null | xargs tail -n 2'
 ```
 
-## Post-processing WTS
+## 5. Post-processing WTS
 
 All WGS post-processing happens on AWS but for WTS we need to generate Arriba fusion plots outside of bcbio. This step is quite manual and should probably be added to the WTS workflow itself but for now:
 
@@ -104,7 +62,7 @@ All WGS post-processing happens on AWS but for WTS we need to generate Arriba fu
 * start an interactive instance (`qsub -I -P gx8 -q normal -l walltime=12:00:00,ncpus=24,wd,mem=128G,jobfs=100GB,storage=scratch/gx8+gdata/gx8`) and run the `draw_fusions_hg38.sh` script
 
 
-## Organise results & upload to S3
+## 6. Organise results & upload to S3
 
 After the runs finish successfully (a few hours for WTS, about 24-30h for WGS) data can be moved to AWS S3. Start by organizing results into the required folder structure by copying a helper script into the project directory:
 
@@ -117,7 +75,6 @@ Again, adjust `PROJECT` in the first line of the script and run it; results shou
 * for WGS `cp /g/data3/gx8/projects/std_workflow/scripts/upload_s3.sh .`
 * for WTS `cp /g/data3/gx8/projects/std_workflow/scripts/upload_s3_wts.sh .`
 
-
 As per usual change the `PROJECT` name in the first script line, then run the script. It should iterate over project folders and samples in S3, upload them to AWS, then kick off `umccrise` in the case of WGS samples. The `#biobots` channel on Slack tracks the `umccrise` progress. 
 
 After all of this completes successfully there's some housekeeping to do:
@@ -127,4 +84,41 @@ After all of this completes successfully there's some housekeeping to do:
 * Let Wing-Yee know that the run completed (e.g., in Slack's `#medical-genomics` channel)
 
 
+## Using Spartan
+
+Samples processed before 2021 are not available on GDS but reside on an S3-compatible object store on Spartan. For the time being current samples are _also_ copied to the same store. This means for samples that need access to older FASTQs - for example, to re-use a previously sequenced normal sample - data can be staged from Spartan.
+
+For this to work please use
+
+* [bcbioSetup_Single.Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_Single.Rmd) for WGS
+* [bcbioSetup_WTS_Single.Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_WTS_Single.Rmd) for WTS
+
+Instead of copying the result folders to Gadi copy them to Spartan:
+
+```
+scp -r TIMESTAMP* yourUserName@spartan.hpc.unimelb.edu.au:/data/cephfs/punim0010/data/Transfer/raijin/
+```
+
+Then log into Spartan and update group read permissions.
+
+```
+chmod g+w -R TIMESTAMP*
+```
+
+Change to `umccr` user, activate a new aws conda environment and start the download:
+
+```
+sudo -i -u umccr
+cd /data/cephfs/punim0010/data/Transfer/raijin/
+conda activate aws
+find /data/cephfs/punim0010/data/Transfer/raijin/ -name *files.sh* -execdir sh {} \;
+```
+
+Copy `TIMESTAMP*` to Gadi
+
+```
+rsync -aPL --append-verify --remove-source-files /data/cephfs/punim0010/data/Transfer/raijin/TIMESTAMP* yourUserName@gadi-dm.nci.org.au:/g/data3/gx8/projects/LASTNAME_PROJECT
+```
+
+Then resume with step 4 above. 
 
