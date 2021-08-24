@@ -38,10 +38,8 @@ This currently requires specifying a 'secondary use' field in the LIMS. Set the 
 
 The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
 
-
-
 ```{r project}
-SECONDARY <- 'wts_42'
+SECONDARY <- 'wts_58'
 
 # Do not change
 TYPE <- 'WTS'

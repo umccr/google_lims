@@ -39,7 +39,7 @@ The `googledrive` framework requires authentication with oAuth. This can be done
 
 
 ```{r project}
-SECONDARY <- 'wts_32'
+SECONDARY <- 'aidan'
 
 # Do not change
 TYPE <- 'WTS'
@@ -64,6 +64,9 @@ drive_download(as_id(lims_key), path = file.path(backup_dir, filename), overwrit
 
 # Import downloaded spreadsheet (sheet #1) as a tibble
 samples_gs <- read_csv(file.path(backup_dir, filename), col_types = cols(.default = "c", Run = "d"))
+
+# Use this instead to grab data from a local cache as needed
+#samples_gs <- read_csv(file.path('~/Downloads/CUPPA Run Schedule - DataRequest.csv'), col_types = cols(.default = "c", Run = "d"))
 
 # Tweak for analysis
 #

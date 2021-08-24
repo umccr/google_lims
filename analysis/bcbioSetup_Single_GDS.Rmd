@@ -39,7 +39,7 @@ This currently requires specifying a 'secondary use' field in the LIMS. Set the 
 The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
 
 ```{r project}
-SECONDARY <- 'wgs_42'
+SECONDARY <- 'wgs_58'
 
 # Do not change
 TYPE <- 'WGS'
@@ -64,6 +64,8 @@ drive_download(as_id(lims_key), path = file.path(backup_dir, filename), overwrit
 
 # Import downloaded spreadsheet (sheet #1) as a tibble
 samples_gs <- read_csv(file.path(backup_dir, filename), col_types = cols(.default = "c", Run = "d"))
+#samples_gs <- read_csv(file.path('~/Downloads/Google LIMS - Sheet1.csv'), col_types = cols(.default = "c", Run = "d"))
+
 
 # Tweak for analysis
 #
@@ -246,6 +248,7 @@ get_GDS_Path <- function(illumina_id) {
   results <- aws.lambda::invoke_function('data-portal-api-prod-fastq', 
                                          region='ap-southeast-2',
                                          payload=list(locations=list(gds)))
+  print(results)
   
   results <- results %>%
     as_tibble() %>%
@@ -344,7 +347,7 @@ write_subject <- function(complete, summary) {
                quote = FALSE,
                sep = ',')
 
-    # Add project information for re-use on Gadi
+  # Add project information for re-use on Gadi
   project_name <- unique(summary$project_name)
   write_file(project_name,
              here::here('output', subject_name, 'data', 'project_name.txt'))
