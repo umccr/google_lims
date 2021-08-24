@@ -2,15 +2,15 @@
 
 ## 1. Create config files for the samples to be run
 
-We are using two standard approaches to fetch data from ICA's GDS store and set up `bcbio` runs on Gadi:
+We are using different standard approaches to fetch data from ICA's GDS store and set up `bcbio` runs on Gadi:
 
-* If this is for single patients, follow the [bcbioSetup_Single_GDS.Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_Single_GDS.Rmd)
+* If this is for tumor/normal WGS from single patients, follow the [bcbioSetup_Single_GDS.Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_Single_GDS.Rmd)
+* For germline-only runs (mostly validation) we have [bcbioSetup_Single_Germline_GDS.Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_Single_Germline_GDS.Rmd)
 * If this is for WTS, follow the [bcbioSetup_WTS_Single_GDS.Rmd](https://github.com/umccr/google_lims/blob/master/analysis/bcbioSetup_WTS_Single_GDS.Rmd)
 
 The repository contains additional driver scripts that fetch data from Spartan S3, run batches (e.g., research cohorts) or support UMIs but these are not meant for production. 
 
 The scripts themselves have documentation and should be self-explanatory. They are best run in RStudio after installing the required packages and confirming access to our portal (i.e., working AWS production credentials). Running one of these these workflows should result in a subject folder per subject processed with three files in a `data` folder: `TIMESTAMP_PROJECT.csv`, `TIMESTAMP_PROJECT.sh` file and a `project_name.txt`.
-
 
 ## 2. Copying config files to Gadi
 
@@ -34,6 +34,8 @@ Once data has finished downloading copy over the relevant configuration file:
 
 * for WGS `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio.sh .`
 * for WTS `cp /g/data3/gx8/projects/std_workflow/scripts/config_bcbio_wts.sh .`
+
+Please see our [workflow repository](https://github.com/umccr/workflows/tree/master/configurations) for additional information and details.
 
 If a WGS run includes **FFPE* samples it's usually best to move these to a separate project directory and use `config_bcbio_ffpe.sh` to configure these. This results in a reduced workflow set that ensures FFPE samples do not stall and cause delays. 
 
