@@ -37,7 +37,7 @@ This currently requires specifying a 'secondary use' field in the LIMS. Set the 
 The `googledrive` framework requires authentication with oAuth. This can be done interactive, but storing a token simplifies the process; see the [googlesheet authentication vignette](https://rawgit.com/jennybc/googlesheets/master/vignettes/managing-auth-tokens.html) for details. 
 
 ```{r project}
-SECONDARY <- 'germline_comp_a'
+SECONDARY <- 'test'
 
 # Do not change
 TYPE <- 'WGS'
@@ -185,7 +185,7 @@ aws.signature::use_credentials(profile = profile)
 
 get_GDS_Path <- function(illumina_id) {
   
-  gds <- paste('gds://umccr-fastq-data-prod/', illumina_id, sep='')
+  gds <- paste('gds://production/primary_data/', illumina_id, sep='')
   results <- aws.lambda::invoke_function('data-portal-api-prod-fastq', 
                                          region='ap-southeast-2',
                                          payload=list(locations=list(gds)))
